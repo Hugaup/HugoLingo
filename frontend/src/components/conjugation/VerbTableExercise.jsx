@@ -27,11 +27,10 @@ function Setup({ language, onStart }) {
       setAvailTenses(sorted)
       setSelTenses(sorted.slice(0, 3).map(t => `${t.mood}||${t.tense}`))
     }).catch(() => {})
-    setCustomVerbs([]); setCustomQuery('')
   }, [language])
 
   useEffect(() => {
-    if (!customQuery.trim() || mode !== 'custom') { setSuggestions([]); return }
+    if (!customQuery.trim() || mode !== 'custom') return
     const t = setTimeout(() => api.searchVerbs(language, customQuery).then(setSuggestions).catch(() => {}), 280)
     return () => clearTimeout(t)
   }, [customQuery, language, mode])
@@ -123,7 +122,7 @@ function Setup({ language, onStart }) {
               onChange={e => setCustomQuery(e.target.value)}
               placeholder="Type a verb to add…"
             />
-            {suggestions.length > 0 && (
+            {customQuery.trim() && suggestions.length > 0 && (
               <ul style={s.suggestions}>
                 {suggestions.map(v => (
                   <li key={v} style={s.suggItem} onMouseDown={() => addCustomVerb(v)}>{v}</li>

@@ -17,6 +17,8 @@ uvicorn app.main:app --reload
 cd frontend && npm run dev
 ```
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the branching workflow and CI checks.
+
 ## Architecture Overview
 
 ```

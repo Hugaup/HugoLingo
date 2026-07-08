@@ -11,7 +11,6 @@ export default function VerbLookup({ language }) {
   const [allMoods, setAllMoods]     = useState([])
   const [selectedMoods, setSelectedMoods] = useState([])
   const [filterOpen, setFilterOpen] = useState(false)
-  const debounceRef = useRef(null)
   const filterRef   = useRef(null)
 
   useEffect(() => {
@@ -20,15 +19,14 @@ export default function VerbLookup({ language }) {
       const moods = [...new Set(sorted.map(t => t.mood))]
       setAllMoods(moods)
     }).catch(() => {})
-    setQuery(''); setTable(null); setSelectedMoods([])
   }, [language])
 
   useEffect(() => {
-    clearTimeout(debounceRef.current)
-    if (!query.trim()) { setSuggestions([]); return }
-    debounceRef.current = setTimeout(() => {
+    if (!query.trim()) return
+    const t = setTimeout(() => {
       api.searchVerbs(language, query).then(setSuggestions).catch(() => {})
     }, 280)
+    return () => clearTimeout(t)
   }, [query, language])
 
   useEffect(() => {
@@ -69,7 +67,7 @@ export default function VerbLookup({ language }) {
             onKeyDown={e => e.key === 'Enter' && query.trim() && lookup(query.trim())}
             placeholder="Type a verb and press Enter…"
           />
-          {suggestions.length > 0 && (
+          {query.trim() && suggestions.length > 0 && (
             <ul style={s.suggestions}>
               {suggestions.map(v => (
                 <li key={v} style={s.suggestionItem} onMouseDown={() => lookup(v)}>{v}</li>
