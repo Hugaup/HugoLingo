@@ -1,0 +1,41 @@
+services:
+
+  # ── Database ─────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine          # pulls a pre-built image from Docker Hub
+    environment:
+      POSTGRES_DB: language_learning
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # named volume: data survives container restarts
+    ports:
+      - "5433:5432"                      # host:container — use 5433 to avoid clashing with local postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  # ── Backend ───────────────────────────────────────────────────────────────────
+  backend:
+    build: ./backend                   # builds an image from backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/language_learning
+      OLLAMA_URL: http://host.docker.internal:11434   # points to Ollama running on your Mac
+      OLLAMA_MODEL: mistral
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy     # waits until postgres passes its health check
+
+  # ── Frontend ──────────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend                  # multi-stage build → nginx serving static files
+    ports:
+      - "5173:80"                      # keeps the same port you're used to
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:                              # Docker manages this volume on your disk
