@@ -44,7 +44,7 @@ export default function Conjugation() {
               </button>
             </div>
             {learnTab === 'tenses' && <TenseGuide language={language} />}
-            {learnTab === 'lookup' && <VerbLookup language={language} />}
+            {learnTab === 'lookup' && <VerbLookup key={language} language={language} />}
           </div>
         )}
 
@@ -71,7 +71,7 @@ export default function Conjugation() {
                 </div>
               </div>
             )}
-            {testType === 'verb-table' && <VerbTableExercise language={language} onBack={() => setTestType(null)} />}
+            {testType === 'verb-table' && <VerbTableExercise key={language} language={language} onBack={() => setTestType(null)} />}
             {testType === 'sentence'   && <SentenceCompletion language={language} onBack={() => setTestType(null)} />}
           </div>
         )}
