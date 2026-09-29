@@ -1,6 +1,6 @@
 # HugoLingo
 
-A Duolingo-alternative powered by a local LLM (Mistral 7B via Ollama). Supports **French, Spanish, English, Norwegian, and Galician** with verb conjugation practice, grammar correction, and reading comprehension exercises.
+A Duolingo-alternative powered by a local LLM (Qwen2.5 7B via Ollama). Supports **French, Spanish, English, Norwegian, and Galician** with verb conjugation practice, grammar correction, and reading comprehension exercises.
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ A Duolingo-alternative powered by a local LLM (Mistral 7B via Ollama). Supports 
 # Prerequisites
 brew services start postgresql@16
 ollama serve
-ollama pull mistral:7b   # first time only
+ollama pull qwen2.5:7b   # first time only
 
 # Backend (port 8000)
 cd backend && source .venv/bin/activate
@@ -26,7 +26,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the branching workflow and CI checks.
 browser → Vite (:5173) → /api proxy → FastAPI (:8000) → PostgreSQL
                                               ↓
                                         Ollama (:11434)
-                                        Mistral 7B
+                                        Qwen2.5 7B
 ```
 
 All API calls go through `/api` prefix (Vite strips it before forwarding). Ollama is used both to generate exercises and to give feedback on answers.
