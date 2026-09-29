@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-A language learning web app (alternative to Duolingo) powered by a local LLM (Mistral 7B via Ollama). Supports French, Spanish, English, Norwegian, and Galician with three exercise types: verb conjugation, grammar correction, and reading comprehension. Includes a pre-seeded `verb_conjugations` table (1.68M rows) used to validate conjugation answers independently of the LLM.
+A language learning web app (alternative to Duolingo) powered by a local LLM (Qwen2.5 7B via Ollama). Supports French, Spanish, English, Norwegian, and Galician with three exercise types: verb conjugation, grammar correction, and reading comprehension. Includes a pre-seeded `verb_conjugations` table (1.68M rows) used to validate conjugation answers independently of the LLM.
 
 ## Running the app
 
@@ -12,7 +12,7 @@ A language learning web app (alternative to Duolingo) powered by a local LLM (Mi
 ```bash
 brew services start postgresql@16
 ollama serve          # if not already running as a service
-ollama pull mistral:7b   # first time only
+ollama pull qwen2.5:7b   # first time only
 ```
 
 **Backend** (FastAPI, port 8000):
@@ -95,7 +95,7 @@ Backend `.env` (auto-loaded by `config.py`):
 ```
 DATABASE_URL=postgresql+asyncpg://localhost/language_learning
 OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=mistral:7b
+OLLAMA_MODEL=qwen2.5:7b
 ```
 
 ## Frontend styling

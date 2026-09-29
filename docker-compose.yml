@@ -22,7 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/language_learning
       OLLAMA_URL: http://host.docker.internal:11434   # points to Ollama running on your Mac
-      OLLAMA_MODEL: mistral:7b
+      OLLAMA_MODEL: qwen2.5:7b
     ports:
       - "8000:8000"
     depends_on:
