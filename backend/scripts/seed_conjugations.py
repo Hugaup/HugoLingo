@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 import mlconjug3
@@ -145,7 +146,17 @@ async def insert_rows(rows: list[dict]) -> None:
         await session.commit()
 
 
+async def already_seeded() -> bool:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(VerbConjugation.id).limit(1))
+        return result.first() is not None
+
+
 async def main():
+    if await already_seeded():
+        print("verb_conjugations already has data — skipping seed.")
+        return
+
     print("Seeding verb conjugations from mlconjug3 data files...")
     total = 0
     for language, lang_code in LANG_CODES.items():
