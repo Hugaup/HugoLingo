@@ -24,8 +24,8 @@ const TENSE_ORDER_IN_MOOD = {
   spanish: {
     indicativo: [
       'indicativo presente',
-      'indicativo pretérito perfecto simple',
       'indicativo pretérito imperfecto',
+      'indicativo pretérito perfecto simple',
       'indicativo futuro',
       'indicativo pretérito perfecto compuesto',
       'indicativo pretérito pluscuamperfecto',
@@ -35,12 +35,10 @@ const TENSE_ORDER_IN_MOOD = {
     condicional: ['condicional', 'condicional perfecto'],
     subjuntivo: [
       'subjuntivo presente',
-      'subjuntivo pretérito imperfecto (1)',
-      'subjuntivo pretérito imperfecto (2)',
+      'subjuntivo pretérito imperfecto',
       'subjuntivo futuro',
       'subjuntivo pretérito perfecto',
-      'subjuntivo pretérito pluscuamperfecto (1)',
-      'subjuntivo pretérito pluscuamperfecto (2)',
+      'subjuntivo pretérito pluscuamperfecto',
       'subjuntivo futuro perfecto',
     ],
   },
@@ -78,6 +76,96 @@ export function sortTenses(language, tenseList) {
     if (mA !== mB) return mA - mB
     return tenseInMoodIndex(language, a.mood, a.tense) - tenseInMoodIndex(language, b.mood, b.tense)
   })
+}
+
+// Which moods belong under which table section header, in section display order.
+// A mood not listed here (Spanish: gerundio/infinitivo/participio — forms with a
+// single spelling, not conjugated per person) falls into a trailing "Other" section.
+const SECTION_MOODS = {
+  spanish: [
+    ['Indicativo', ['indicativo', 'condicional']],
+    ['Subjuntivo', ['subjuntivo']],
+    ['Imperativo', ['imperativo']],
+  ],
+  french: [
+    ['Indicatif', ['indicatif']],
+    ['Conditionnel', ['conditionnel']],
+    ['Subjonctif', ['subjonctif']],
+    ['Imperatif', ['imperatif']],
+  ],
+  english: [
+    ['Indicative', ['indicative']],
+    ['Imperative', ['imperative']],
+  ],
+}
+
+// Explicit combined ordering for sections that merge multiple moods, to mirror a
+// specific reference layout (Spanish: condicional interleaved into Indicativo,
+// matching scholingua's conjugation trainer) instead of the generic per-mood sort.
+const SECTION_ORDER_OVERRIDE = {
+  spanish: {
+    Indicativo: [
+      'indicativo||indicativo presente',
+      'indicativo||indicativo pretérito imperfecto',
+      'indicativo||indicativo pretérito perfecto simple',
+      'indicativo||indicativo futuro',
+      'condicional||condicional',
+      'indicativo||indicativo pretérito perfecto compuesto',
+      'indicativo||indicativo pretérito pluscuamperfecto',
+      'indicativo||indicativo pretérito anterior',
+      'indicativo||indicativo futuro perfecto',
+      'condicional||condicional perfecto',
+    ],
+  },
+}
+
+// Cosmetic per-tense display-name overrides for cases where the raw DB tense
+// name reads awkwardly (Spanish imperativo's tense field literally repeats the
+// mood name instead of naming the two moods afirmativo/negativo).
+const TENSE_LABEL_OVERRIDES = {
+  spanish: {
+    'imperativo||imperativo': 'afirmativo',
+    'imperativo||imperativo non': 'negativo',
+    // These moods' tense field just repeats the mood name (no " descriptive name"
+    // suffix for displayTenseName to strip), so state the label explicitly instead.
+    'condicional||condicional': 'condicional',
+    'condicional||condicional perfecto': 'condicional perfecto',
+    'gerundio||gerundio': 'gerundio',
+    'infinitivo||infinitivo': 'infinitivo',
+    'participo||participo': 'participio', // DB mood is spelled "Participo"; correct Spanish is "participio"
+  },
+}
+
+export function tenseLabel(language, mood, tense) {
+  const override = TENSE_LABEL_OVERRIDES[language]?.[`${mood.toLowerCase()}||${tense.toLowerCase()}`]
+  return override || displayTenseName(mood, tense)
+}
+
+// Returns [{ section, tenses: [{ mood, tense }] }, ...] grouped into the
+// language's grammatical sections, with non-personal-form moods trailing in "Other".
+export function groupTensesBySection(language, tenseList) {
+  const sectionDefs = SECTION_MOODS[language] || []
+  const sorted = sortTenses(language, tenseList)
+
+  const buckets = sectionDefs.map(([title]) => ({ section: title, tenses: [] }))
+  const other = { section: 'Other', tenses: [] }
+  for (const t of sorted) {
+    const idx = sectionDefs.findIndex(([, moods]) => moods.includes(t.mood.toLowerCase()))
+    ;(idx === -1 ? other : buckets[idx]).tenses.push(t)
+  }
+
+  const overrides = SECTION_ORDER_OVERRIDE[language] || {}
+  for (const bucket of buckets) {
+    const order = overrides[bucket.section]
+    if (!order) continue
+    bucket.tenses.sort((a, b) => {
+      const ia = order.indexOf(`${a.mood.toLowerCase()}||${a.tense.toLowerCase()}`)
+      const ib = order.indexOf(`${b.mood.toLowerCase()}||${b.tense.toLowerCase()}`)
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+    })
+  }
+
+  return other.tenses.length ? [...buckets, other] : buckets
 }
 
 export function sortForms(forms) {

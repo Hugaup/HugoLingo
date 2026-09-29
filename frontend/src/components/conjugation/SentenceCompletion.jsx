@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../api'
 import ChatPanel from './ChatPanel'
-import { sortTenses, displayTenseName } from '../../utils/conjugationUtils'
+import { sortTenses, groupTensesBySection, tenseLabel } from '../../utils/conjugationUtils'
 import CharPicker from './CharPicker'
+import TenseChipSelector from './TenseChipSelector'
 
 const SKIP_MOODS = ['infinitive', 'infinitivo', 'infinitif', 'gerundio', 'participo', 'participe']
 
@@ -24,10 +25,7 @@ function Setup({ language, onStart }) {
     }).catch(() => {})
   }, [language])
 
-  function tenseKey(t) { return `${t.mood}||${t.tense}` }
-
-  function toggleTense(t) {
-    const k = tenseKey(t)
+  function toggleTense(k) {
     setSelTenses(prev => prev.includes(k) ? prev.filter(x => x !== k) : [...prev, k])
   }
 
@@ -62,16 +60,7 @@ function Setup({ language, onStart }) {
 
       <div style={s.field}>
         <label style={s.label}>Tenses to be tested <span style={s.optional}>(default: all)</span></label>
-        <div style={s.chips}>
-          {availTenses.map(t => {
-            const k = tenseKey(t)
-            return (
-              <button key={k} style={selTenses.includes(k) ? {...s.chip,...s.chipOn} : s.chip} onClick={() => toggleTense(t)}>
-                {displayTenseName(t.mood, t.tense)}
-              </button>
-            )
-          })}
-        </div>
+        <TenseChipSelector language={language} tenses={availTenses} selectedKeys={selTenses} onToggle={toggleTense} />
         {selTenses.length > 0 && (
           <button style={s.textBtn} onClick={() => setSelTenses([])}>Clear — use all tenses</button>
         )}
@@ -163,14 +152,18 @@ Answer any follow-up questions clearly with examples.`
             <label style={s.label}>Tense</label>
             <select style={s.select} value={userTense} onChange={e => setUserTense(e.target.value)}>
               <option value="">— Select tense —</option>
-              {availTenses.map(t => {
-                const k = `${t.mood}||${t.tense}`
-                return (
-                  <option key={k} value={k}>
-                    {t.mood} — {displayTenseName(t.mood, t.tense)}
-                  </option>
-                )
-              })}
+              {groupTensesBySection(language, availTenses).map(({ section, tenses }) => (
+                <optgroup key={section} label={section}>
+                  {tenses.map(t => {
+                    const k = `${t.mood}||${t.tense}`
+                    return (
+                      <option key={k} value={k}>
+                        {tenseLabel(language, t.mood, t.tense)}
+                      </option>
+                    )
+                  })}
+                </optgroup>
+              ))}
             </select>
           </div>
           <button style={s.startBtn} onClick={handleCheck} disabled={checking || !userForm.trim() || !userTense}>
@@ -181,7 +174,7 @@ Answer any follow-up questions clearly with examples.`
         <div>
           <div style={{ ...s.resultBanner, background: (result.form_correct && result.tense_correct) ? '#d1fae5' : result.form_correct ? '#fef3c7' : '#fee2e2' }}>
             <span>{result.form_correct ? '✓ Form correct' : `✗ Form incorrect — correct: ${item.correct_form}`}</span>
-            <span style={{ marginLeft: '1rem' }}>{result.tense_correct ? '✓ Tense correct' : `✗ Tense — correct: ${item.mood} — ${displayTenseName(item.mood, item.tense)}`}</span>
+            <span style={{ marginLeft: '1rem' }}>{result.tense_correct ? '✓ Tense correct' : `✗ Tense — correct: ${item.mood} — ${tenseLabel(language, item.mood, item.tense)}`}</span>
           </div>
 
           <div style={{ marginTop: '1rem' }}>

@@ -81,7 +81,7 @@ export default function Conjugation() {
 }
 
 const s = {
-  page: { maxWidth: 760, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'system-ui, sans-serif' },
+  page: { maxWidth: 940, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'system-ui, sans-serif' },
   topBar: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' },
   back: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500, padding: 0, whiteSpace: 'nowrap' },
   title: { fontSize: '1.6rem', fontWeight: 700, margin: 0 },

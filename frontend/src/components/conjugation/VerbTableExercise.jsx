@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../../api'
-import { PERSONS, PERSON_LABELS, sortTenses, displayTenseName, isFormCorrect } from '../../utils/conjugationUtils'
+import { PERSONS, PERSON_LABELS, sortTenses, tenseLabel, isFormCorrect } from '../../utils/conjugationUtils'
 import CharPicker from './CharPicker'
+import TenseChipSelector from './TenseChipSelector'
 
 const VERB_ENDINGS = { french: ['-er', '-ir', '-re'], spanish: ['-ar', '-er', '-ir'], english: [] }
 
@@ -156,16 +157,7 @@ function Setup({ language, onStart }) {
 
       <div style={s.field}>
         <label style={s.label}>Tenses</label>
-        <div style={s.chips}>
-          {availTenses.map(t => {
-            const key = `${t.mood}||${t.tense}`
-            return (
-              <button key={key} style={selTenses.includes(key) ? {...s.chip,...s.chipOn} : s.chip} onClick={() => toggleTense(key)}>
-                {displayTenseName(t.mood, t.tense)}
-              </button>
-            )
-          })}
-        </div>
+        <TenseChipSelector language={language} tenses={availTenses} selectedKeys={selTenses} onToggle={toggleTense} />
       </div>
 
       {error && <p style={s.error}>{error}</p>}
@@ -188,7 +180,9 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
         for (const [tense, forms] of Object.entries(tenses)) {
           if (!tenseKeys.has(`${mood.toLowerCase()}||${tense.toLowerCase()}`)) continue
           for (const { person, form, alternates = [] } of forms) {
-            if (!subjects.includes(person)) continue
+            // Non-personal forms (gerundio, infinitivo, participio — person "—")
+            // don't vary by subject, so the Subjects filter doesn't apply to them.
+            if (person !== '—' && !subjects.includes(person)) continue
             list.push({ verb: vt.infinitive, mood, tense, person, correct: form, alternates })
           }
         }
@@ -238,9 +232,9 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
       {!submitted && <CharPicker language={language} style={s.charPicker} />}
 
       {verbs.map(verb => {
-        // Sort persons in canonical order
+        // Sort persons in canonical order; non-personal forms ("—") sort last
         const verbPersonSet = new Set(cells.filter(c => c.verb === verb).map(c => c.person))
-        const verbPersons = PERSONS.filter(p => verbPersonSet.has(p))
+        const verbPersons = [...PERSONS.filter(p => verbPersonSet.has(p)), ...(verbPersonSet.has('—') ? ['—'] : [])]
         return (
           <div key={verb} style={s.verbBlock}>
             <h4 style={s.verbTitle}>{verb}</h4>
@@ -251,7 +245,7 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
                     <th style={s.th}></th>
                     {tenseCols.map(tc => (
                       <th key={`${tc.mood}||${tc.tense}`} style={s.th}>
-                        {displayTenseName(tc.mood, tc.tense)}
+                        {tenseLabel(language, tc.mood, tc.tense)}
                       </th>
                     ))}
                   </tr>

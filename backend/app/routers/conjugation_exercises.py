@@ -14,7 +14,7 @@ from app.schemas import (
 )
 from app.services.llm import llm_client
 from app.services.exercise_gen import LANGUAGE_NAMES
-from app.services.conjugation_utils import resolve_compound_form
+from app.services.conjugation_utils import resolve_compound_form, canonical_tense, variant_tense_names
 
 router = APIRouter(prefix="/conjugation-exercises", tags=["conjugation-exercises"])
 
@@ -25,10 +25,21 @@ _ALTERNATES: dict[str, list[str]] = {
 }
 
 
-def _forms_match(user: str, correct: str) -> bool:
+def _sibling_variant_tense(tense: str) -> str | None:
+    """The other "(1)"/"(2)" spelling-variant tense name, if `tense` is one."""
+    if tense.endswith(" (1)"):
+        return tense[:-4] + " (2)"
+    if tense.endswith(" (2)"):
+        return tense[:-4] + " (1)"
+    return None
+
+
+def _forms_match(user: str, correct: str, alternates: list[str] | None = None) -> bool:
     u = user.strip().lower()
     c = correct.strip().lower()
-    return u == c or u in _ALTERNATES.get(c, [])
+    if u == c or u in _ALTERNATES.get(c, []):
+        return True
+    return bool(alternates) and u in [a.strip().lower() for a in alternates]
 
 
 PERSON_DESC = {
@@ -59,7 +70,9 @@ async def generate_sentences(req: SentenceGenerateRequest, db: AsyncSession = De
             tense_conditions = [
                 and_(
                     func.lower(VerbConjugation.mood) == t.mood.lower(),
-                    func.lower(VerbConjugation.tense) == t.tense.lower(),
+                    func.lower(VerbConjugation.tense).in_(
+                        [v.lower() for v in variant_tense_names(t.tense)]
+                    ),
                 )
                 for t in req.tenses
             ]
@@ -73,6 +86,26 @@ async def generate_sentences(req: SentenceGenerateRequest, db: AsyncSession = De
         lang_name = LANGUAGE_NAMES[req.language]
         person_desc = PERSON_DESC.get(row.person, row.person)
         correct_form = await resolve_compound_form(db, req.language, row.tense, row.person, row.form)
+
+        # If this row is a "(1)"/"(2)" spelling-variant tense (e.g. Subjuntivo
+        # pretérito imperfecto: hablara/hablase), also accept the sibling spelling.
+        alternates: list[str] = []
+        sibling_tense = _sibling_variant_tense(row.tense)
+        if sibling_tense:
+            sib_result = await db.execute(
+                select(VerbConjugation).where(
+                    VerbConjugation.language == req.language,
+                    VerbConjugation.verb_infinitive == row.verb_infinitive,
+                    VerbConjugation.mood == row.mood,
+                    func.lower(VerbConjugation.tense) == sibling_tense.lower(),
+                    VerbConjugation.person == row.person,
+                )
+            )
+            sib_row = sib_result.scalar_one_or_none()
+            if sib_row:
+                sib_form = await resolve_compound_form(db, req.language, sib_row.tense, sib_row.person, sib_row.form)
+                if sib_form.lower() != correct_form.lower():
+                    alternates.append(sib_form)
 
         messages = [
             {
@@ -105,9 +138,10 @@ async def generate_sentences(req: SentenceGenerateRequest, db: AsyncSession = De
                     subject_hint=subject_hint,
                     verb_infinitive=row.verb_infinitive,
                     mood=row.mood,
-                    tense=row.tense,
+                    tense=canonical_tense(row.tense),
                     person=row.person,
                     correct_form=correct_form,
+                    alternates=alternates,
                 )
             )
         except (json.JSONDecodeError, KeyError, httpx.HTTPStatusError, httpx.RequestError):
@@ -121,7 +155,7 @@ async def generate_sentences(req: SentenceGenerateRequest, db: AsyncSession = De
 
 @router.post("/sentence/check", response_model=SentenceCheckResponse)
 async def check_sentence(req: SentenceCheckRequest):
-    form_correct = _forms_match(req.user_form, req.item.correct_form)
+    form_correct = _forms_match(req.user_form, req.item.correct_form, req.item.alternates)
     tense_correct = (
         req.user_mood.lower() == req.item.mood.lower()
         and req.user_tense.lower() == req.item.tense.lower()

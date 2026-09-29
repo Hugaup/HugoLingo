@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../../api'
-import { PERSON_LABELS, sortedTable, sortTenses, displayTenseName } from '../../utils/conjugationUtils'
+import { PERSON_LABELS, sortedTable, sortTenses, tenseLabel } from '../../utils/conjugationUtils'
 
 export default function VerbLookup({ language }) {
   const [query, setQuery]           = useState('')
@@ -112,14 +112,17 @@ export default function VerbLookup({ language }) {
               <div style={s.tenseGrid}>
                 {tenses.map(({ tense, forms }) => (
                   <div key={tense} style={s.tenseBlock}>
-                    <p style={s.tenseLabel}>{displayTenseName(mood, tense)}</p>
+                    <p style={s.tenseLabel}>{tenseLabel(language, mood, tense)}</p>
                     <table style={s.conjTable}>
                       <tbody>
                         {forms.map(({ person, form, alternates = [] }) => (
                           <tr key={person}>
                             <td style={s.personCell}>{labels[person] || person}</td>
                             <td style={s.formCell}>
-                              {[form, ...alternates].join(' / ')}
+                              <div>{form}</div>
+                              {alternates.map(alt => (
+                                <div key={alt} style={s.altForm}>/ {alt}</div>
+                              ))}
                             </td>
                           </tr>
                         ))}
@@ -152,10 +155,11 @@ const s = {
   infinitiveTitle: { fontSize: '1.4rem', fontWeight: 700, marginBottom: '1rem', color: '#1e1b4b' },
   moodBlock: { marginBottom: '1.5rem' },
   moodTitle: { fontSize: '1rem', fontWeight: 700, color: '#4f46e5', borderBottom: '2px solid #e0e7ff', paddingBottom: '0.25rem', marginBottom: '0.75rem' },
-  tenseGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem' },
+  tenseGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.75rem' },
   tenseBlock: { background: '#f8f9fa', borderRadius: 8, padding: '0.75rem' },
   tenseLabel: { margin: '0 0 0.5rem', fontWeight: 600, fontSize: '0.8rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' },
   conjTable: { borderCollapse: 'collapse', width: '100%' },
-  personCell: { fontSize: '0.8rem', color: '#9ca3af', paddingRight: '0.5rem', whiteSpace: 'nowrap' },
-  formCell: { fontSize: '0.92rem', color: '#111', fontWeight: 500 },
+  personCell: { fontSize: '0.8rem', color: '#9ca3af', paddingRight: '0.5rem', paddingTop: '0.3rem', whiteSpace: 'nowrap', verticalAlign: 'top' },
+  formCell: { fontSize: '0.92rem', color: '#111', fontWeight: 500, paddingTop: '0.3rem', lineHeight: 1.35 },
+  altForm: { fontSize: '0.82rem', color: '#6b7280', fontWeight: 400 },
 }
