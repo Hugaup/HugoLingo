@@ -35,6 +35,63 @@ IRREGULAR_VERBS: dict[Language, set[str]] = {
     },
 }
 
+# A curated pool of everyday verbs a learner would actually recognize. Used to
+# keep LLM-generated sentence-completion exercises (conjugation_exercises.py)
+# away from the seed data's long tail of rare/obscure/dialectal verbs — a fully
+# random pick from the ~9-10k verb table can land on something like Spanish's
+# "engatuñarse", which even a capable model struggles to use naturally.
+COMMON_VERBS: dict[Language, set[str]] = {
+    Language.spanish: {
+        "ser", "estar", "tener", "hacer", "poder", "decir", "ir", "ver", "dar",
+        "saber", "querer", "llegar", "aprender", "deber", "poner", "enviar",
+        "quedar", "creer", "hablar", "llevar", "dejar", "seguir", "encontrar",
+        "llamar", "venir", "pensar", "salir", "volver", "tomar", "conocer",
+        "vivir", "sentir", "tratar", "mirar", "contar", "empezar", "esperar",
+        "buscar", "existir", "entrar", "trabajar", "escribir", "perder",
+        "entender", "pedir", "recibir", "recordar", "terminar", "permitir",
+        "conseguir", "comenzar", "servir", "sacar", "necesitar", "mantener",
+        "leer", "caer", "cambiar", "crear", "abrir", "considerar", "oír",
+        "acabar", "ganar", "traer", "morir", "aceptar", "explicar", "preguntar",
+        "tocar", "estudiar", "correr", "pagar", "ayudar", "gustar", "jugar",
+        "escuchar", "ofrecer", "descubrir", "intentar", "usar", "decidir",
+        "olvidar", "mostrar", "comer", "beber", "dormir", "cerrar", "romper",
+        "cocinar", "comprar", "vender", "limpiar", "viajar", "bailar", "cantar",
+        "nadar", "caminar", "subir", "bajar", "andar", "reír",
+    },
+    Language.french: {
+        "être", "avoir", "faire", "dire", "pouvoir", "aller", "voir", "savoir",
+        "vouloir", "venir", "devoir", "prendre", "trouver", "donner", "parler",
+        "mettre", "passer", "regarder", "suivre", "connaître", "penser",
+        "arriver", "entendre", "rester", "sortir", "demander", "tenir",
+        "laisser", "attendre", "vivre", "chercher", "essayer", "appeler",
+        "sentir", "comprendre", "porter", "écrire", "jouer", "aimer", "partir",
+        "croire", "répondre", "monter", "montrer", "expliquer", "entrer",
+        "perdre", "gagner", "manger", "boire", "dormir", "courir", "marcher",
+        "travailler", "apprendre", "lire", "ouvrir", "fermer", "envoyer",
+        "recevoir", "devenir", "tomber", "revenir", "vendre", "acheter",
+        "chanter", "danser", "nager", "voyager", "cuisiner", "aider",
+        "changer", "choisir", "continuer", "décider", "oublier", "rencontrer",
+        "rendre", "tourner", "utiliser", "permettre", "offrir", "préférer",
+        "préparer", "quitter", "raconter", "traverser",
+    },
+    Language.english: {
+        "be", "have", "do", "say", "go", "get", "make", "know", "think",
+        "take", "see", "come", "want", "look", "use", "find", "give", "tell",
+        "work", "call", "try", "ask", "need", "feel", "become", "leave",
+        "put", "mean", "keep", "let", "begin", "seem", "help", "talk",
+        "turn", "start", "show", "hear", "play", "run", "move", "like",
+        "live", "believe", "bring", "happen", "write", "sit", "stand",
+        "lose", "pay", "meet", "continue", "set", "learn", "change", "lead",
+        "understand", "watch", "follow", "stop", "create", "speak", "read",
+        "allow", "add", "spend", "grow", "open", "walk", "win", "offer",
+        "remember", "love", "consider", "appear", "buy", "wait", "serve",
+        "die", "send", "expect", "build", "stay", "fall", "cut", "reach",
+        "kill", "remain", "raise", "pass", "sell", "decide", "pull", "break",
+        "explain", "hope", "carry", "agree", "cook", "clean", "travel",
+        "dance", "sing", "swim",
+    },
+}
+
 VERB_ENDINGS: dict[Language, list[str]] = {
     Language.french: ["-er", "-ir", "-re"],
     Language.spanish: ["-ar", "-er", "-ir"],
