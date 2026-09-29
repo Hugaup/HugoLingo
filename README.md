@@ -8,6 +8,7 @@ A Duolingo-alternative powered by a local LLM (Mistral 7B via Ollama). Supports 
 # Prerequisites
 brew services start postgresql@16
 ollama serve
+ollama pull mistral:7b   # first time only
 
 # Backend (port 8000)
 cd backend && source .venv/bin/activate
@@ -97,11 +98,12 @@ Sentence-fill-in-the-blank conjugation exercises:
 - `check_conjugation` — async checker: if LLM's `correct_answer` doesn't match, falls back to querying `verb_conjugations` to accept any valid form.
 
 #### `app/services/conjugation_utils.py`
-Spanish compound tense resolution:
+Spanish compound tense resolution, plus tense-name canonicalization used across all languages:
 - `COMPOUND_AUX_MAP` — maps compound tense names to their `haber` auxiliary tense.
 - `FORM_ALTERNATES` — interchangeable forms (e.g. `hay ↔ ha`).
 - `load_haber_forms(db, language, needed)` — batch-loads `haber` conjugations.
 - `resolve_compound_form(db, language, tense, person, participle)` — returns `"he hablado"` from `"hablado"` for compound tenses.
+- `canonical_tense(tense)` / `variant_tense_names(canonical)` — collapse Spanish subjunctive imperfecto/pluscuamperfecto "(1)"/"(2)" spelling variants (hablara/hablase) into one selectable tense everywhere except the raw DB rows.
 
 ### Database / Migrations
 
@@ -164,8 +166,11 @@ Renders sentence-fill exercises from `conjugation_exercises` router. User types 
 #### `src/components/conjugation/VerbLookup.jsx`
 Autocomplete search + full conjugation table display. Calls `api.searchVerbs` and `api.getVerbTable`.
 
+#### `src/components/conjugation/TenseChipSelector.jsx`
+Tense picker used by `VerbTableExercise` and `SentenceCompletion` — renders a mood-grouped table (one section header row per mood, tenses as checkboxes) instead of a flat chip list. Non-personal forms (gerundio/infinitivo/participio, etc.) get their own trailing "Other" section.
+
 #### `src/components/conjugation/TenseGuide.jsx`
-Reference panel listing tenses with usage descriptions, filtered by language.
+Reference panel listing tenses with usage descriptions, filtered by language. For Spanish, also includes a "moods at a glance" overview (when to use indicativo vs subjuntivo vs imperativo) and "vs" comparison call-outs for commonly confused tense pairs (imperfecto vs indefinido, etc.).
 
 #### `src/components/conjugation/ChatPanel.jsx`
 Free-form chat with the LLM tutor. Calls `api.chat()` directly.
@@ -183,7 +188,7 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 ## Docker
 
-`docker-compose.yml` runs three services: `postgres:16-alpine` (port 5433), FastAPI backend (port 8000), and React/nginx frontend (port 5173). `backend/entrypoint.sh` runs `alembic upgrade head` then starts uvicorn. Ollama stays on the host at `host.docker.internal:11434`.
+`docker-compose.yml` runs three services: `postgres:16-alpine` (port 5433), FastAPI backend (port 8000), and React/nginx frontend (port 5173). `backend/entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — a fast no-op once already seeded), then starts uvicorn. Ollama stays on the host at `host.docker.internal:11434`.
 
 `frontend/nginx.conf` — nginx config for the production frontend container; proxies `/api/` to the backend service.
 
@@ -193,6 +198,8 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 1. Add to `Language` enum in `backend/app/models.py`
 2. Add display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add to `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` (or `Home.jsx`)
+3. Add to `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` — **not** `pages/Home.jsx`, which is dead code no longer imported by `App.jsx`
 4. Run migration: `alembic revision --autogenerate -m "add language X" && alembic upgrade head`
 5. If mlconjug3 supports it, add to `LANG_CODES` in `scripts/seed_conjugations.py` and re-seed
+
+See [CLAUDE.md](CLAUDE.md#adding-a-new-language) for the full mlconjug3 data-quality checklist (person-index quirks, phantom list entries, etc.) — every item on it caused a real, silent bug for Spanish or French and is worth checking before trusting a new language's seeded data.
