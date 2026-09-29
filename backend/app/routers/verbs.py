@@ -6,7 +6,7 @@ import random as _random
 
 from app.database import get_db
 from app.models import VerbConjugation, Language
-from app.services.conjugation_utils import COMPOUND_AUX_MAP, FORM_ALTERNATES, load_haber_forms
+from app.services.conjugation_utils import COMPOUND_AUX_MAP, FORM_ALTERNATES, load_haber_forms, canonical_tense
 
 router = APIRouter(prefix="/verbs", tags=["verbs"])
 
@@ -65,19 +65,21 @@ async def search_verbs(
 async def get_tenses(language: Language, db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(VerbConjugation.mood, VerbConjugation.tense)
-        .where(VerbConjugation.language == language, VerbConjugation.person != "—")
+        .where(VerbConjugation.language == language)
         .distinct()
         .order_by(VerbConjugation.mood, VerbConjugation.tense)
     )
     rows = result.all()
-    # Deduplicate case-insensitively (Spanish has mixed-case duplicates)
+    # Deduplicate case-insensitively, and collapse Spanish subjunctive "(1)"/"(2)"
+    # spelling variants (hablara/hablase) into one canonical, selectable tense.
     seen: set[tuple[str, str]] = set()
     tenses = []
     for mood, tense in rows:
-        key = (mood.lower(), tense.lower())
+        canon = canonical_tense(tense)
+        key = (mood.lower(), canon.lower())
         if key not in seen:
             seen.add(key)
-            tenses.append({"mood": mood, "tense": tense})
+            tenses.append({"mood": mood, "tense": canon})
     return tenses
 
 
@@ -100,7 +102,8 @@ async def get_random_verbs(
             raise HTTPException(400, "No irregular verb list for this language")
         # Verify these verbs exist in the DB
         result = await db.execute(
-            select(distinct(VerbConjugation.verb_infinitive))
+            select(VerbConjugation.verb_infinitive)
+            .distinct()
             .where(
                 VerbConjugation.language == language,
                 VerbConjugation.verb_infinitive.in_(pool),
@@ -109,8 +112,10 @@ async def get_random_verbs(
         available = result.scalars().all()
         return _random.sample(available, min(count, len(available)))
 
-    query = select(distinct(VerbConjugation.verb_infinitive)).where(
-        VerbConjugation.language == language
+    query = (
+        select(VerbConjugation.verb_infinitive)
+        .distinct()
+        .where(VerbConjugation.language == language)
     )
     if mode == "endings" and endings:
         ending_list = [e.strip().lstrip("-") for e in endings.split(",")]
@@ -118,7 +123,10 @@ async def get_random_verbs(
             or_(*[VerbConjugation.verb_infinitive.like(f"%{e}") for e in ending_list])
         )
 
-    result = await db.execute(query.order_by(func.random()).limit(count))
+    subquery = query.subquery()
+    result = await db.execute(
+        select(subquery.c.verb_infinitive).order_by(func.random()).limit(count)
+    )
     return result.scalars().all()
 
 
@@ -132,7 +140,6 @@ async def get_conjugation_table(
     query = select(VerbConjugation).where(
         VerbConjugation.language == language,
         func.lower(VerbConjugation.verb_infinitive) == infinitive.lower(),
-        VerbConjugation.person != "—",
     )
     if moods:
         mood_list = [m.strip() for m in moods.split(",")]
@@ -153,7 +160,10 @@ async def get_conjugation_table(
         if needed:
             haber_forms = await load_haber_forms(db, language, needed)
 
-    table: dict = {}
+    # table[mood][canonical_tense][person] -> entry; rows are ordered by tense so a
+    # "(1)" variant (if any) is always built before its "(2)" sibling, letting the
+    # second spelling be folded into the first's `alternates` instead of a new tense.
+    table: dict[str, dict[str, dict[str, dict]]] = {}
     for row in rows:
         form = row.form
         if haber_forms:
@@ -162,8 +172,25 @@ async def get_conjugation_table(
                 haber_form = haber_forms.get((*aux, row.person))
                 if haber_form:
                     form = f"{haber_form} {form}"
-        table.setdefault(row.mood, {}).setdefault(row.tense, []).append(
-            {"person": row.person, "form": form, "alternates": FORM_ALTERNATES.get(form.lower(), [])}
-        )
 
-    return {"infinitive": infinitive, "language": language.value, "table": table}
+        persons = table.setdefault(row.mood, {}).setdefault(canonical_tense(row.tense), {})
+        entry = persons.get(row.person)
+        if entry is None:
+            persons[row.person] = {
+                "person": row.person,
+                "form": form,
+                "alternates": list(FORM_ALTERNATES.get(form.lower(), [])),
+            }
+        else:
+            if form.lower() != entry["form"].lower() and form not in entry["alternates"]:
+                entry["alternates"].append(form)
+            for alt in FORM_ALTERNATES.get(form.lower(), []):
+                if alt.lower() != entry["form"].lower() and alt not in entry["alternates"]:
+                    entry["alternates"].append(alt)
+
+    final_table = {
+        mood: {tense: list(persons.values()) for tense, persons in tenses.items()}
+        for mood, tenses in table.items()
+    }
+
+    return {"infinitive": infinitive, "language": language.value, "table": final_table}

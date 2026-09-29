@@ -12,7 +12,7 @@ A language learning web app (alternative to Duolingo) powered by a local LLM (Mi
 ```bash
 brew services start postgresql@16
 ollama serve          # if not already running as a service
-ollama pull mistral   # first time only
+ollama pull mistral:7b   # first time only
 ```
 
 **Backend** (FastAPI, port 8000):
@@ -56,12 +56,18 @@ backend/app/
 ├── models.py        — ORM models: User, Exercise, Progress, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
-│   ├── exercises.py — POST /exercises/generate, POST /exercises/check
-│   └── progress.py  — GET /progress/{user_id}, POST /users, GET /users/{user_id}
+│   ├── exercises.py            — POST /exercises/generate, POST /exercises/check
+│   ├── progress.py             — GET /progress/{user_id}, POST /users, GET /users/{user_id}
+│   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
+│   ├── chat.py                 — POST /chat, freeform passthrough to the LLM
+│   └── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate|check — LLM-written fill-in-the-blank sentences built around a random verb_conjugations row
 └── services/
-    ├── llm.py          — LLMClient singleton wrapping Ollama /api/chat
-    └── exercise_gen.py — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
+    ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat
+    ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
+    └── conjugation_utils.py — Spanish compound-tense resolution (pairs a participle row with the matching haber row, e.g. tense "pretérito perfecto compuesto" + person "1s" → "he hablado") and FORM_ALTERNATES (interchangeable forms, e.g. "hay"/"ha")
 ```
+
+`GET /health` is defined directly in `main.py`, not a router.
 
 **Key design decisions:**
 
@@ -73,11 +79,15 @@ backend/app/
 
 - **Frontend Vite proxy:** `fetch('/api/exercises/generate')` → Vite strips `/api` → hits `localhost:8000/exercises/generate`. All API calls go through `/api` prefix. The `api.js` module is the only place that constructs fetch calls.
 
-- **React Router state-passing:** Home page calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`. Exercise page reads it back via `useLocation().state`.
+- **React Router state-passing:** `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
+
+- **Two parallel conjugation-practice paths:** the original `ExerciseType.conjugation` flow (`exercises.py` + `exercise_gen.py`, single LLM-generated fill-in-the-blank, DB-validated) still exists and is reachable via the "Conjugation" card on `Practice`. Separately, `pages/Conjugation.jsx` (routed at `/practice/:language/conjugation`) is a richer practice area — verb lookup/tables (`verbs.py`, pure DB reads, no LLM), sentence completion (`conjugation_exercises.py`, LLM-generated), and freeform chat (`chat.py`) — built directly on `verb_conjugations` rather than going through `Exercise`/`ExerciseType`. The two paths don't share code beyond the DB table and `LLMClient`.
+
+- **Spanish compound tenses need two DB rows:** `verb_conjugations` only stores the participle for compound tenses (e.g. "pretérito perfecto compuesto" stores "hablado", not "he hablado"). `conjugation_utils.COMPOUND_AUX_MAP` + `load_haber_forms`/`resolve_compound_form` look up the matching `haber` conjugation and prepend it. Used by both `verbs.py` (table display) and `conjugation_exercises.py` (marking the correct answer). Only applies to Spanish — French/English compounds aren't in the seed data.
 
 - **Single user:** Auth is not implemented. `user_id=1` is hardcoded as default throughout. The `users` table and `POST /users` endpoint exist but are unused by the frontend.
 
-- **Difficulty maps to tenses:** `TENSES_BY_DIFFICULTY` in `exercise_gen.py` controls which tenses the LLM is allowed to pick at each level (A1–C1). This is the only place difficulty semantics are defined.
+- **Difficulty maps to tenses:** `TENSES_BY_DIFFICULTY` in `exercise_gen.py` controls which tenses the LLM is allowed to pick at each level (A1–C1). This is the only place difficulty semantics are defined. It only governs the `exercises.py` flow — the `Conjugation` practice area picks tenses via `verbs.py`'s `get_tenses`/`get_random_verbs` instead, with no difficulty concept.
 
 ## Environment
 
@@ -85,7 +95,7 @@ Backend `.env` (auto-loaded by `config.py`):
 ```
 DATABASE_URL=postgresql+asyncpg://localhost/language_learning
 OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=mistral
+OLLAMA_MODEL=mistral:7b
 ```
 
 ## Frontend styling
@@ -100,6 +110,8 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 
 1. Add the value to `Language` enum in `backend/app/models.py`
 2. Add its display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add it to the `LANGUAGES` array in `frontend/src/pages/Home.jsx`
+3. Add it to the `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` (**not** `Home.jsx` — that file is dead code, see React Router note above)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
+
+Note: the `Language` enum already has `norwegian` and `galician`, but `Welcome.jsx` currently only lists French/Spanish/English — Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).

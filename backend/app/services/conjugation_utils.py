@@ -8,6 +8,20 @@ FORM_ALTERNATES: dict[str, list[str]] = {
     "ha":  ["hay"],
 }
 
+def canonical_tense(tense: str) -> str:
+    """Collapse Spanish subjunctive imperfecto/pluscuamperfecto "(1)"/"(2)" suffixes
+    (interchangeable -ra vs -se spellings, e.g. hablara/hablase) into one shared
+    tense name — they're two spellings of the same tense, not separate tenses."""
+    if tense.endswith(" (1)") or tense.endswith(" (2)"):
+        return tense[:-4]
+    return tense
+
+
+def variant_tense_names(canonical: str) -> list[str]:
+    """DB-level tense name(s) a canonical (suffix-stripped) tense may be stored under."""
+    return [canonical, f"{canonical} (1)", f"{canonical} (2)"]
+
+
 COMPOUND_AUX_MAP: dict[str, tuple[str, str]] = {
     "indicativo pretérito perfecto compuesto":    ("indicativo", "indicativo presente"),
     "indicativo pretérito pluscuamperfecto":       ("indicativo", "indicativo pretérito imperfecto"),

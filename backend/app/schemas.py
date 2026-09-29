@@ -79,6 +79,7 @@ class SentenceExerciseItem(BaseModel):
     tense: str
     person: str
     correct_form: str
+    alternates: list[str] = []
 
 class SentenceCheckRequest(BaseModel):
     item: SentenceExerciseItem
