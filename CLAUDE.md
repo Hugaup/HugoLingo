@@ -104,7 +104,7 @@ No CSS framework. All components use inline CSS objects defined at the bottom of
 
 ## Docker
 
-A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpine on port 5433, backend on 8000, frontend/nginx on 5173). The backend `entrypoint.sh` runs `alembic upgrade head` then starts uvicorn. Ollama is expected at `host.docker.internal:11434` (i.e. still running on the host).
+A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpine on port 5433, backend on 8000, frontend/nginx on 5173). The backend `entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — skips if `verb_conjugations` already has rows, so this is a fast no-op after the first run), then starts uvicorn. Ollama is expected at `host.docker.internal:11434` (i.e. still running on the host).
 
 ## Adding a new language
 
@@ -113,5 +113,13 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 3. Add it to the `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` (**not** `Home.jsx` — that file is dead code, see React Router note above)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
+6. **Before trusting the seeded data, audit it for these mlconjug3 quirks** — every one of these caused a real, silent bug for Spanish and/or French (see the git history around the conjugation-data PRs) and is worth checking for any new language before calling the seed "done":
+   - **Mixed-case tense-name duplicates.** Some templates (e.g. Spanish's defective-verb templates) spell a tense name with different capitalization than the regular templates use for that same tense. `SELECT mood, tense, count(*) FROM verb_conjugations WHERE language=... GROUP BY mood, tense` and scan for near-duplicates differing only in case.
+   - **Non-standard person indexing.** Don't assume every list-type tense uses the plain 6-slot index (0=1s…5=3p). The imperative mood usually has no 1st-person-singular slot, so it's indexed compactly starting at 0 instead (Spanish: 5 slots, French: 3 slots) — dump the raw template JSON for a well-known verb and cross-check every resulting person against a real conjugation table (one regular verb, one irregular) before trusting the mapping.
+   - **Phantom extra list entries.** Some non-personal moods (infinitive, gerund) list a second entry that's actually just the past participle again (internal bookkeeping), not a real second form. Survey list *lengths* per (mood, tense) across ALL templates, not just one verb — a mood that's "supposed" to have 1 entry but sometimes has 2 is the tell.
+   - **Non-person list entries.** Some list-type tenses encode grammatical agreement rather than person (e.g. French Participe Passé: masculine/feminine × singular/plural). If the persons don't line up with a real conjugation table, check whether they're agreement variants instead.
+   - **Compound tenses need a per-language auxiliary map.** `conjugation_utils.COMPOUND_AUX_MAP`/`resolve_compound_form` are currently Spanish-only (`if language != Language.spanish: return participle`). Most Romance languages have compound tenses (Italian avere/essere, Portuguese ter/haver) — if the new language does, the seed data will store the bare participle unless this gets extended per-language.
+   - **Fix at the source, then backfill.** `insert_rows` uses `on_conflict_do_nothing()`, so re-running the seed script after fixing `build_rows()` does **not** correct already-seeded bad rows — delete the affected `(language, mood)` rows and re-insert.
+7. **Wire the new language into the frontend's tense organization** (`frontend/src/utils/conjugationUtils.js`) — `MOOD_ORDER`, `TENSE_ORDER_IN_MOOD`, `SECTION_MOODS`, and `TENSE_LABEL_OVERRIDES` are all keyed per language. Without an entry, tenses still work but sort into an unordered bucket and show raw/awkward DB labels instead of clean ones.
 
 Note: the `Language` enum already has `norwegian` and `galician`, but `Welcome.jsx` currently only lists French/Spanish/English — Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).
