@@ -61,6 +61,28 @@ NON_PERSONAL_LIST_MOODS: dict[Language, set[str]] = {
 BATCH_SIZE = 1000
 
 
+def resolve_root(verb_info: dict, infinitive: str) -> str:
+    """mlconjug3 templates are named "prefix:suffix_pattern". Most verbs have a
+    non-empty `root` and it's used as-is. But when `root` is empty, what that
+    means depends on which side of the colon is empty in the TEMPLATE name:
+    - suffix_pattern empty (e.g. "deject:", shared by ~1,750 regular English
+      verbs incl. "walk"/"need"/"start") — mlconjug3 leaves `root` blank and
+      expects the verb's own infinitive spelling to be the base. Without this,
+      "walk" + "" produces "" (blank) for 5/6 persons and "s" (not "walks")
+      for the 6th — this was silently corrupting ~52% of English verbs.
+    - prefix empty (e.g. ":ir", ":ser", "over:eat", "ab:errar") — the suffix
+      table entries are already the COMPLETE conjugated word ("voy", "yerro",
+      "ate"); root genuinely is empty and must stay that way, or concatenation
+      would produce nonsense like "ireat"/"overeats".
+    """
+    root = verb_info.get("root", "")
+    if root != "":
+        return root
+    template_name = verb_info.get("template", "")
+    after_colon = template_name.split(":", 1)[1] if ":" in template_name else ""
+    return infinitive if after_colon == "" else root
+
+
 def normalize_tense(language: Language, tense: str) -> str:
     """mlconjug3's Spanish data has inconsistent capitalization across templates
     (e.g. defective verbs like "garantir" use "Indicativo Presente" while regular
@@ -83,7 +105,8 @@ def build_rows(language: Language, lang_code: str, mood_filter: set[str] | None 
 
     rows = []
     for infinitive, verb_info in verbs.items():
-        root = verb_info.get("root", "")
+        raw_root = verb_info.get("root", "")
+        root = resolve_root(verb_info, infinitive)
         template_name = verb_info.get("template", "")
         template = templates.get(template_name)
         if template is None:
@@ -102,6 +125,8 @@ def build_rows(language: Language, lang_code: str, mood_filter: set[str] | None 
                 if isinstance(forms, str):
                     # Single form (e.g. Participe Présent: "aimant")
                     form = root + forms
+                    if not form:
+                        continue
                     rows.append({
                         "language": language,
                         "verb_infinitive": infinitive,
@@ -119,7 +144,20 @@ def build_rows(language: Language, lang_code: str, mood_filter: set[str] | None 
                         person_idx, suffix = entry[0], entry[1]
                         if suffix is None:
                             continue
+                        if suffix == "" and raw_root != "":
+                            # An empty suffix against an already-real stem
+                            # means no such form exists for this person (e.g.
+                            # defective verbs like "clarecer" only conjugate
+                            # in 3rd person) — mlconjug3 marks that with an
+                            # empty suffix rather than null. Contrast with
+                            # verbs whose *root* was empty (handled by
+                            # resolve_root above): there, an empty suffix is
+                            # often legitimate — English "walk" + "" = "walk"
+                            # ("I walk") is a real word, not a missing form.
+                            continue
                         form = root + suffix
+                        if not form:
+                            continue
                         if is_non_personal_list:
                             person = "—"
                         elif is_imperative:
