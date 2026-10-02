@@ -229,3 +229,65 @@ class GridRow(BaseModel):
 class GridResponse(BaseModel):
     tenses: list[TenseFilter]
     rows: list[GridRow]
+
+
+# ── Vocabulary ────────────────────────────────────────────────────────────────
+
+VocabExercise = Literal["flashcard", "choice_to_native", "choice_to_target", "type_to_target", "type_to_native", "cloze"]
+
+
+class VocabItemOut(BaseModel):
+    id: int
+    kind: str
+    text: str
+    article: str | None
+    display: str  # text with its article ("la casa", "l'eau")
+    translation: str
+    pos: str | None
+    topic: str
+    level: int
+    example: str
+    example_translation: str
+
+
+class VocabSessionItem(VocabItemOut):
+    box: int | None
+    is_new: bool
+    cloze: str | None  # example with the item blanked out, for fill-the-gap
+    options: list[VocabItemOut]  # wrong answers for multiple choice
+
+
+class VocabBrowseItem(VocabItemOut):
+    box: int | None
+
+
+class VocabGroup(BaseModel):
+    kind: str
+    topic: str
+    total: int
+    seen: int
+    learned: int
+    due: int
+
+
+class VocabOverview(BaseModel):
+    available: bool
+    groups: list[VocabGroup]
+    total: int
+    learned: int
+    due: int
+
+
+class VocabCheckRequest(BaseModel):
+    item_id: int
+    exercise: VocabExercise
+    answer: str = Field(default="", max_length=256)
+    knew: bool | None = None  # flashcards are self-graded
+
+
+class VocabCheckResponse(BaseModel):
+    is_correct: bool
+    result: Literal["correct", "almost", "wrong"]
+    expected: str
+    accepted: list[str]
+    box: int

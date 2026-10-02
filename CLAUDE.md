@@ -52,6 +52,7 @@ alembic upgrade head
 ```bash
 cd backend && source .venv/bin/activate
 python scripts/seed_conjugations.py
+python scripts/seed_vocabulary.py   # words + phrases from backend/data/vocabulary/*.json (upsert, re-run after editing the JSON)
 ```
 This reads mlconjug3's bundled JSON files (`data/conjug_manager/verbs-{lang}.json` + `conjugation-{lang}.json`) directly — no ML model is loaded. Each verb entry has a `root` string and a `template` name; the conjugated form is `root + suffix` from the template.
 
@@ -63,7 +64,7 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
@@ -72,7 +73,8 @@ backend/app/
 │   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
 │   ├── chat.py                 — POST /chat, POST /chat/stream (plain-text streaming) — freeform passthrough to the LLM
 │   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate (stock first, then live via services/sentences) | check (no LLM call)
-│   └── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
+│   ├── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
+│   └── vocabulary.py           — GET /vocab/{language}/overview|session|items, POST /vocab/check
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
@@ -80,6 +82,7 @@ backend/app/
     ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
+    ├── vocabulary.py        — vocabulary seeding (upsert), accepted answers/grading, sessions (due → new → weak), Leitner reviews, overview
     ├── grading.py           — grade(answer, accepted) → correct | almost (accent-only difference) | wrong; normalize/fold_accents
     ├── explain.py           — explain_mistake(): one-line rule-based feedback (no LLM) + the whole tense for a "show all forms" toggle
     └── conjugation_utils.py — tense_table()/expected_forms() (accepted answers per person, compounds resolved), PRONOUNS, PERSON_ORDER, Spanish compound-tense resolution (pairs a participle row with the matching haber row, e.g. tense "pretérito perfecto compuesto" + person "1s" → "he hablado") and FORM_ALTERNATES (interchangeable forms, e.g. "hay"/"ha")
@@ -115,6 +118,8 @@ backend/app/
 
 - **Mistake explanations are rule-based, not LLM** (`services/explain.py`), so they're instant and short (the user asked that feedback not crowd the screen). First matching rule wins: accent slip → another person's form in the same tense → a form from another tense → irregular vs the `REGULAR_MODELS` verb for that ending (with the shared stem, e.g. "tuv-") → the regular pattern. Frontend shows the line via `MistakeExplanation` (forms behind a toggle). Sentence completion still gets the LLM's longer explanation, but folded behind "AI explanation & questions". Every practice session ends in the shared `SessionSummary`.
 
+- **Vocabulary is curated data, not LLM output.** `backend/data/vocabulary/{language}.json` (Spanish, French; ~250 words in 11 topics + ~40 everyday phrases each) holds the word, article, English translations (`;`-separated alternatives), part of speech, a FrequencyWords subtitle-frequency `rank` (→ `level`: ≤1500 A1, ≤4000 A2, else B1) and an example that contains the word verbatim (used for fill-the-gap via `blank_out`). Edit the JSON and re-run `seed_vocabulary.py` — it upserts by (language, kind, text). Vocabulary has its own reviews/attempts tables (`vocab_reviews`, `vocab_attempts`, same Leitner scheduling) but counts toward the shared daily stats/streak (`history.stats` unions both attempt tables). Grading accepts the word with or without its article, and English answers with or without "to"/"the"/"a"; punctuation is ignored; accent-only slips are "almost" (multiple choice never is). The frontend picks the exercise per item (`utils/vocab.pickExercise`): new → flashcard, box 0–1 → multiple choice, box 2 → type it, box ≥3 → fill the gap.
+
 - **Weak spots are computed, not stored:** `score_groups` takes the last 120 days of attempts, weights each by recency (half-life 14 days), and scores `weighted_wrong / (weighted_total + 2)`; anything ≥ 0.1 is flagged. Tuning knobs are the constants at the top of `services/history.py`. Stats days/streaks use the browser's IANA timezone (`tz` param, validated by `resolve_timezone`, passed to Postgres as a bind param).
 
 - **Pre-auth users have `password_hash = NULL`** and can't log in until claimed with `scripts/set_password.py <username> <password> [--rename new]`. The original hardcoded `default` user (id 1) holds early progress history.
@@ -138,7 +143,7 @@ No CSS framework. All components use inline CSS objects defined at the bottom of
 
 ## Docker
 
-A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpine on port 5433, backend on 8000, frontend/nginx on 5173). The backend `entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — skips if `verb_conjugations` already has rows, so this is a fast no-op after the first run), then starts uvicorn. Ollama is expected at `host.docker.internal:11434` (i.e. still running on the host).
+A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpine on port 5433, backend on 8000, frontend/nginx on 5173). The backend `entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — skips if `verb_conjugations` already has rows, so this is a fast no-op after the first run), then `scripts/seed_vocabulary.py` (upsert), then starts uvicorn. Ollama is expected at `host.docker.internal:11434` (i.e. still running on the host).
 
 ## Adding a new language
 
@@ -147,6 +152,7 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Welcome` and `Settings`; **not** `Home.jsx` — that file is dead code, see React Router note above)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
+5b. For vocabulary, add `backend/data/vocabulary/{language}.json` (same shape as spanish.json; every `ex` must contain its `word` exactly once — `tests/test_vocabulary.py` enforces this), add the language to `VOCAB_LANGUAGES` in `services/vocabulary.py`, and run `scripts/seed_vocabulary.py`
 6. **Before trusting the seeded data, audit it for these mlconjug3 quirks** — every one of these caused a real, silent bug for Spanish and/or French (see the git history around the conjugation-data PRs) and is worth checking for any new language before calling the seed "done":
    - **Mixed-case tense-name duplicates.** Some templates (e.g. Spanish's defective-verb templates) spell a tense name with different capitalization than the regular templates use for that same tense. `SELECT mood, tense, count(*) FROM verb_conjugations WHERE language=... GROUP BY mood, tense` and scan for near-duplicates differing only in case.
    - **Non-standard person indexing.** Don't assume every list-type tense uses the plain 6-slot index (0=1s…5=3p). The imperative mood usually has no 1st-person-singular slot, so it's indexed compactly starting at 0 instead (Spanish: 5 slots, French: 3 slots) — dump the raw template JSON for a well-known verb and cross-check every resulting person against a real conjugation table (one regular verb, one irregular) before trusting the mapping.

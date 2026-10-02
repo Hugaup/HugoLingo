@@ -160,6 +160,66 @@ class SentencePoolItem(Base):
     )
 
 
+class VocabItem(Base):
+    """A word or everyday phrase to learn, seeded from data/vocabulary/{language}.json."""
+    __tablename__ = "vocab_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)  # "word" | "phrase"
+    text: Mapped[str] = mapped_column(String(128), nullable=False)
+    article: Mapped[str | None] = mapped_column(String(8), nullable=True)  # nouns: "el", "la", "l'"…
+    translation: Mapped[str] = mapped_column(String(256), nullable=False)  # alternatives separated by ";"
+    pos: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    topic: Mapped[str] = mapped_column(String(32), nullable=False)
+    level: Mapped[int] = mapped_column(Integer, nullable=False)  # 1-5, from frequency rank
+    frequency_rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    example: Mapped[str] = mapped_column(String(512), nullable=False)
+    example_translation: Mapped[str] = mapped_column(String(512), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("language", "kind", "text", name="uq_vocab_item"),
+        Index("ix_vocab_items_language_topic", "language", "topic"),
+    )
+
+
+class VocabReview(Base):
+    """Spaced-repetition (Leitner box) state for one vocabulary item, per user."""
+    __tablename__ = "vocab_reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    item_id: Mapped[int] = mapped_column(ForeignKey("vocab_items.id", ondelete="CASCADE"), nullable=False)
+    box: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    correct_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wrong_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "item_id", name="uq_vocab_review"),
+        Index("ix_vocab_reviews_user_due", "user_id", "due_at"),
+    )
+
+
+class VocabAttempt(Base):
+    """One answer to one vocabulary exercise."""
+    __tablename__ = "vocab_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    item_id: Mapped[int] = mapped_column(ForeignKey("vocab_items.id", ondelete="CASCADE"), nullable=False)
+    exercise: Mapped[str] = mapped_column(String(24), nullable=False)
+    user_answer: Mapped[str] = mapped_column(String(256), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_almost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_vocab_attempts_user_created", "user_id", "created_at"),
+    )
+
+
 class VerbConjugation(Base):
     __tablename__ = "verb_conjugations"
 

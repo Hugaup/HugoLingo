@@ -11,10 +11,10 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Hashable, Iterable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import Integer, cast, func, select, tuple_
+from sqlalchemy import Integer, cast, func, select, tuple_, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Attempt, Language, ReviewItem, VerbConjugation
+from app.models import Attempt, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem
 from app.services.conjugation_utils import canonical_tense, variant_tense_names
 
 # Leitner boxes: a wrong answer sends an item back to box 0 (due straight away);
@@ -293,22 +293,28 @@ async def stats(
     now: datetime,
 ) -> dict:
     """Totals and daily activity (for `language`, or all), plus today's count and
-    the streak (always across all languages), with days in the user's timezone."""
+    the streak (always across all languages), with days in the user's timezone.
+    Counts every answer: conjugation attempts and vocabulary attempts alike."""
     tz = resolve_timezone(tz)
     today = now.astimezone(ZoneInfo(tz)).date()
-    local_day = func.date(func.timezone(tz, Attempt.created_at))
+    answers = union_all(
+        select(Attempt.created_at, Attempt.is_correct, Attempt.language).where(Attempt.user_id == user_id),
+        select(VocabAttempt.created_at, VocabAttempt.is_correct, VocabItem.language)
+        .join(VocabItem, VocabItem.id == VocabAttempt.item_id)
+        .where(VocabAttempt.user_id == user_id),
+    ).subquery()
+    local_day = func.date(func.timezone(tz, answers.c.created_at))
 
-    lang_filter = [Attempt.language == language] if language else []
+    lang_filter = [answers.c.language == language] if language else []
     total, correct = (await db.execute(
-        select(func.count(), func.coalesce(func.sum(cast(Attempt.is_correct, Integer)), 0))
-        .where(Attempt.user_id == user_id, *lang_filter)
+        select(func.count(), func.coalesce(func.sum(cast(answers.c.is_correct, Integer)), 0)).where(*lang_filter)
     )).one()
 
     start = today - timedelta(days=days - 1)
     per_day = {
         d: (t, c) for d, t, c in (await db.execute(
-            select(local_day, func.count(), func.sum(cast(Attempt.is_correct, Integer)))
-            .where(Attempt.user_id == user_id, local_day >= start, *lang_filter)
+            select(local_day, func.count(), func.sum(cast(answers.c.is_correct, Integer)))
+            .where(local_day >= start, *lang_filter)
             .group_by(local_day)
         )).all()
     }
@@ -318,12 +324,8 @@ async def stats(
         t, c = per_day.get(d, (0, 0))
         daily.append({"date": d, "total": t, "correct": c})
 
-    active_days = set((await db.execute(
-        select(local_day).distinct().where(Attempt.user_id == user_id)
-    )).scalars())
-    today_count = await db.scalar(
-        select(func.count()).select_from(Attempt).where(Attempt.user_id == user_id, local_day == today)
-    )
+    active_days = set((await db.execute(select(local_day).distinct())).scalars())
+    today_count = await db.scalar(select(func.count()).select_from(answers).where(local_day == today))
 
     return {
         "total": total,

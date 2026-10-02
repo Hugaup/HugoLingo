@@ -34,12 +34,15 @@ export default function Progress() {
 function ProgressBody({ language, dailyGoal }) {
   const [stats, setStats] = useState(null)
   const [grid, setGrid]   = useState(null)
+  const [vocab, setVocab] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     Promise.all([api.getStats(language), api.getGrid(language)])
       .then(([st, gr]) => { setStats(st); setGrid(gr) })
       .catch(e => setError(e.message))
+    // Optional extra: the page still works if vocabulary can't be loaded
+    api.getVocabOverview(language).then(setVocab).catch(() => {})
   }, [language])
 
   if (error) return <p style={s.error}>{error}</p>
@@ -52,6 +55,7 @@ function ProgressBody({ language, dailyGoal }) {
       <div style={s.tiles}>
         <Tile label="Answers" value={stats.total} />
         <Tile label="Accuracy" value={stats.total ? `${stats.accuracy}%` : '—'} />
+        {vocab?.available && <Tile label="Words learned" value={`${vocab.learned} / ${vocab.total}`} />}
         <Tile label="Streak" value={`${stats.streak_days} ${stats.streak_days === 1 ? 'day' : 'days'}`} note="all languages" />
         <Tile label="Today" value={`${stats.today_count} / ${dailyGoal}`} note="all languages">
           <div

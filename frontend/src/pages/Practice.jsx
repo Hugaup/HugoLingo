@@ -15,6 +15,14 @@ const TYPE_CARDS = [
     desc: 'Master verb tables, tense rules, and sentence completion with AI feedback.',
   },
   {
+    id: 'vocabulary',
+    icon: '📚',
+    title: 'Vocabulary',
+    desc: 'Everyday words and phrases with flashcards, quizzes and spaced review.',
+    // Its own page, like conjugation
+    path: 'vocabulary',
+  },
+  {
     id: 'grammar',
     icon: '✏️',
     title: 'Grammar',
@@ -67,8 +75,8 @@ export default function Practice() {
               key={t.id}
               style={s.typeCard}
               onClick={() =>
-                t.id === 'conjugation'
-                  ? navigate(`/practice/${language}/conjugation`)
+                t.id === 'conjugation' || t.path
+                  ? navigate(`/practice/${language}/${t.path ?? 'conjugation'}`)
                   : setSelectedType(t.id)
               }
             >
