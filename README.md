@@ -127,6 +127,12 @@ Words and everyday phrases (logic in `app/services/vocabulary.py`, data in `back
 - `POST /vocab/lookup` — meaning of a word clicked in a reading passage: curated vocabulary first (also verb forms like *tengo* → *tener*, plurals, *l'eau* → *eau*), then a cache of earlier AI lookups, then the LLM (cached after).
 - `POST /vocab/my-words` / `DELETE /vocab/my-words/{id}` — save a word to review (curated words get a review; others become personal "My words" items) / remove a personal word.
 
+#### `app/routers/conversation.py`
+AI role-play practice (logic in `app/services/conversation.py`):
+- `GET /conversation/scenarios` — café, asking the way, hotel, clothes shop, meeting someone, pharmacy, free chat; each with a goal for the learner.
+- `POST /conversation/reply` — the AI's next in-character line (its opener when there are no messages yet), streamed as plain text, pitched at the user's level.
+- `POST /conversation/check` — checks one learner message (only real mistakes; accent-only = "almost"), stores it in `conversation_turns`, and records verb mistakes in the shared history so they show up in weak spots and review.
+
 #### `app/routers/chat.py`
 - `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama.
 - `POST /chat/stream` — same, but streams the reply as plain text while it's written. Used by every chat panel (text appears within ~0.1–0.4 s instead of after the full reply).
@@ -247,6 +253,9 @@ Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity cha
 
 #### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
 Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap, Listening), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
+
+#### `src/pages/Conversation.jsx` (`/practice/:language/conversation`)
+Pick a scenario, then chat (`components/conversation/ConversationChat.jsx`): the AI's lines stream in, and once complete their words are clickable (meaning / add to my words), with 🔊 and Translate. Each of your messages gets a ✓ or a compact correction (fixed words highlighted, one line why). Accent buttons under the box, optional "Read replies aloud", and Finish shows the session summary.
 
 #### `src/components/reading/ClickableText.jsx`
 Used for reading passages: every word is a button; clicking shows a popover with the dictionary form, meaning and source, and "Add to my words". Saved words show up as "My words" on the Vocabulary page.

@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy import Integer, cast, func, select, tuple_, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Attempt, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem
+from app.models import Attempt, ConversationTurn, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem
 from app.services.conjugation_utils import canonical_tense, variant_tense_names
 
 # Leitner boxes: a wrong answer sends an item back to box 0 (due straight away);
@@ -294,14 +294,19 @@ async def stats(
 ) -> dict:
     """Totals and daily activity (for `language`, or all), plus today's count and
     the streak (always across all languages), with days in the user's timezone.
-    Counts every answer: conjugation attempts and vocabulary attempts alike."""
+    Counts every answer: conjugation attempts, vocabulary attempts and conversation
+    messages alike. (A conversation's verb mistakes are also stored as attempts for
+    the weak spots; they're left out here so the message isn't counted twice.)"""
     tz = resolve_timezone(tz)
     today = now.astimezone(ZoneInfo(tz)).date()
     answers = union_all(
-        select(Attempt.created_at, Attempt.is_correct, Attempt.language).where(Attempt.user_id == user_id),
+        select(Attempt.created_at, Attempt.is_correct, Attempt.language)
+        .where(Attempt.user_id == user_id, Attempt.source != "conversation"),
         select(VocabAttempt.created_at, VocabAttempt.is_correct, VocabItem.language)
         .join(VocabItem, VocabItem.id == VocabAttempt.item_id)
         .where(VocabAttempt.user_id == user_id),
+        select(ConversationTurn.created_at, ConversationTurn.is_correct, ConversationTurn.language)
+        .where(ConversationTurn.user_id == user_id),
     ).subquery()
     local_day = func.date(func.timezone(tz, answers.c.created_at))
 

@@ -23,6 +23,13 @@ const TYPE_CARDS = [
     path: 'vocabulary',
   },
   {
+    id: 'conversation',
+    icon: '💬',
+    title: 'Conversation',
+    desc: 'Role-play everyday situations with the AI; your mistakes are corrected as you go.',
+    path: 'conversation',
+  },
+  {
     id: 'grammar',
     icon: '✏️',
     title: 'Grammar',

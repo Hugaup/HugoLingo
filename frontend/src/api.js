@@ -165,6 +165,16 @@ export const api = {
 
   chatStream: (messages, onText) => streamText('/chat/stream', { messages }, onText),
 
+  // Conversation practice
+  getScenarios: () => request('GET', '/conversation/scenarios'),
+
+  // The AI's next line (its opener when messages is empty), streamed
+  conversationReply: (language, scenario, messages, onText) =>
+    streamText('/conversation/reply', { language, scenario, messages }, onText),
+
+  checkMessage: (language, scenario, previous, message) =>
+    request('POST', '/conversation/check', { language, scenario, previous, message }),
+
   // Conjugation exercises
   generateSentences: (language, tenses, count) =>
     request('POST', '/conjugation-exercises/sentence/generate', { language, tenses, count }),

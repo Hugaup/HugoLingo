@@ -81,6 +81,32 @@ Manual read of every sentence:
   With qwen2.5:7b it filters real errors and sometimes rejects a fine sentence
   (which only costs background time).
 
+## Run 3 — 2026-10-03, conversation corrections (feature/conversation)
+
+Before building conversation practice, the message check was prototyped on
+qwen2.5:7b (JSON mode, temperature 0) with 22 learner messages in Spanish and
+French: 11 correct, 11 with one classic mistake (wrong person, infinitive left
+unconjugated, gender agreement, *mucho hambre*, *gusta los deportes*, missing
+accent, *soy cansado*, *j'ai allé*…). A "flag" means the corrected message
+differs from the original once punctuation and capitals are ignored.
+
+| Prompt | Right | False corrections | Missed mistakes | Time / message |
+|--------|-------|-------------------|-----------------|----------------|
+| A — "fix only real mistakes, keep the rest" | 13/16* | 0 | 3 | 2.5 s |
+| B — list every mistake first, then the corrected text | 14/16* | **2** ("Fui" → "Fuí", "J'ai allé" → "J'ai aller") | 1 | 4.5 s |
+| C — A + a checklist (verb form/auxiliary, agreement, accents) + "if unsure, leave it" | **20/22** | **0** | 2 (*soy cansado*, *j'ai allé*) | 2.8 s |
+
+\* first 16 messages only.
+
+**Chosen: C** (`services/conversation.CHECK_PROMPT`). A wrong correction teaches a
+mistake, so a prompt that never "fixes" correct text beats one that catches one
+more error. Missed mistakes just go uncorrected. Two guards in `classify()` drop
+answers that rewrite the message or paste in the other person's line.
+
+The model's one-line *explanation* was sometimes off ("added the accent on
+querer"), so when the fix is a verb form the conjugation data can pin down,
+the rule-based `explain_mistake` line replaces it.
+
 ## Decision
 
 **qwen2.5:7b** stays the default after run 2: best quality, now faster than

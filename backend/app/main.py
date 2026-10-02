@@ -5,7 +5,9 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.dependencies import get_current_user
-from app.routers import auth, exercises, progress, verbs, chat, conjugation_exercises, history, vocabulary
+from app.routers import (
+    auth, chat, conjugation_exercises, conversation, exercises, history, progress, verbs, vocabulary,
+)
 from app.services import sentence_pool
 from app.services.llm import llm_client
 
@@ -42,6 +44,7 @@ app.include_router(chat.router, dependencies=login_required)
 app.include_router(conjugation_exercises.router, dependencies=login_required)
 app.include_router(history.router, dependencies=login_required)
 app.include_router(vocabulary.router, dependencies=login_required)
+app.include_router(conversation.router, dependencies=login_required)
 
 
 @app.get("/health")

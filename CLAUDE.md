@@ -64,7 +64,7 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, WordLookup, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, WordLookup, ConversationTurn, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
@@ -74,7 +74,8 @@ backend/app/
 │   ├── chat.py                 — POST /chat, POST /chat/stream (plain-text streaming) — freeform passthrough to the LLM
 │   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate (stock first, then live via services/sentences) | check (no LLM call)
 │   ├── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
-│   └── vocabulary.py           — GET /vocab/{language}/overview|session|items, POST /vocab/check|lookup|my-words, DELETE /vocab/my-words/{id}
+│   ├── vocabulary.py           — GET /vocab/{language}/overview|session|items, POST /vocab/check|lookup|my-words, DELETE /vocab/my-words/{id}
+│   └── conversation.py         — GET /conversation/scenarios, POST /conversation/reply (streamed), POST /conversation/check
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
@@ -82,6 +83,7 @@ backend/app/
     ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
+    ├── conversation.py      — role-play scenarios, reply prompt, message check (classify + verb_mistakes), record_turn
     ├── lookup.py            — click-a-word lookup (curated → verb forms/plurals → word_lookups cache → LLM) and "my words"
     ├── vocabulary.py        — vocabulary seeding (upsert), accepted answers/grading, sessions (due → new → weak), Leitner reviews, overview
     ├── grading.py           — grade(answer, accepted) → correct | almost (accent-only difference) | wrong; normalize/fold_accents
@@ -123,6 +125,7 @@ backend/app/
 
 - **Audio is browser-only.** `utils/speech.js` wraps `window.speechSynthesis` (language → BCP-47 voice in `VOICE_LANG`); no TTS on the backend. Everything speech-dependent is gated on `canSpeak()`: `SpeakButton` renders nothing, the `needsSpeech` Listening mode is filtered out, and `pickExercise(..., canListen)` never returns `dictation`. The `dictation` exercise's answer is the phrase itself or a word's example sentence (`vocabulary.accepted_answers` / `utils/vocab.dictationText` — keep them in sync). jsdom has no speech API, so tests stub `speechSynthesis` + `SpeechSynthesisUtterance` with `vi.stubGlobal` (see `src/test/audio.test.jsx`).
 
+- **Conversation practice** (`services/conversation.py`, `pages/Conversation.jsx`, `components/conversation/ConversationChat.jsx`): role-play scenarios (`SCENARIOS`, English metadata; the AI plays `ai_role`). Two LLM calls per learner message, fired together by the frontend: `/conversation/reply` streams the in-character reply (history comes from the client, last `MAX_HISTORY` lines; prompt sets the user's level and forbids correcting), and `/conversation/check` grades the message with the tuned `CHECK_PROMPT` (temperature 0; see docs/llm-benchmark.md run 3 — **don't loosen it without re-running that check: false corrections are worse than misses**). `classify()` ignores punctuation/capital-only changes, treats accent-only fixes as "almost" (still a mistake), and discards untrustworthy answers (rewrites, pasted lines) as "correct". Each message is stored in `conversation_turns` and counts in `history.stats`; replaced words that are verb forms (`verb_mistakes`: token diff against `verb_conjugations`; reflexive twins like irse dropped, ambiguous verbs resolved by the learner's own word) are also recorded as `attempts` with source `conversation` — so they feed weak spots and the review queue — and are **excluded from the stats union** to avoid double counting. When a verb mistake's tense/person is pinned down, the rule-based `explain_mistake` line replaces the model's explanation.
 - **Reading teaches words** (`services/lookup.py`, `components/reading/ClickableText.jsx`): every word of a reading passage is clickable. Lookup order, cheapest reliable first: curated `vocab_items` (also via `verb_conjugations` forms → infinitive, simple plurals, French elision) → the `word_lookups` cache → the LLM (JSON: lemma/translation/pos, sentence as context, then cached — one LLM call per word ever; Spanish plural lemmas it returns unchanged are fixed by `singular_guess`). "Add to my words" gives a curated item a review due now, or creates a **personal** `vocab_items` row (`owner_id` = user, kind `personal`, topic `my_words`). Shared vs personal rows are kept apart by two partial unique indexes (`uq_vocab_item_shared` WHERE owner_id IS NULL — the one `upsert_items` targets — and `uq_vocab_item_personal`); every vocabulary query must filter with `vocabulary.visible_to(user_id)`.
 
 - **Weak spots are computed, not stored:** `score_groups` takes the last 120 days of attempts, weights each by recency (half-life 14 days), and scores `weighted_wrong / (weighted_total + 2)`; anything ≥ 0.1 is flagged. Tuning knobs are the constants at the top of `services/history.py`. Stats days/streaks use the browser's IANA timezone (`tz` param, validated by `resolve_timezone`, passed to Postgres as a bind param).
