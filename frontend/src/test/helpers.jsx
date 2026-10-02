@@ -7,12 +7,19 @@ export const ALICE = {
   target_language: null, level: 2, daily_goal: 20,
 }
 
-function response(status, body) {
+function response(status, body, stream) {
   return {
     ok: status >= 200 && status < 300,
     status,
     statusText: String(status),
     json: async () => body,
+    // For streamed replies: { stream: ['piece', 'piece', …] } in a route
+    body: stream && new ReadableStream({
+      start(controller) {
+        for (const piece of stream) controller.enqueue(new TextEncoder().encode(piece))
+        controller.close()
+      },
+    }),
   }
 }
 
@@ -28,8 +35,8 @@ export function mockBackend(routes) {
     const route = routes[key] ?? routes[key.split('?')[0]]
     if (!route) return response(404, { detail: `No mock for ${key}` })
     const reqBody = opts.body ? JSON.parse(opts.body) : undefined
-    const { status = 200, body = null } = typeof route === 'function' ? route(reqBody) : route
-    return response(status, body)
+    const { status = 200, body = null, stream } = typeof route === 'function' ? route(reqBody) : route
+    return response(status, body, stream)
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock

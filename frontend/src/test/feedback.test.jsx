@@ -116,14 +116,15 @@ describe('sentence completion feedback', () => {
     ...PRET, person: '1s', correct_form: 'tuve', alternates: [],
   }
 
-  it('gives a one-line hint, folds the AI explanation away, and ends with a summary', async () => {
-    mockBackend({
+  it('gives a one-line hint, asks the AI only on request, and ends with a summary', async () => {
+    const fetchMock = mockBackend({
       ...ME,
       'GET /verbs/tenses/spanish': { body: [PRET] },
       'POST /conjugation-exercises/sentence/generate': { body: [ITEM] },
       'POST /conjugation-exercises/sentence/check': {
-        body: { form_correct: false, form_result: 'wrong', tense_correct: true, explanation: 'A long AI explanation…', hint: EXPLANATION },
+        body: { form_correct: false, form_result: 'wrong', tense_correct: true, hint: EXPLANATION },
       },
+      'POST /chat/stream': { stream: ['A long ', 'AI explanation…'] },
     })
     renderAppAt('/practice/spanish/conjugation')
 
@@ -138,9 +139,13 @@ describe('sentence completion feedback', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent('✗ Form incorrect — correct: tuve')
     expect(screen.getByText(EXPLANATION.summary)).toBeInTheDocument()
-    expect(screen.queryByText('A long AI explanation…')).not.toBeInTheDocument()
+    // Checking never waits on the LLM: nothing is asked until the toggle opens
+    expect(calls(fetchMock).map(c => c.key)).not.toContain('POST /chat/stream')
     await userEvent.click(screen.getByRole('button', { name: 'AI explanation & questions ▾' }))
-    expect(screen.getByText('A long AI explanation…')).toBeInTheDocument()
+    expect(await screen.findByText('A long AI explanation…')).toBeInTheDocument()
+    const asked = calls(fetchMock).find(c => c.key === 'POST /chat/stream').body.messages
+    expect(asked.at(-1).content).toMatch(/explain why "tuve" is correct.*what was wrong with my answer/)
+    expect(screen.queryByText(/explain why "tuve" is correct/)).not.toBeInTheDocument()  // the question stays hidden
 
     await userEvent.click(screen.getByRole('button', { name: 'See results' }))
     const summary = await screen.findByRole('region', { name: 'Session summary' })

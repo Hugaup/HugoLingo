@@ -93,6 +93,7 @@ function Exercise({ items, language, onReset }) {
   const [log, setLog]               = useState([])
   const [finished, setFinished]     = useState(false)
   const [showDetail, setShowDetail] = useState(false)
+  const [checkError, setCheckError] = useState(null)
 
   const item = items[idx]
 
@@ -108,6 +109,7 @@ function Exercise({ items, language, onReset }) {
   async function handleCheck() {
     if (!userForm.trim() || !userTense) return
     setChecking(true)
+    setCheckError(null)
     try {
       const [mood, tense] = userTense.split('||')
       const res = await api.checkSentence(item, userForm.trim(), mood, tense, language)
@@ -119,7 +121,7 @@ function Exercise({ items, language, onReset }) {
         result: res.form_correct && res.tense_correct ? 'correct' : res.form_result === 'almost' ? 'almost' : 'wrong',
       }])
     } catch (e) {
-      setResult({ form_correct: false, form_result: 'wrong', tense_correct: false, explanation: e.message, hint: null })
+      setCheckError(e.message)
     } finally {
       setChecking(false)
     }
@@ -144,7 +146,12 @@ The student answered: form="${userForm}", tense="${userTense}".
 Answer any follow-up questions clearly with examples.`
     : null
 
-  const chatInitial = result ? [{ role: 'assistant', content: result.explanation }] : []
+  // Asked only when the user opens "AI explanation" (and streamed), so checking
+  // an answer never waits on the LLM
+  const explainRequest = result
+    ? `In 2-3 sentences, explain why "${item.correct_form}" is correct here and when the ${item.tense} is used` +
+      (result.form_correct && result.tense_correct ? '.' : ', and what was wrong with my answer.')
+    : null
 
   return (
     <div>
@@ -190,6 +197,7 @@ Answer any follow-up questions clearly with examples.`
           <button style={s.startBtn} onClick={handleCheck} disabled={checking || !userForm.trim() || !userTense}>
             {checking ? 'Checking…' : 'Check'}
           </button>
+          {checkError && <p style={s.error} role="alert">{checkError}</p>}
         </div>
       ) : (
         <div>
@@ -213,7 +221,7 @@ Answer any follow-up questions clearly with examples.`
           {showDetail && (
             <div style={{ marginTop: '0.5rem' }}>
               <ChatPanel
-                initialMessages={chatInitial}
+                autoAsk={explainRequest}
                 systemPrompt={chatSystemPrompt}
                 placeholder="Ask a follow-up question about this conjugation…"
                 language={language}

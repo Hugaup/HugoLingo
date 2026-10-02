@@ -23,6 +23,9 @@ if "test" not in (make_url(TEST_DATABASE_URL).database or ""):
 
 # Safety net: anything that bypasses the get_db override still lands in the test DB
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
+# No background LLM traffic during tests (tests drive the pool explicitly)
+os.environ["LLM_WARMUP"] = "false"
+os.environ["SENTENCE_POOL_ENABLED"] = "false"
 
 from app.database import Base, get_db  # noqa: E402
 from app import models  # noqa: E402,F401 — registers ORM models

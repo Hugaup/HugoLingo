@@ -94,7 +94,7 @@ ITEM = {
 
 @pytest.fixture
 def fake_llm(monkeypatch):
-    async def chat(messages):
+    async def chat(messages, **kwargs):
         return "Longer AI explanation."
     monkeypatch.setattr(llm.llm_client, "chat", chat)
 
@@ -113,7 +113,7 @@ async def test_sentence_accent_slip_is_almost(logged_in, spanish_verbs, fake_llm
     data = await sentence(alice, "tuvé")
     assert (data["form_result"], data["form_correct"], data["tense_correct"]) == ("almost", False, True)
     assert data["hint"]["summary"].startswith("Almost")
-    assert data["explanation"] == "Longer AI explanation."
+    assert "explanation" not in data  # the AI's long explanation is streamed separately, on request
     a = (await db.execute(select(Attempt))).scalar_one()
     assert (a.is_correct, a.is_almost) == (False, True)
 
