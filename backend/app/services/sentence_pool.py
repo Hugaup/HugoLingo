@@ -23,7 +23,7 @@ from app.models import Language, SentencePoolItem
 from app.schemas import SentenceExerciseItem, TenseFilter
 from app.services.conjugation_utils import canonical_tense
 from app.services.llm import LLMClient, llm_client
-from app.services.sentences import COMMON_TENSES, NoConjugationData, generate_one
+from app.services.sentences import COMMON_TENSES, SENTENCE_PROMPT_VERSION, NoConjugationData, generate_one
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +66,10 @@ def _tense_condition(tenses: list[TenseFilter]):
 
 async def take(db: AsyncSession, language: Language, tenses: list[TenseFilter], count: int) -> list[SentenceExerciseItem]:
     """Remove and return up to `count` stocked sentences matching `tenses` (any tense if empty)."""
-    query = select(SentencePoolItem.id).where(SentencePoolItem.language == language)
+    query = select(SentencePoolItem.id).where(
+        SentencePoolItem.language == language,
+        SentencePoolItem.prompt_version == SENTENCE_PROMPT_VERSION,
+    )
     if tenses:
         query = query.where(_tense_condition(tenses))
     ids = (await db.execute(
@@ -89,7 +92,10 @@ async def take(db: AsyncSession, language: Language, tenses: list[TenseFilter], 
 
 async def pool_size(db: AsyncSession, language: Language) -> int:
     return await db.scalar(
-        select(func.count()).select_from(SentencePoolItem).where(SentencePoolItem.language == language)
+        select(func.count()).select_from(SentencePoolItem).where(
+            SentencePoolItem.language == language,
+            SentencePoolItem.prompt_version == SENTENCE_PROMPT_VERSION,
+        )
     ) or 0
 
 
@@ -110,25 +116,35 @@ async def refill(
     client: LLMClient | None = None,
     rng: random.Random | None = None,
     wait_while_busy: bool = True,
+    judge: bool | None = None,
 ) -> int:
     """Generate sentences until the stock reaches `target`. Returns how many were added."""
     target = target or settings.sentence_pool_size
+    judge = settings.sentence_judge if judge is None else judge
     client = client or llm_client
     rng = rng or random.Random()
     added = failures = 0
     async with session_factory() as db:
+        # Sentences made by an older prompt are never served; clear them out
+        await db.execute(delete(SentencePoolItem).where(
+            SentencePoolItem.language == language,
+            SentencePoolItem.prompt_version != SENTENCE_PROMPT_VERSION,
+        ))
+        await db.commit()
         while failures < MAX_FAILURES_IN_A_ROW and await pool_size(db, language) < target:
             while wait_while_busy and _live_requests:
                 await asyncio.sleep(0.5)
             try:
-                item = await generate_one(db, language, _choose_tenses(language, rng), client)
+                item = await generate_one(db, language, _choose_tenses(language, rng), client, judge=judge)
             except NoConjugationData:
                 return added  # no verb data for this language/tense mix
             if item is None:
                 failures += 1
                 continue
             failures = 0
-            db.add(SentencePoolItem(language=language, model=client.model, **item.model_dump()))
+            db.add(SentencePoolItem(
+                language=language, model=client.model, prompt_version=SENTENCE_PROMPT_VERSION, **item.model_dump(),
+            ))
             await db.commit()
             added += 1
     return added

@@ -102,7 +102,7 @@ Verb dictionary endpoints backed by the `verb_conjugations` table:
 - `GET /verbs/search/{language}?q=` — autocomplete (prefix match on infinitives).
 - `GET /verbs/tenses/{language}` — all (mood, tense) pairs for a language.
 - `GET /verbs/endings/{language}` — `-er/-ir/-re` etc. for filtering.
-- `GET /verbs/random/{language}?mode=random|irregular|endings` — random verbs for exercise seeding.
+- `GET /verbs/random/{language}?mode=random|irregular|endings` — random verbs for exercise seeding (random/endings prefer the curated `COMMON_VERBS` list over the ~9,700 seeded verbs).
 - `GET /verbs/table/{language}/{infinitive}?moods=` — full conjugation table. For Spanish, resolves compound tenses (e.g. `hablado → he hablado`) using `conjugation_utils.py`.
 
 Also contains `IRREGULAR_VERBS` sets per language used for "irregular" mode.
@@ -133,7 +133,7 @@ Sentence-fill-in-the-blank conjugation exercises:
 `LLMClient` singleton wrapping `POST /api/chat` on Ollama: `chat()`, `chat_json()`, `chat_stream()` (async generator), `warm_up()`. Keeps the model loaded (`OLLAMA_KEEP_ALIVE`), caps reply length (`max_tokens`), disables "thinking" for qwen3/deepseek-r1. The only file that knows about Ollama — swap provider here only. Model choice: see [docs/llm-benchmark.md](docs/llm-benchmark.md) and `scripts/benchmark_llm.py`.
 
 #### `app/services/sentences.py` / `app/services/sentence_pool.py`
-Sentence generation (prompt, validity checks, `generate_one`) and the background stock of validated sentences: 20 per language by default (`SENTENCE_POOL_SIZE`), refilled after use and at startup, paused while any user waits on the LLM (`live_request()`).
+Sentence generation — the LLM writes a complete sentence with the exact target form, the server blanks it (`blank_out`) and rejects fragments, repeated forms of the same verb and person mismatches (`quality_problem`); stocked sentences also pass an LLM grammar check (`judge_sentence`) — and the background stock of validated sentences: 20 per language by default (`SENTENCE_POOL_SIZE`), refilled after use and at startup, paused while any user waits on the LLM (`live_request()`).
 
 #### `app/services/exercise_gen.py`
 - `LANGUAGE_NAMES` — display names map.
@@ -185,6 +185,9 @@ Adds `attempts.is_almost` (accent-only slips, default false).
 
 #### `alembic/versions/d4f6b8c0e2a3_add_sentence_pool.py`
 Creates `sentence_pool` (pre-generated practice sentences; raw SQL, reuses the `language` enum).
+
+#### `alembic/versions/e5a7c9d1f3b4_add_sentence_pool_prompt_version.py`
+Adds `sentence_pool.prompt_version`; sentences from older prompts are never served.
 
 #### `scripts/set_password.py`
 Set or reset a user's password, optionally renaming them. Use it to claim the pre-auth `default` user (id 1) so its history is kept:

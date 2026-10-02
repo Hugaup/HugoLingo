@@ -31,7 +31,7 @@ from app.routers.verbs import COMMON_VERBS
 from app.services.exercise_gen import LANGUAGE_NAMES
 from app.services.llm import LLMClient
 from app.services.sentences import (
-    COMMON_TENSES, SENTENCE_MAX_TOKENS, _sentence_is_valid, build_sentence_messages, target_forms,
+    COMMON_TENSES, SENTENCE_MAX_TOKENS, assess, build_sentence_messages, judge_sentence, target_forms,
 )
 
 TENSES = COMMON_TENSES
@@ -67,30 +67,33 @@ def tokens_per_second(metrics: dict) -> float | None:
     return None
 
 
-async def bench_model(model: str, language: Language, prompts) -> dict:
+async def bench_model(model: str, language: Language, prompts, judge: bool = False) -> dict:
     client = LLMClient(model=model)
     started = time.perf_counter()
     await client.warm_up()
     load_seconds = time.perf_counter() - started
 
     sentences = []
-    for row, correct, alternates in prompts:
-        t = time.perf_counter()
-        try:
-            data = await client.chat_json(build_sentence_messages(language, row, correct), max_tokens=SENTENCE_MAX_TOKENS)
-        except Exception:  # noqa: BLE001 — any failure (bad JSON, HTTP) counts as an invalid output
-            data = None
-        seconds = time.perf_counter() - t
-        sentence = str(data.get("sentence", "")) if isinstance(data, dict) else ""
-        subject = str(data.get("subject_hint", "")) if isinstance(data, dict) else ""
-        valid = bool(sentence) and _sentence_is_valid(sentence, subject, correct, alternates, language, row.person)
-        # The app's checks are mechanical; this catches the obvious fragments ("Esta mañana ___")
-        complete = len(sentence.replace("_", " ").split()) >= 5 and sentence.rstrip().endswith((".", "!", "?"))
-        sentences.append({
-            "verb": row.verb_infinitive, "tense": row.tense, "person": row.person, "target": correct,
-            "sentence": sentence, "subject": subject, "valid": valid, "complete": complete,
-            "seconds": round(seconds, 2), "tokens_per_second": tokens_per_second(client.last_metrics),
-        })
+    async with AsyncSessionLocal() as db:
+        for row, correct, alternates in prompts:
+            t = time.perf_counter()
+            try:
+                data = await client.chat_json(build_sentence_messages(language, row, correct), max_tokens=SENTENCE_MAX_TOKENS)
+            except Exception:  # noqa: BLE001 — any failure (bad JSON, HTTP) counts as an unusable output
+                data = None
+            seconds = time.perf_counter() - t
+            tps = tokens_per_second(client.last_metrics)
+            # The app's own pipeline: server-side blanking + quality checks
+            blanked, problem = await assess(db, language, row, correct, alternates, data)
+            raw = " ".join(str(data.get("sentence", "")).split()) if isinstance(data, dict) else ""
+            approved = None
+            if judge and blanked:
+                approved = await judge_sentence(client, language, raw)
+            sentences.append({
+                "verb": row.verb_infinitive, "tense": row.tense, "person": row.person, "target": correct,
+                "raw": raw, "sentence": blanked, "usable": blanked is not None, "problem": problem,
+                "judge_approved": approved, "seconds": round(seconds, 2), "tokens_per_second": tps,
+            })
 
     explanations = []
     for row, correct, _ in prompts[:EXPLANATIONS_PER_MODEL]:
@@ -116,8 +119,10 @@ async def bench_model(model: str, language: Language, prompts) -> dict:
         "sentence_median_s": round(statistics.median(secs), 2),
         "sentence_p90_s": round(sorted(secs)[int(len(secs) * 0.9) - 1], 2),
         "tokens_per_second": round(statistics.median(tps), 1) if tps else None,
-        "valid_rate": round(sum(s["valid"] for s in sentences) / len(sentences), 2),
-        "valid_and_complete_rate": round(sum(s["valid"] and s["complete"] for s in sentences) / len(sentences), 2),
+        "usable_rate": round(sum(s["usable"] for s in sentences) / len(sentences), 2),
+        "judge_approved_rate": (
+            round(sum(bool(s["judge_approved"]) for s in sentences) / len(sentences), 2) if judge else None
+        ),
         "explanation_median_s": round(statistics.median(e["seconds"] for e in explanations), 2),
         "sentences": sentences,
         "explanations": explanations,
@@ -126,13 +131,14 @@ async def bench_model(model: str, language: Language, prompts) -> dict:
 
 def markdown_table(results: list[dict]) -> str:
     lines = [
-        "| Model | Load (s) | Sentence median (s) | Sentence p90 (s) | Tokens/s | Pass app checks | + complete | Explanation median (s) |",
+        "| Model | Load (s) | Sentence median (s) | Sentence p90 (s) | Tokens/s | Usable after checks | + judge approved | Explanation median (s) |",
         "|---|---|---|---|---|---|---|---|",
     ]
     for r in results:
         lines.append(
             f"| {r['model']} | {r['load_seconds']} | {r['sentence_median_s']} | {r['sentence_p90_s']} | "
-            f"{r['tokens_per_second']} | {r['valid_rate']:.0%} | {r['valid_and_complete_rate']:.0%} | {r['explanation_median_s']} |"
+            f"{r['tokens_per_second']} | {r['usable_rate']:.0%} | "
+            f"{'—' if r['judge_approved_rate'] is None else format(r['judge_approved_rate'], '.0%')} | {r['explanation_median_s']} |"
         )
     return "\n".join(lines)
 
@@ -144,6 +150,7 @@ async def main() -> None:
     parser.add_argument("--n", type=int, default=20, help="sentence prompts per model")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--out", help="write full results (incl. every sentence) as JSON")
+    parser.add_argument("--judge", action="store_true", help="also run the LLM grammar judge on usable sentences")
     args = parser.parse_args()
 
     language = Language(args.language)
@@ -151,13 +158,14 @@ async def main() -> None:
     results = []
     for model in args.models:
         print(f"… {model}", file=sys.stderr)
-        results.append(await bench_model(model, language, prompts))
+        results.append(await bench_model(model, language, prompts, judge=args.judge))
 
     print(markdown_table(results))
     for r in results:
         print(f"\n### {r['model']} — sample sentences")
         for s in r["sentences"][:6]:
-            print(f"- [{'ok' if s['valid'] else 'REJECTED'}] {s['verb']} / {s['tense']} / {s['person']} → {s['target']}: {s['sentence']}")
+            verdict = "ok" if s["usable"] else f"REJECTED: {s['problem']}"
+            print(f"- [{verdict}] {s['verb']} / {s['tense']} / {s['person']} → {s['target']}: {s['raw']}")
     if args.out:
         Path(args.out).write_text(json.dumps(results, ensure_ascii=False, indent=2))
 

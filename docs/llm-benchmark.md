@@ -46,7 +46,49 @@ app now pays once at startup instead of on a user's first request.)
   slower explanations; with thinking on it would be several times slower still.
 - **qwen2.5:3b** is twice as fast as 7b but half as reliable.
 
+## Run 2 — 2026-10-03, new sentence pipeline (prompt v2)
+
+What changed: the model now writes one *complete* sentence containing the exact
+form (with a worked example in the prompt), the **server** does the blanking,
+and stricter checks reject fragments, other forms of the same verb and person
+mismatches. "Judge approved" = the model's own grammar check, which the app
+runs on every background-stock sentence.
+
+```bash
+python scripts/benchmark_llm.py qwen2.5:7b qwen2.5:3b qwen3:4b qwen3:8b gemma3:4b --n 20 --judge
+```
+
+| Model | Load (s) | Sentence median (s) | Sentence p90 (s) | Tokens/s | Usable after checks | + judge approved | Explanation median (s) |
+|---|---|---|---|---|---|---|---|
+| **qwen2.5:7b** | 0.2 | 1.67 | 1.85 | 28.3 | 95% *(was 65%)* | 75% | 3.44 |
+| qwen2.5:3b | 0.1 | 0.93 | 1.01 | 59.4 | 100% *(was 30%)* | 40% | 1.94 |
+| qwen3:4b | 1.4 | 1.51 | 1.58 | 38.8 | 95% *(was 0%)* | 5% | 7.91 |
+| qwen3:8b | 2.2 | 2.32 | 2.44 | 23.3 | 100% *(was 30%)* | 75% | 5.49 |
+| gemma3:4b | 0.2 | 1.56 | 1.67 | 35.7 | 90% *(was 5%)* | 35% | 3.39 |
+
+Manual read of every sentence:
+
+- **qwen2.5:7b** — ~17/20 genuinely good (was ~8). E.g. "Ellos siempre deciden
+  salir de paseo los domingos por la tarde.", "Yo siempre pongo música mientras
+  hago ejercicio." Its misspelt output ("bailémos") is now rejected automatically.
+- **qwen2.5:3b** — ~13/20 good; still writes "Quiero que yo baile…" (rightly
+  rejected by the judge) and agreement slips ("vosotros … tus tíos").
+- **qwen3:8b** — comparable to 7b but slower, with odd collocations
+  ("habéis bajado el volumen todavía no").
+- **gemma3:4b** — natural style now that blanking is server-side, but more
+  tense/person drift (wrote "tú quedes" when asked for "quede").
+- The judge is only as good as the model: qwen3:4b rejects nearly everything.
+  With qwen2.5:7b it filters real errors and sometimes rejects a fine sentence
+  (which only costs background time).
+
 ## Decision
+
+**qwen2.5:7b** stays the default after run 2: best quality, now faster than
+before (shorter prompt: 2.26 s → 1.67 s per sentence), and the background stock
+hides its speed for most requests anyway. qwen2.5:3b is the fallback if speed
+ever matters more than quality (set `OLLAMA_MODEL=qwen2.5:3b`).
+
+### Run 1 decision (kept for history)
 
 Keep **qwen2.5:7b** as the default for now. The speed work in this branch
 doesn't depend on the model:
@@ -59,6 +101,6 @@ doesn't depend on the model:
 - a background stock of validated sentences (`sentence_pool`, 20 per language)
   makes starting sentence practice near-instant.
 
-**Next (feature/sentence-quality):** move the blanking to the server, tighten
-the validation with the failure patterns above, and re-run this benchmark —
-gemma3:4b and qwen2.5:3b get another chance under the new prompt.
+**Done in run 2 (feature/sentence-quality):** moved the blanking to the server, tightened
+the validation with the failure patterns above, and re-ran this benchmark —
+see "Run 2" above.
