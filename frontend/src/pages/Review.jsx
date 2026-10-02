@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import CharPicker from '../components/conjugation/CharPicker'
+import MistakeExplanation from '../components/MistakeExplanation'
+import SessionSummary from '../components/SessionSummary'
 import { PERSON_LABELS, tenseWithMood } from '../utils/conjugationUtils'
 
 const DRILL_LENGTH = 10
@@ -62,28 +64,20 @@ function Drill({ language, onRestart }) {
   }
 
   if (index >= prompts.length) {
-    const score = log.filter(l => l.result.is_correct).length
-    const misses = log.filter(l => !l.result.is_correct)
     return (
-      <div style={s.card}>
-        <p style={s.score}>{score} / {log.length} correct</p>
-        {misses.length > 0 && (
-          <ul style={s.missList} aria-label="Mistakes">
-            {misses.map(({ prompt, answer, result }, i) => (
-              <li key={i} style={s.missItem}>
-                <span style={s.missWhat}>
-                  {prompt.verb_infinitive} · {tenseWithMood(language, prompt.mood, prompt.tense)} · {personLabel(language, prompt.person)}
-                </span>
-                <span><s style={s.wrong}>{answer}</s> → <strong>{result.expected}</strong></span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div style={s.actions}>
-          <button style={s.primary} onClick={onRestart}>Review again</button>
-          <button style={s.secondary} onClick={() => navigate(`/practice/${language}`)}>Back to practice</button>
-        </div>
-      </div>
+      <SessionSummary
+        language={language}
+        results={log.map(({ prompt, answer, result }) => ({
+          label: [prompt.verb_infinitive, tenseWithMood(language, prompt.mood, prompt.tense), personLabel(language, prompt.person)]
+            .filter(Boolean).join(' · '),
+          answer,
+          expected: result.expected,
+          result: result.result,
+        }))}
+        onRestart={onRestart}
+        restartLabel="Review again"
+        showReviewLink={false}
+      />
     )
   }
 
@@ -131,17 +125,23 @@ function Drill({ language, onRestart }) {
       {checkError && <p style={s.error}>{checkError}</p>}
 
       {result && (
-        <div style={s.feedbackRow}>
-          <p role="status" style={result.is_correct ? s.correct : s.incorrect}>
-            {result.is_correct
-              ? '✓ Correct'
-              : <>✗ Correct answer: <strong>{result.expected}</strong>
-                  {result.alternates.length > 0 && <> (also {result.alternates.join(', ')})</>}</>}
-          </p>
-          <button ref={nextRef} style={s.primary} onClick={next}>
-            {index + 1 === prompts.length ? 'See results' : 'Next →'}
-          </button>
-        </div>
+        <>
+          <div style={s.feedbackRow}>
+            <p role="status" style={FEEDBACK_STYLE[result.result]}>
+              {result.result === 'correct' && '✓ Correct'}
+              {result.result === 'almost' && <>≈ Almost — check the accents: <strong>{result.expected}</strong></>}
+              {result.result === 'wrong' && <>✗ Correct answer: <strong>{result.expected}</strong>
+                {result.alternates.length > 0 && <> (also {result.alternates.join(', ')})</>}</>}
+            </p>
+            <button ref={nextRef} style={s.primary} onClick={next}>
+              {index + 1 === prompts.length ? 'See results' : 'Next →'}
+            </button>
+          </div>
+          {/* The almost-line already says it all; explain only real mistakes */}
+          {result.result === 'wrong' && (
+            <MistakeExplanation explanation={result.explanation} language={language} person={prompt.person} />
+          )}
+        </>
       )}
     </div>
   )
@@ -170,12 +170,10 @@ const s = {
   primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
   secondary: { background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' },
   feedbackRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' },
+}
+
+const FEEDBACK_STYLE = {
   correct: { color: '#15803d', fontWeight: 600, margin: 0 },
-  incorrect: { color: '#b91c1c', margin: 0 },
-  score: { fontSize: '1.4rem', fontWeight: 800, color: '#1e1b4b', margin: '0 0 0.75rem' },
-  missList: { listStyle: 'none', padding: 0, margin: '0 0 1.25rem' },
-  missItem: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'baseline', gap: '1rem', padding: '0.35rem 0', borderBottom: '1px solid #eceef1', fontSize: '0.9rem' },
-  missWhat: { color: '#4b5563', minWidth: 0 },
-  wrong: { color: '#b91c1c' },
-  actions: { display: 'flex', gap: '0.6rem', flexWrap: 'wrap' },
+  almost: { color: '#92400e', margin: 0 },
+  wrong: { color: '#b91c1c', margin: 0 },
 }

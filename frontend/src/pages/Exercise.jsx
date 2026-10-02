@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import FeedbackPanel from '../components/FeedbackPanel'
 import CharPicker from '../components/conjugation/CharPicker'
+import SessionSummary from '../components/SessionSummary'
 
 export default function Exercise() {
   const { state } = useLocation()
@@ -11,9 +12,12 @@ export default function Exercise() {
   const settings = state?.settings
   const remaining = state?.remaining ?? 0
   const total = state?.total ?? 1
+  const log = state?.log ?? []  // earlier answers in this session, for the end summary
 
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState(null)
+  const [entry, setEntry] = useState(null)
+  const [finished, setFinished] = useState(false)
   const [loading, setLoading] = useState(false)
   const [nextLoading, setNextLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -34,6 +38,12 @@ export default function Exercise() {
     try {
       const res = await api.checkAnswer(exercise.id, answer.trim())
       setResult(res)
+      setEntry({
+        label: summaryLabel(type, content),
+        answer: answer.trim(),
+        expected: res.correct_answer,
+        result: res.is_correct ? 'correct' : res.almost ? 'almost' : 'wrong',
+      })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -41,16 +51,18 @@ export default function Exercise() {
     }
   }
 
+  const sessionLog = entry ? [...log, entry] : log
+
   async function goNext() {
     if (isLastExercise) {
-      navigate(settings?.language ? `/practice/${settings.language}` : '/')
+      setFinished(true)
       return
     }
     setNextLoading(true)
     try {
       const next = await api.generateExercise(settings.type, settings.language, settings.difficulty)
       navigate('/exercise', {
-        state: { exercise: next, settings, remaining: remaining - 1, total },
+        state: { exercise: next, settings, remaining: remaining - 1, total, log: sessionLog },
       })
     } catch (e) {
       setError(e.message)
@@ -60,6 +72,15 @@ export default function Exercise() {
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !result) submitAnswer()
+  }
+
+  if (finished) {
+    return (
+      <div style={styles.page}>
+        {/* Old-flow answers carry no DB tense, so they don't feed the review drill */}
+        <SessionSummary language={language} results={sessionLog} showReviewLink={false} />
+      </div>
+    )
   }
 
   return (
@@ -79,7 +100,6 @@ export default function Exercise() {
 
         {!result && (
           <div>
-            <CharPicker language={language} style={{ marginBottom: '0.5rem' }} />
           <div style={styles.inputRow}>
             <input
               style={styles.input}
@@ -94,6 +114,7 @@ export default function Exercise() {
               {loading ? '...' : 'Check'}
             </button>
           </div>
+            <CharPicker language={language} style={{ marginTop: '0.5rem' }} />
           </div>
         )}
 
@@ -138,6 +159,13 @@ function ExerciseBody({ type, content }) {
     )
   }
   return null
+}
+
+function summaryLabel(type, content) {
+  const text = type === 'conjugation' ? `${content.verb_infinitive} · ${content.tense}`
+    : type === 'grammar' ? content.sentence_with_error
+    : content.questions?.[0]?.question ?? 'Reading'
+  return text.length > 60 ? `${text.slice(0, 57)}…` : text
 }
 
 function inputPlaceholder(type) {

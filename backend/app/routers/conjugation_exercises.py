@@ -17,7 +17,11 @@ from app.schemas import (
 )
 from app.services.llm import llm_client
 from app.services.exercise_gen import LANGUAGE_NAMES
-from app.services.conjugation_utils import resolve_compound_form, canonical_tense, variant_tense_names
+from app.services.conjugation_utils import (
+    PRONOUNS, canonical_tense, resolve_compound_form, tense_table, variant_tense_names,
+)
+from app.services.explain import explain_mistake, tense_name
+from app.services.grading import grade
 from app.routers.verbs import COMMON_VERBS
 
 router = APIRouter(prefix="/conjugation-exercises", tags=["conjugation-exercises"])
@@ -38,23 +42,11 @@ def _sibling_variant_tense(tense: str) -> str | None:
     return None
 
 
-def _forms_match(user: str, correct: str, alternates: list[str] | None = None) -> bool:
-    u = user.strip().lower()
-    c = correct.strip().lower()
-    if u == c or u in _ALTERNATES.get(c, []):
-        return True
-    return bool(alternates) and u in [a.strip().lower() for a in alternates]
-
-
 # The canonical pronoun to tell the model to build the sentence around, so it
 # can't drift onto a different grammatical person than the one it's supposed
 # to conjugate for (e.g. writing "mis amigos" — implying "yo" — around a "tú"
 # form: "Cuando era niño, ___ la puerta..." / correct answer "cerrabas").
-_PRIMARY_PRONOUN: dict[Language, dict[str, str]] = {
-    Language.spanish: {"1s": "yo", "2s": "tú", "3s": "él/ella", "1p": "nosotros", "2p": "vosotros", "3p": "ellos/ellas"},
-    Language.french: {"1s": "je", "2s": "tu", "3s": "il/elle", "1p": "nous", "2p": "vous", "3p": "ils/elles"},
-    Language.english: {"1s": "I", "2s": "you", "3s": "he/she", "1p": "we", "2p": "you (plural)", "3p": "they"},
-}
+_PRIMARY_PRONOUN = PRONOUNS
 
 # Reverse lookup: a recognized subject pronoun -> the grammatical person(s) it
 # can represent. Used only to catch the clearest failures (the model's own
@@ -357,19 +349,41 @@ async def check_sentence(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    form_correct = _forms_match(req.user_form, req.item.correct_form, req.item.alternates)
+    item = req.item
+    accepted = [item.correct_form, *item.alternates, *_ALTERNATES.get(item.correct_form.strip().lower(), [])]
+    form_grade = grade(req.user_form, accepted)
+    form_correct = form_grade.is_correct
     tense_correct = (
-        req.user_mood.lower() == req.item.mood.lower()
-        and req.user_tense.lower() == req.item.tense.lower()
+        req.user_mood.lower() == item.mood.lower()
+        and req.user_tense.lower() == item.tense.lower()
     )
 
     # Record before the LLM call so a slow/failed explanation doesn't lose the answer.
     # Naming the wrong tense counts as a miss too: it's the tense the user struggled with.
     await record_attempts(db, user.id, req.language, "sentence", [AttemptIn(
-        verb_infinitive=req.item.verb_infinitive, mood=req.item.mood, tense=req.item.tense,
-        person=req.item.person, user_answer=req.user_form, expected=req.item.correct_form,
-        is_correct=form_correct and tense_correct,
+        verb_infinitive=item.verb_infinitive, mood=item.mood, tense=item.tense,
+        person=item.person, user_answer=req.user_form, expected=item.correct_form,
+        is_correct=form_correct and tense_correct, is_almost=form_grade.is_almost,
     )])
+
+    # Instant one-line feedback; the LLM's longer explanation follows below
+    hint = None
+    if not form_correct:
+        hint = await explain_mistake(
+            db, req.language, item.verb_infinitive, item.mood, item.tense, item.person,
+            req.user_form, form_grade, item.correct_form,
+        )
+    elif not tense_correct:
+        table = await tense_table(db, req.language, item.verb_infinitive, item.mood, item.tense)
+        hint = {
+            "summary": (
+                f"Right form — but it's the {tense_name(item.mood, item.tense)}, "
+                f"not the {tense_name(req.user_mood, req.user_tense)}."
+            ),
+            "mood": item.mood,
+            "tense": item.tense,
+            "forms": [{"person": p, "form": forms[0]} for p, forms in table.items()],
+        }
 
     lang_name = LANGUAGE_NAMES[req.language]
     person_desc = PERSON_DESC.get(req.item.person, req.item.person)
@@ -403,6 +417,8 @@ async def check_sentence(
 
     return SentenceCheckResponse(
         form_correct=form_correct,
+        form_result=form_grade.result,
         tense_correct=tense_correct,
         explanation=explanation,
+        hint=hint,
     )

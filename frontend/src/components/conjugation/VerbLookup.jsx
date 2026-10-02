@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../../api'
 import { PERSON_LABELS, sortedTable, sortTenses, tenseLabel } from '../../utils/conjugationUtils'
+import CharPicker from './CharPicker'
 
 export default function VerbLookup({ language }) {
   const [query, setQuery]           = useState('')
@@ -74,6 +75,7 @@ export default function VerbLookup({ language }) {
               ))}
             </ul>
           )}
+          <CharPicker language={language} style={s.charPicker} />
         </div>
 
         <div ref={filterRef} style={{ position: 'relative' }}>
@@ -142,6 +144,7 @@ export default function VerbLookup({ language }) {
 const s = {
   searchRow: { display: 'flex', gap: '0.5rem', alignItems: 'flex-start' },
   input: { width: '100%', padding: '0.6rem 0.85rem', border: '2px solid #d1d5db', borderRadius: 8, fontSize: '1rem', boxSizing: 'border-box' },
+  charPicker: { marginTop: '0.4rem', marginBottom: 0 },
   suggestions: { position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, margin: 0, padding: 0, listStyle: 'none', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: 220, overflowY: 'auto' },
   suggestionItem: { padding: '0.5rem 0.85rem', cursor: 'pointer', fontSize: '0.95rem' },
   filterBtn: { whiteSpace: 'nowrap', padding: '0.6rem 0.9rem', border: '2px solid #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: '0.9rem' },

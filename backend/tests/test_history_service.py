@@ -7,7 +7,6 @@ from app.services.history import (
     answer_weight,
     current_streak,
     next_review,
-    normalize_answer,
     resolve_timezone,
     score_groups,
 )
@@ -95,10 +94,6 @@ TODAY = date(2026, 10, 2)
 ])
 def test_current_streak(active, expected):
     assert current_streak(active, TODAY) == expected
-
-
-def test_normalize_answer():
-    assert normalize_answer("  He   Tenido ") == "he tenido"
 
 
 def test_unknown_timezone_falls_back_to_utc():

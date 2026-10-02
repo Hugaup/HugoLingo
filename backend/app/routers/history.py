@@ -17,6 +17,8 @@ from app.schemas import (
 )
 from app.services import history
 from app.services.conjugation_utils import expected_forms
+from app.services.explain import explain_mistake
+from app.services.grading import grade
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -63,13 +65,18 @@ async def drill_check(
     if not forms:
         raise HTTPException(404, "No such conjugation")
 
-    answer = history.normalize_answer(req.answer)
-    is_correct = any(answer == history.normalize_answer(f) for f in forms)
+    graded = grade(req.answer, forms)
     await history.record_attempts(db, user.id, req.language, "drill", [history.AttemptIn(
         verb_infinitive=req.verb_infinitive, mood=req.mood, tense=req.tense, person=req.person,
-        user_answer=req.answer, expected=forms[0], is_correct=is_correct,
+        user_answer=req.answer, expected=forms[0], is_correct=graded.is_correct, is_almost=graded.is_almost,
     )])
-    return DrillCheckResponse(is_correct=is_correct, expected=forms[0], alternates=forms[1:])
+    explanation = None if graded.is_correct else await explain_mistake(
+        db, req.language, req.verb_infinitive, req.mood, req.tense, req.person, req.answer, graded, forms[0],
+    )
+    return DrillCheckResponse(
+        is_correct=graded.is_correct, result=graded.result,
+        expected=forms[0], alternates=forms[1:], explanation=explanation,
+    )
 
 
 @router.get("/stats", response_model=StatsResponse)

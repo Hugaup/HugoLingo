@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../api'
 import ChatPanel from './ChatPanel'
-import { sortTenses, groupTensesBySection, tenseLabel } from '../../utils/conjugationUtils'
+import { sortTenses, groupTensesBySection, tenseLabel, tenseWithMood } from '../../utils/conjugationUtils'
 import CharPicker from './CharPicker'
+import MistakeExplanation from '../MistakeExplanation'
+import SessionSummary from '../SessionSummary'
+
+function bannerColor(result) {
+  if (result.form_correct && result.tense_correct) return '#d1fae5'
+  if (result.form_result === 'wrong') return '#fee2e2'
+  return '#fef3c7'  // almost, or right form with the wrong tense
+}
 import TenseChipSelector from './TenseChipSelector'
 
 const SKIP_MOODS = ['infinitive', 'infinitivo', 'infinitif', 'gerundio', 'participo', 'participe']
@@ -82,6 +90,9 @@ function Exercise({ items, language, onReset }) {
   const [checking, setChecking]     = useState(false)
   const [result, setResult]         = useState(null)
   const [availTenses, setAvailTenses] = useState([])
+  const [log, setLog]               = useState([])
+  const [finished, setFinished]     = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
 
   const item = items[idx]
 
@@ -101,8 +112,14 @@ function Exercise({ items, language, onReset }) {
       const [mood, tense] = userTense.split('||')
       const res = await api.checkSentence(item, userForm.trim(), mood, tense, language)
       setResult(res)
+      setLog(l => [...l, {
+        label: `${item.verb_infinitive} · ${tenseWithMood(language, item.mood, item.tense)}`,
+        answer: userForm.trim(),
+        expected: item.correct_form,
+        result: res.form_correct && res.tense_correct ? 'correct' : res.form_result === 'almost' ? 'almost' : 'wrong',
+      }])
     } catch (e) {
-      setResult({ form_correct: false, tense_correct: false, explanation: e.message })
+      setResult({ form_correct: false, form_result: 'wrong', tense_correct: false, explanation: e.message, hint: null })
     } finally {
       setChecking(false)
     }
@@ -110,10 +127,14 @@ function Exercise({ items, language, onReset }) {
 
   function next() {
     setIdx(idx + 1)
-    setUserForm(''); setUserTense(''); setResult(null)
+    setUserForm(''); setUserTense(''); setResult(null); setShowDetail(false)
   }
 
   const isLast = idx === items.length - 1
+
+  if (finished) {
+    return <SessionSummary language={language} results={log} onRestart={onReset} restartLabel="New exercise" />
+  }
 
   const chatSystemPrompt = result
     ? `You are a language teacher helping a student understand ${language} conjugation.
@@ -172,24 +193,39 @@ Answer any follow-up questions clearly with examples.`
         </div>
       ) : (
         <div>
-          <div style={{ ...s.resultBanner, background: (result.form_correct && result.tense_correct) ? '#d1fae5' : result.form_correct ? '#fef3c7' : '#fee2e2' }}>
-            <span>{result.form_correct ? '✓ Form correct' : `✗ Form incorrect — correct: ${item.correct_form}`}</span>
+          <div role="status" style={{ ...s.resultBanner, background: bannerColor(result) }}>
+            <span>
+              {result.form_result === 'correct' && '✓ Form correct'}
+              {result.form_result === 'almost' && `≈ Almost — check the accents: ${item.correct_form}`}
+              {result.form_result === 'wrong' && `✗ Form incorrect — correct: ${item.correct_form}`}
+            </span>
             <span style={{ marginLeft: '1rem' }}>{result.tense_correct ? '✓ Tense correct' : `✗ Tense — correct: ${item.mood} — ${tenseLabel(language, item.mood, item.tense)}`}</span>
           </div>
 
-          <div style={{ marginTop: '1rem' }}>
-            <ChatPanel
-              initialMessages={chatInitial}
-              systemPrompt={chatSystemPrompt}
-              placeholder="Ask a follow-up question about this conjugation…"
-            />
-          </div>
+          {result.form_result !== 'almost' && (
+            <MistakeExplanation explanation={result.hint} language={language} person={item.person} />
+          )}
+
+          {/* The AI's longer explanation + follow-up chat, folded away to keep the screen calm */}
+          <button type="button" style={s.detailToggle} aria-expanded={showDetail} onClick={() => setShowDetail(v => !v)}>
+            {showDetail ? 'Hide AI explanation ▴' : 'AI explanation & questions ▾'}
+          </button>
+          {showDetail && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <ChatPanel
+                initialMessages={chatInitial}
+                systemPrompt={chatSystemPrompt}
+                placeholder="Ask a follow-up question about this conjugation…"
+                language={language}
+              />
+            </div>
+          )}
 
           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
             {!isLast ? (
               <button style={s.startBtn} onClick={next}>Next sentence →</button>
             ) : (
-              <button style={s.startBtn} onClick={onReset}>Finish — new exercise</button>
+              <button style={s.startBtn} onClick={() => setFinished(true)}>See results</button>
             )}
           </div>
         </div>
@@ -235,4 +271,5 @@ const s = {
   input: { width: '100%', padding: '0.6rem 0.85rem', border: '2px solid #d1d5db', borderRadius: 8, fontSize: '1rem', boxSizing: 'border-box' },
   select: { width: '100%', padding: '0.6rem 0.85rem', border: '2px solid #d1d5db', borderRadius: 8, fontSize: '0.95rem', background: '#fff' },
   resultBanner: { padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.9rem', fontWeight: 600, display: 'flex', flexWrap: 'wrap', gap: '0.5rem' },
+  detailToggle: { display: 'block', background: 'none', border: 'none', padding: 0, marginTop: '0.75rem', color: '#4f46e5', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit' },
 }

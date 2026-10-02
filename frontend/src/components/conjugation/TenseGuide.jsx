@@ -326,6 +326,7 @@ Answer questions clearly and concisely, always providing examples in ${language}
         <ChatPanel
           systemPrompt={systemPrompt}
           placeholder={`Ask about ${language} tenses, conjugation rules, exceptions…`}
+          language={language}
         />
       </div>
     </div>

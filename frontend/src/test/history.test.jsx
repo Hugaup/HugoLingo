@@ -46,11 +46,16 @@ describe('review drill', () => {
     { verb_infinitive: 'tener', ...PRET, person: '3s', reason: 'due' },
     { verb_infinitive: 'tener', ...PRET, person: '1s', reason: 'weak' },
   ]
-  const grade = ({ answer, person }) => ({
-    body: person === '1s'
-      ? { is_correct: answer === 'tuve', expected: 'tuve', alternates: [] }
-      : { is_correct: answer === 'tuvo', expected: 'tuvo', alternates: [] },
-  })
+  const grade = ({ answer, person }) => {
+    const expected = person === '1s' ? 'tuve' : 'tuvo'
+    const ok = answer === expected
+    return {
+      body: {
+        is_correct: ok, result: ok ? 'correct' : 'wrong', expected, alternates: [],
+        explanation: ok ? null : { summary: 'Rule hint.', mood: PRET.mood, tense: PRET.tense, forms: [] },
+      },
+    }
+  }
 
   it('grades each answer on the server and summarises the round, all from the keyboard', async () => {
     const fetchMock = mockBackend({
@@ -189,7 +194,7 @@ describe('verb table exercise', () => {
     expect(report.body.source).toBe('verb_table')
     expect(report.body.attempts).toHaveLength(6)
     expect(report.body.attempts[0]).toEqual({
-      verb_infinitive: 'tener', ...PRET, person: '1s', user_answer: 'tuve', expected: 'tuve', is_correct: true,
+      verb_infinitive: 'tener', ...PRET, person: '1s', user_answer: 'tuve', expected: 'tuve', is_correct: true, is_almost: false,
     })
     expect(report.body.attempts[1]).toMatchObject({ person: '2s', user_answer: '', is_correct: false })
   })

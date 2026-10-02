@@ -26,6 +26,8 @@ class CheckAnswerRequest(BaseModel):
 
 class CheckAnswerResponse(BaseModel):
     is_correct: bool
+    # Wrong only by accents — still a mistake, but shown as "almost"
+    almost: bool = False
     explanation: str
     correct_answer: str
 
@@ -116,10 +118,25 @@ class SentenceCheckRequest(BaseModel):
     user_tense: str
     language: Language
 
+class ConjugationForm(BaseModel):
+    person: str
+    form: str
+
+
+class MistakeExplanation(BaseModel):
+    """Compact, rule-based feedback: one line plus the whole tense for a "show all forms" toggle."""
+    summary: str
+    mood: str
+    tense: str
+    forms: list[ConjugationForm]
+
+
 class SentenceCheckResponse(BaseModel):
     form_correct: bool
+    form_result: Literal["correct", "almost", "wrong"]
     tense_correct: bool
     explanation: str
+    hint: MistakeExplanation | None = None
 
 
 # ── History / weak spots ──────────────────────────────────────────────────────
@@ -132,6 +149,7 @@ class AttemptRecord(BaseModel):
     user_answer: str = Field(max_length=512)
     expected: str = Field(max_length=512)
     is_correct: bool
+    is_almost: bool = False
 
 
 class RecordAttemptsRequest(BaseModel):
@@ -178,8 +196,10 @@ class DrillCheckRequest(BaseModel):
 
 class DrillCheckResponse(BaseModel):
     is_correct: bool
+    result: Literal["correct", "almost", "wrong"]
     expected: str
     alternates: list[str]
+    explanation: MistakeExplanation | None = None
 
 
 class DailyCount(BaseModel):

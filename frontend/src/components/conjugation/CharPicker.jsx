@@ -6,19 +6,24 @@ const LANG_CHARS = {
   galician: ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ', 'â', 'ê', 'ô'],
 }
 
-// Use the native setter so React's onChange fires after DOM update
-const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+// Use the native setters so React's onChange fires after the DOM update
+const NATIVE_SETTERS = {
+  INPUT: Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set,
+  TEXTAREA: Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set,
+}
 
+// Accent buttons: insert into whichever text box has focus (input or textarea)
 export default function CharPicker({ language, style }) {
   const chars = LANG_CHARS[language] || []
   if (!chars.length) return null
 
   function insert(char) {
     const el = document.activeElement
-    if (!el || el.tagName !== 'INPUT') return
+    const nativeSetter = el && NATIVE_SETTERS[el.tagName]
+    if (!nativeSetter) return
     const start = el.selectionStart ?? el.value.length
     const end   = el.selectionEnd   ?? el.value.length
-    nativeSetter?.call(el, el.value.slice(0, start) + char + el.value.slice(end))
+    nativeSetter.call(el, el.value.slice(0, start) + char + el.value.slice(end))
     el.dispatchEvent(new Event('input', { bubbles: true }))
     requestAnimationFrame(() => {
       el.focus()
