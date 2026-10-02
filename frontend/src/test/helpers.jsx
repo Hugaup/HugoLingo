@@ -19,12 +19,13 @@ function response(status, body) {
 /**
  * Replace global fetch with a fake backend.
  * routes: { 'METHOD /path': {status, body} | (requestBody) => {status, body} }
- * Paths are given without the /api prefix. Unmocked routes return 404.
+ * Paths are given without the /api prefix; a key without a query string also
+ * matches that path with any query. Unmocked routes return 404.
  */
 export function mockBackend(routes) {
   const fetchMock = vi.fn(async (url, opts = {}) => {
     const key = `${opts.method ?? 'GET'} ${url.replace(/^\/api/, '')}`
-    const route = routes[key]
+    const route = routes[key] ?? routes[key.split('?')[0]]
     if (!route) return response(404, { detail: `No mock for ${key}` })
     const reqBody = opts.body ? JSON.parse(opts.body) : undefined
     const { status = 200, body = null } = typeof route === 'function' ? route(reqBody) : route

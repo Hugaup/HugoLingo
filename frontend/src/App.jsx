@@ -7,6 +7,8 @@ import Practice from './pages/Practice'
 import Exercise from './pages/Exercise'
 import Conjugation from './pages/Conjugation'
 import Settings from './pages/Settings'
+import Review from './pages/Review'
+import Progress from './pages/Progress'
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
             <Route path="/" element={<Welcome />} />
             <Route path="/practice/:language" element={<Practice />} />
             <Route path="/practice/:language/conjugation" element={<Conjugation />} />
+            <Route path="/practice/:language/review" element={<Review />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="/exercise" element={<Exercise />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
