@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthProvider from './auth/AuthProvider'
 import RequireAuth from './components/RequireAuth'
 import Auth from './pages/Auth'
-import Welcome from './pages/Welcome'
+import Dashboard from './pages/Dashboard'
 import Practice from './pages/Practice'
 import Exercise from './pages/Exercise'
 import Conjugation from './pages/Conjugation'
@@ -20,7 +20,7 @@ export default function App() {
           <Route path="/login" element={<Auth key="login" mode="login" />} />
           <Route path="/signup" element={<Auth key="signup" mode="signup" />} />
           <Route element={<RequireAuth />}>
-            <Route path="/" element={<Welcome />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/practice/:language" element={<Practice />} />
             <Route path="/practice/:language/conjugation" element={<Conjugation />} />
             <Route path="/practice/:language/review" element={<Review />} />

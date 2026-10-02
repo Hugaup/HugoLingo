@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import { LANGUAGES, LEVELS } from '../constants'
+import { color, ui } from '../theme'
 
 const PASSWORD_MIN = 4
 
 export default function Settings() {
-  const { user, setUser } = useAuth()
+  const { user, setUser, logout } = useAuth()
+  const navigate = useNavigate()
 
   const [targetLanguage, setTargetLanguage] = useState(user.target_language ?? '')
   const [level, setLevel]                   = useState(user.level)
@@ -110,19 +112,25 @@ export default function Settings() {
         {pwStatus && <p style={pwStatus.ok ? s.ok : s.error} role="status">{pwStatus.text}</p>}
         <button type="submit" style={s.submit} disabled={savingPw}>{savingPw ? 'Saving…' : 'Change password'}</button>
       </form>
+
+      <section style={{ ...s.card, ...s.account }} aria-label="Account">
+        <span>Logged in as <strong>{user.username}</strong></span>
+        <button style={ui.secondary} onClick={async () => { await logout(); navigate('/login', { replace: true }) }}>Log out</button>
+      </section>
     </div>
   )
 }
 
 const s = {
-  page: { maxWidth: 480, margin: '0 auto', padding: '2rem 1.5rem', fontFamily: 'system-ui, sans-serif' },
-  back: { color: '#6b7280', textDecoration: 'none', fontSize: '0.9rem' },
-  title: { fontSize: '1.75rem', fontWeight: 800, color: '#1e1b4b', margin: '0.75rem 0 1.5rem' },
-  card: { display: 'flex', flexDirection: 'column', background: '#f8f9fa', borderRadius: 12, padding: '1.5rem', marginBottom: '1.5rem' },
-  section: { fontSize: '1.05rem', fontWeight: 700, color: '#1e1b4b', margin: '0 0 1rem' },
-  label: { fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' },
-  input: { padding: '0.55rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '1rem', fontFamily: 'inherit', marginBottom: '1rem', background: '#fff' },
-  ok: { color: '#15803d', fontSize: '0.9rem', margin: '0 0 1rem' },
-  error: { color: '#b91c1c', fontSize: '0.9rem', margin: '0 0 1rem' },
-  submit: { alignSelf: 'flex-start', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.6rem 1.25rem', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  page: { ...ui.page, maxWidth: 480 },
+  back: { ...ui.back, textDecoration: 'none' },
+  title: ui.h1,
+  card: { ...ui.panel, display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' },
+  account: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', color: color.body },
+  section: { ...ui.h2, marginBottom: '1rem' },
+  label: { fontSize: '0.85rem', fontWeight: 600, color: color.body, marginBottom: '0.35rem' },
+  input: { padding: '0.55rem 0.75rem', border: `1px solid ${color.borderStrong}`, borderRadius: 8, fontSize: '1rem', fontFamily: 'inherit', marginBottom: '1rem', background: '#fff' },
+  ok: { color: color.success, fontSize: '0.9rem', margin: '0 0 1rem' },
+  error: { color: color.danger, fontSize: '0.9rem', margin: '0 0 1rem' },
+  submit: { ...ui.primary, alignSelf: 'flex-start' },
 }

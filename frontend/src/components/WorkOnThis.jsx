@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { tenseWithMood } from '../utils/conjugationUtils'
+import { ui } from '../theme'
 
 // Compact "Work on this" panel: the user's weakest verb+tenses for a language,
 // with one click into the focused review drill.
@@ -75,5 +76,5 @@ const s = {
   verb: { fontWeight: 700, color: '#1e1b4b' },
   detail: { color: '#4b5563', flex: 1 },
   mistakes: { marginLeft: 'auto', color: '#6b7280', fontSize: '0.8rem', whiteSpace: 'nowrap' },
-  button: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  button: { ...ui.primary, padding: '0.5rem 1rem', fontSize: '0.9rem' },
 }

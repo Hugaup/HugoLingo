@@ -63,16 +63,6 @@ describe('login flow', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Save' }))
     expect(await screen.findByRole('heading', { name: 'Log in' })).toBeInTheDocument()
   })
-
-  it('puts the language chosen in Settings first on the welcome page', async () => {
-    mockBackend({ 'GET /auth/me': { body: { ...ALICE, target_language: 'spanish' } } })
-    renderAppAt('/')
-
-    await screen.findByRole('heading', { name: 'Welcome, alice' })
-    const languageButtons = screen.getAllByRole('button').filter(b => /French|Spanish|English/.test(b.textContent))
-    expect(languageButtons[0]).toHaveTextContent('Spanish')
-    expect(languageButtons[0]).toHaveTextContent('Your language')
-  })
 })
 
 describe('sign-up flow', () => {

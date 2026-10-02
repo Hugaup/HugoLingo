@@ -5,6 +5,7 @@ import { LANGUAGES } from '../constants'
 import WorkOnThis from '../components/WorkOnThis'
 import ActivityChart from '../components/charts/ActivityChart'
 import AccuracyGrid from '../components/charts/AccuracyGrid'
+import { ui } from '../theme'
 
 export default function Progress() {
   const { user } = useAuth()
@@ -100,11 +101,11 @@ function Tile({ label, value, note, children }) {
 }
 
 const s = {
-  page: { maxWidth: 820, margin: '0 auto', padding: '2rem 1.5rem 3rem', fontFamily: 'system-ui, sans-serif' },
-  title: { fontSize: '1.75rem', fontWeight: 800, color: '#1e1b4b', margin: '0 0 1rem' },
+  page: ui.page,
+  title: { ...ui.h1, margin: '0.5rem 0 1rem' },
   tabs: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
-  chip: { padding: '0.4rem 0.9rem', borderRadius: 999, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: '0.9rem', fontFamily: 'inherit', color: '#374151' },
-  chipActive: { border: '1px solid #4f46e5', background: '#4f46e5', color: '#fff' },
+  chip: ui.chip,
+  chipActive: ui.chipOn,
   tiles: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' },
   tile: { display: 'flex', flexDirection: 'column', gap: '0.25rem', background: '#f8f9fa', borderRadius: 12, padding: '0.9rem 1rem' },
   tileLabel: { fontSize: '0.8rem', color: '#52514e' },

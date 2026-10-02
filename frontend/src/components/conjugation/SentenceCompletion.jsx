@@ -13,6 +13,7 @@ function bannerColor(result) {
   return '#fef3c7'  // almost, or right form with the wrong tense
 }
 import TenseChipSelector from './TenseChipSelector'
+import { ui } from '../../theme'
 
 const SKIP_MOODS = ['infinitive', 'infinitivo', 'infinitif', 'gerundio', 'participo', 'participe']
 
@@ -270,11 +271,11 @@ const s = {
   label: { display: 'block', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#555', marginBottom: '0.5rem' },
   optional: { fontWeight: 400, fontSize: '0.8rem', color: '#9ca3af', textTransform: 'none' },
   chips: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
-  chip: { padding: '0.35rem 0.85rem', borderRadius: 20, border: '2px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '0.85rem' },
-  chipOn: { borderColor: '#4f46e5', background: '#4f46e5', color: '#fff' },
+  chip: { ...ui.chip, padding: '0.35rem 0.85rem', fontSize: '0.85rem' },
+  chipOn: ui.chipOn,
   textBtn: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.82rem', padding: '0.2rem 0', marginTop: '0.35rem' },
   error: { color: '#dc2626', fontSize: '0.9rem' },
-  startBtn: { padding: '0.7rem 1.75rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem' },
+  startBtn: { ...ui.primary, padding: '0.7rem 1.75rem' },
   backLink: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.9rem', padding: 0, marginBottom: '1.25rem' },
   progress: { fontSize: '0.85rem', color: '#6b7280', marginBottom: '0.75rem', fontWeight: 600 },
   sentenceCard: { background: '#f8f9fa', borderRadius: 10, padding: '1.25rem', marginBottom: '1.25rem' },

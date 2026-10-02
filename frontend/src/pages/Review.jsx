@@ -6,6 +6,7 @@ import MistakeExplanation from '../components/MistakeExplanation'
 import SessionSummary from '../components/SessionSummary'
 import SpeakButton from '../components/SpeakButton'
 import { PERSON_LABELS, tenseWithMood } from '../utils/conjugationUtils'
+import { ui } from '../theme'
 
 const DRILL_LENGTH = 10
 
@@ -156,10 +157,10 @@ function personLabel(language, person) {
 }
 
 const s = {
-  page: { maxWidth: 560, margin: '0 auto', padding: '2rem 1.5rem', fontFamily: 'system-ui, sans-serif' },
-  back: { background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontFamily: 'inherit' },
-  title: { fontSize: '1.6rem', fontWeight: 800, color: '#1e1b4b', margin: '0.75rem 0 1.25rem' },
-  card: { background: '#f8f9fa', borderRadius: 12, padding: '1.5rem' },
+  page: { ...ui.page, maxWidth: 560 },
+  back: ui.back,
+  title: ui.h1,
+  card: ui.panel,
   muted: { color: '#6b7280', margin: '0 0 1rem' },
   error: { color: '#b91c1c', margin: '0.5rem 0' },
   emptyTitle: { fontWeight: 700, color: '#1e1b4b', margin: '0 0 0.4rem' },
@@ -169,8 +170,8 @@ const s = {
   answerRow: { display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' },
   person: { fontWeight: 600, color: '#374151', minWidth: '4.5rem' },
   input: { flex: 1, minWidth: 0, padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '1.05rem', fontFamily: 'inherit' },
-  primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
-  secondary: { background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' },
+  primary: ui.primary,
+  secondary: ui.secondary,
   feedbackRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' },
 }
 

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { ui } from '../theme'
 
 // End-of-session recap: the score, every mistake (accent slips marked), and
 // what to do next. results: [{ label, answer, expected, result: 'correct'|'almost'|'wrong' }]
@@ -55,7 +56,7 @@ export default function SessionSummary({
 }
 
 const s = {
-  card: { background: '#f8f9fa', borderRadius: 12, padding: '1.5rem' },
+  card: ui.panel,
   score: { fontSize: '1.4rem', fontWeight: 800, color: '#1e1b4b', margin: '0 0 0.4rem' },
   note: { fontSize: '0.85rem', color: '#92400e', margin: '0 0 0.75rem' },
   perfect: { color: '#15803d', margin: '0 0 1.25rem' },
@@ -67,6 +68,6 @@ const s = {
   blank: { color: '#9ca3af' },
   badge: { marginLeft: '0.4rem', fontSize: '0.7rem', fontWeight: 600, color: '#92400e', background: '#fef3c7', borderRadius: 999, padding: '0.05rem 0.45rem' },
   actions: { display: 'flex', gap: '0.6rem', flexWrap: 'wrap' },
-  primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  secondary: { background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' },
+  primary: ui.primary,
+  secondary: ui.secondary,
 }

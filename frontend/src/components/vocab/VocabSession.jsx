@@ -4,6 +4,7 @@ import CharPicker from '../conjugation/CharPicker'
 import SessionSummary from '../SessionSummary'
 import SpeakButton from '../SpeakButton'
 import { canSpeak, speak } from '../../utils/speech'
+import { ui } from '../../theme'
 import {
   allTranslations, dictationText, mainTranslation, orderedOptions, pickExercise, wordDiff,
 } from '../../utils/vocab'
@@ -249,7 +250,7 @@ const FEEDBACK = {
 }
 
 const s = {
-  card: { background: '#f8f9fa', borderRadius: 12, padding: '1.5rem' },
+  card: ui.panel,
   topRow: { display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.75rem' },
   progress: { fontSize: '0.8rem', color: '#9ca3af' },
   instruction: { fontSize: '0.8rem', color: '#6b7280' },
@@ -261,7 +262,7 @@ const s = {
   example: { fontSize: '0.88rem', color: '#374151', margin: '0.5rem 0 1rem' },
   exampleEn: { color: '#6b7280' },
   options: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' },
-  option: { padding: '0.7rem 0.9rem', border: '1px solid #d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: '0.98rem', textAlign: 'left', fontFamily: 'inherit', color: '#1f2937' },
+  option: { padding: '0.7rem 0.9rem', borderWidth: 1, borderStyle: 'solid', borderColor: '#d1d5db', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: '0.98rem', textAlign: 'left', fontFamily: 'inherit', color: '#1f2937' },
   answerRow: { display: 'flex', gap: '0.6rem', marginBottom: '0.75rem' },
   input: { flex: 1, minWidth: 0, padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '1.05rem', fontFamily: 'inherit' },
   feedback: { marginTop: '0.25rem' },
@@ -271,7 +272,7 @@ const s = {
   dictation: { fontSize: '1.1rem', color: '#1e1b4b', margin: '0.4rem 0 0.2rem' },
   missed: { color: '#b91c1c', textDecoration: 'underline', textDecorationColor: '#fca5a5' },
   actions: { display: 'flex', gap: '0.6rem', flexWrap: 'wrap' },
-  primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
-  secondary: { background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, padding: '0.6rem 1.1rem', fontSize: '0.95rem', cursor: 'pointer', fontFamily: 'inherit' },
+  primary: ui.primary,
+  secondary: ui.secondary,
   error: { color: '#b91c1c' },
 }

@@ -107,7 +107,7 @@ backend/app/
 
 - **Frontend Vite proxy:** `fetch('/api/exercises/generate')` → Vite strips `/api` → hits `localhost:8000/exercises/generate`. All API calls go through `/api` prefix. The `api.js` module is the only place that constructs fetch calls.
 
-- **React Router state-passing:** (all of these sit under the `RequireAuth` layout route) `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. `/practice/:language/review` is the weak-spot drill (`Review.jsx`, reached from the `WorkOnThis` panel on `Practice` and `Progress`); `/progress` is the stats page (`Progress.jsx`, charts in `components/charts/`). **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
+- **React Router state-passing:** (all of these sit under the `RequireAuth` layout route) `Dashboard` (`/`; first visit picks `target_language`, then goal/streak/Continue/due counts) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. `/practice/:language/review` is the weak-spot drill (`Review.jsx`, reached from the `WorkOnThis` panel on `Practice` and `Progress`); `/progress` is the stats page (`Progress.jsx`, charts in `components/charts/`).
 
 - **Two parallel conjugation-practice paths:** the original `ExerciseType.conjugation` flow (`exercises.py` + `exercise_gen.py`, single LLM-generated fill-in-the-blank, DB-validated) still exists and is reachable via the "Conjugation" card on `Practice`. Separately, `pages/Conjugation.jsx` (routed at `/practice/:language/conjugation`) is a richer practice area — verb lookup/tables (`verbs.py`, pure DB reads, no LLM), sentence completion (`conjugation_exercises.py`, LLM-generated), and freeform chat (`chat.py`) — built directly on `verb_conjugations` rather than going through `Exercise`/`ExerciseType`. The two paths don't share code beyond the DB table and `LLMClient`.
 
@@ -147,7 +147,7 @@ OLLAMA_MODEL=qwen2.5:7b
 
 ## Frontend styling
 
-No CSS framework. All components use inline CSS objects defined at the bottom of each file (e.g. `const styles = { ... }`). The established design tokens: primary color `#4f46e5` (indigo), card background `#f8f9fa`, border radius 8–12px, font `system-ui, sans-serif`. The chip/chipActive pattern (`borderColor + background: '#4f46e5', color: white`) is used throughout for toggle-style buttons.
+No CSS framework. Components use inline style objects at the bottom of each file (`const s = { ... }`), built from **`src/theme.js`**: `color` tokens (primary `#4f46e5`, ink `#1e1b4b`, surface `#f8f9fa`, …), `radius`, and shared pieces in `ui` (`page` with a 16px phone gutter, `back`, `h1`, `h2`, `primary`, `secondary`, `link`, `chip` + `chipOn`/`chipSoftOn`, `panel`, `tile`). Use them for new UI instead of re-typing colours. **Write borders as longhands** (`borderWidth/borderStyle/borderColor`, as `ui.chip` does) whenever a state override changes `borderColor` — mixing the `border` shorthand with a `borderColor` override makes React warn. `src/index.css` holds only what inline styles can't: reset, `:focus-visible` ring, `button:disabled` look, `.hl-tile` hover, and the `.hl-wide-only` class hidden at ≤ 640px (the top bar uses it; Settings has the phone Log out). Check new pages at 390px width for sideways overflow.
 
 ## Docker
 
@@ -157,7 +157,7 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 
 1. Add the value to `Language` enum in `backend/app/models.py`
 2. Add its display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Welcome` and `Settings`; **not** `Home.jsx` — that file is dead code, see React Router note above)
+3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Dashboard` and `Settings`)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
 5b. For vocabulary, add `backend/data/vocabulary/{language}.json` (same shape as spanish.json; every `ex` must contain its `word` exactly once — `tests/test_vocabulary.py` enforces this), add the language to `VOCAB_LANGUAGES` in `services/vocabulary.py`, and run `scripts/seed_vocabulary.py`
