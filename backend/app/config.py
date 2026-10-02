@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     # Keep this many ready-made practice sentences per language (services/sentence_pool.py)
     sentence_pool_enabled: bool = True
     sentence_pool_size: int = 20
+    # Have the LLM grade each stocked sentence's grammar before it's kept (background only)
+    sentence_judge: bool = True
     # Set true when served over HTTPS so the session cookie is never sent in clear
     cookie_secure: bool = False
 

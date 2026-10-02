@@ -151,6 +151,8 @@ class SentencePoolItem(Base):
     correct_form: Mapped[str] = mapped_column(String(128), nullable=False)
     alternates: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     model: Mapped[str] = mapped_column(String(64), nullable=False)
+    # services/sentences.SENTENCE_PROMPT_VERSION it was made with; older ones are never served
+    prompt_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     __table_args__ = (

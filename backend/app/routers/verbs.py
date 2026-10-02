@@ -169,13 +169,26 @@ async def get_random_verbs(
         available = result.scalars().all()
         return _random.sample(available, min(count, len(available)))
 
+    ending_list = [e.strip().lstrip("-") for e in endings.split(",")] if mode == "endings" and endings else []
+
+    # Prefer everyday verbs: the full seed data has ~9,700 verbs per language,
+    # mostly rare/obscure ones nobody practises (e.g. "zarambutear")
+    common = [v for v in COMMON_VERBS.get(language, []) if not ending_list or v.endswith(tuple(ending_list))]
+    if len(common) >= count:
+        available = (await db.execute(
+            select(VerbConjugation.verb_infinitive)
+            .distinct()
+            .where(VerbConjugation.language == language, VerbConjugation.verb_infinitive.in_(common))
+        )).scalars().all()
+        if len(available) >= count:
+            return _random.sample(available, count)
+
     query = (
         select(VerbConjugation.verb_infinitive)
         .distinct()
         .where(VerbConjugation.language == language)
     )
-    if mode == "endings" and endings:
-        ending_list = [e.strip().lstrip("-") for e in endings.split(",")]
+    if ending_list:
         query = query.where(
             or_(*[VerbConjugation.verb_infinitive.like(f"%{e}") for e in ending_list])
         )

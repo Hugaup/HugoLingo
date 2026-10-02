@@ -8,6 +8,7 @@ from app.models import Language, SentencePoolItem
 from app.routers import conjugation_exercises
 from app.schemas import TenseFilter
 from app.services import sentence_pool
+from app.services.sentences import SENTENCE_PROMPT_VERSION
 from tests.conftest import TestSession
 
 PRESENTE = {"mood": "Indicativo", "tense": "Indicativo presente"}
@@ -18,7 +19,7 @@ def pool_row(**overrides):
     values = dict(
         language=Language.spanish, verb_infinitive="tener", **PRESENTE, person="1s",
         sentence="Todos los días yo ___ hambre.", subject_hint="yo", correct_form="tengo",
-        alternates=[], model="test-model",
+        alternates=[], model="test-model", prompt_version=SENTENCE_PROMPT_VERSION,
     )
     return SentencePoolItem(**(values | overrides))
 
@@ -28,19 +29,27 @@ async def count_pool(db):
 
 
 class FakeLLM:
-    """Writes a valid sentence for whatever subject the real prompt asks for."""
+    """Answers the real prompts: writes a sentence with the requested form and
+    subject, and grades sentences when asked to judge (verdict=True/False)."""
     model = "fake-llm"
 
-    def __init__(self, fail=False):
+    def __init__(self, fail=False, verdict=True):
         self.fail = fail
+        self.verdict = verdict
         self.calls = 0
+        self.judged = 0
 
     async def chat_json(self, messages, max_tokens=None):
         self.calls += 1
+        prompt = messages[1]["content"]
+        if prompt.startswith("Sentence:"):
+            self.judged += 1
+            return {"correct": self.verdict}
         if self.fail:
-            return {"sentence": "no blank here", "subject_hint": "yo"}
-        pronoun = re.search(r"subject MUST be '([^']+)'", messages[1]["content"]).group(1)
-        return {"sentence": f"Todos los días {pronoun} ___ en casa.", "subject_hint": pronoun}
+            return {"sentence": "Sin el verbo pedido.", "subject_hint": "yo"}
+        form = re.search(r'uses the exact word\(s\) "([^"]+)"', prompt).group(1)
+        pronoun = re.search(r'The subject is "([^"]+)"', prompt).group(1)
+        return {"sentence": f"Todos los días {pronoun} {form} en casa.", "subject_hint": pronoun}
 
 
 # ── Serving from the stock ───────────────────────────────────────────────────
@@ -116,6 +125,31 @@ async def test_refill_fills_the_stock_up_to_the_target(db, spanish_verbs):
     # Already full: nothing more to do
     assert await sentence_pool.refill(Language.spanish, target=4, session_factory=TestSession,
                                       client=fake, wait_while_busy=False) == 0
+
+
+async def test_refill_has_every_sentence_graded_and_drops_the_rejected_ones(db, spanish_verbs):
+    approving, rejecting = FakeLLM(verdict=True), FakeLLM(verdict=False)
+    assert await sentence_pool.refill(Language.spanish, target=2, session_factory=TestSession,
+                                      client=approving, wait_while_busy=False, judge=True) == 2
+    assert approving.judged == 2
+
+    await sentence_pool.take(db, Language.spanish, [], 10)  # empty the stock
+    assert await sentence_pool.refill(Language.spanish, target=2, session_factory=TestSession,
+                                      client=rejecting, wait_while_busy=False, judge=True) == 0
+    assert rejecting.judged == sentence_pool.MAX_FAILURES_IN_A_ROW
+
+
+async def test_sentences_from_an_older_prompt_are_never_served_and_get_purged(db, spanish_verbs):
+    db.add_all([pool_row(prompt_version=SENTENCE_PROMPT_VERSION - 1), pool_row(person="2s")])
+    await db.commit()
+
+    items = await sentence_pool.take(db, Language.spanish, [], 5)
+    assert [i.person for i in items] == ["2s"]  # only the current-version one
+
+    await sentence_pool.refill(Language.spanish, target=1, session_factory=TestSession,
+                               client=FakeLLM(), wait_while_busy=False, judge=False)
+    versions = (await db.execute(select(SentencePoolItem.prompt_version))).scalars().all()
+    assert versions == [SENTENCE_PROMPT_VERSION]
 
 
 async def test_refill_gives_up_when_every_output_is_rejected(db, spanish_verbs):

@@ -76,7 +76,7 @@ backend/app/
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
-    ├── sentences.py         — sentence-generation prompt, validity checks, generate_one(); COMMON_TENSES
+    ├── sentences.py         — sentence generation: prompt (v2), blank_out(), quality_problem(), judge_sentence(), generate_one(); COMMON_TENSES
     ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
@@ -90,6 +90,8 @@ backend/app/
 **Key design decisions:**
 
 - **LLM abstraction:** `LLMClient` in `services/llm.py` is the only file that knows about Ollama. It is instantiated once at module level (`llm_client = LLMClient()`). To swap providers, change only this file. Every request sets `keep_alive` (model stays loaded), a `num_predict` cap (`max_tokens=` per call; sentences 200, explanations 250, default 600) and `think: false` for thinking-model families (qwen3, deepseek-r1). The model is warmed up at startup (`main.py` lifespan). Model choice is backed by `docs/llm-benchmark.md` / `scripts/benchmark_llm.py` — re-run it before switching models or after changing prompts.
+
+- **Sentence generation pipeline (`services/sentences.py`).** The LLM writes one *complete* sentence containing the exact target form; the **server** blanks it (`blank_out`: whole-word, case-insensitive, must occur exactly once — small models can't reliably blank their own output). `quality_problem` then rejects fragments (< 4 words besides the blank, no final punctuation), any other form of the same verb in the sentence (forms from `verb_conjugations`, minus `_AMBIGUOUS_WORDS` like "como"/"para"/"été") and subject/person conflicts. Background stock sentences also get an LLM grammar check (`judge_sentence`, `SENTENCE_JUDGE`); live generation skips it for speed. **Bump `SENTENCE_PROMPT_VERSION` whenever the prompt or checks change** — stocked sentences from older versions are never served and are purged on the next refill. Measure prompt changes with `scripts/benchmark_llm.py --judge`.
 
 - **Never make a user wait on the LLM when it can be avoided.** Sentence practice is served from `sentence_pool` (pre-generated, validated, deleted when served, refilled in the background); the sentence check returns the rule-based hint instantly and the LLM's long explanation is streamed from `/chat/stream` only if the user opens it (`ChatPanel autoAsk`). Ollama handles one request at a time, so **any endpoint where a user waits on the LLM must wrap the call in `sentence_pool.live_request()`** — background refills pause while it's held (for streams, hold it inside the generator). Tests set `LLM_WARMUP=false` / `SENTENCE_POOL_ENABLED=false`; drive the pool explicitly with `sentence_pool.refill(..., session_factory=TestSession, client=fake)`.
 

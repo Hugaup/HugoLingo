@@ -16,6 +16,7 @@ from app.routers.verbs import COMMON_VERBS
 from app.schemas import SentenceExerciseItem, TenseFilter
 from app.services.conjugation_utils import PRONOUNS, canonical_tense, resolve_compound_form, variant_tense_names
 from app.services.exercise_gen import LANGUAGE_NAMES
+from app.services.explain import tense_name
 from app.services.llm import LLMClient, llm_client
 
 # A sentence + subject in JSON is ~60-120 tokens; the cap stops runaway output
@@ -123,23 +124,54 @@ def _has_one_clean_blank(sentence: str) -> bool:
     return not before.isalpha() and not after.isalpha()
 
 
-def _sentence_is_valid(
-    sentence: str, subject_hint: str, correct_form: str, alternates: list[str], language: Language, person: str,
-) -> bool:
-    """Reject LLM output that doesn't actually make a valid fill-in-the-blank:
-    no blank, more than one blank, a blank glued onto adjacent text instead of
-    standing alone, the target form leaked into the text instead of being
-    replaced by '___' (e.g. an obscure verb the model couldn't confidently
-    blank out), or a subject that contradicts the required person."""
-    if not sentence or not subject_hint:
-        return False
-    if not _has_one_clean_blank(sentence):
-        return False
-    if any(form.lower() in sentence.lower() for form in [correct_form, *alternates]):
-        return False
+# Words that double as a form of some verb but are far more common in another
+# role (como = "as/like", para = "for", été = "summer"…). They're ignored when
+# checking that a sentence doesn't repeat the target verb.
+_AMBIGUOUS_WORDS: dict[Language, set[str]] = {
+    Language.spanish: {"como", "entre", "para", "bajo", "sobre", "fuera", "vino", "cara", "sal", "don"},
+    Language.french: {"été", "plus", "suis", "fait", "est", "vis", "sens", "lit"},
+    Language.english: {"left", "like", "rose", "fell", "saw", "lay", "found", "may", "can"},
+}
+
+
+def blank_out(sentence: str, forms: list[str]) -> str | None:
+    """Replace the one occurrence of the target form (or an accepted alternate)
+    with ___. None if it appears zero times or more than once.
+
+    The model writes a normal sentence and the server does the blanking:
+    small models are bad at blanking their own output (see docs/llm-benchmark.md).
+    """
+    sentence = " ".join(sentence.split())
+    spans: set[tuple[int, int]] = set()
+    for form in sorted(forms, key=len, reverse=True):
+        pattern = r"(?<!\w)" + re.escape(" ".join(form.split())) + r"(?!\w)"
+        for m in re.finditer(pattern, sentence, re.IGNORECASE):
+            if not any(m.start() < e and s < m.end() for s, e in spans):  # skip overlaps
+                spans.add(m.span())
+    if len(spans) != 1:
+        return None
+    start, end = spans.pop()
+    return f"{sentence[:start]}___{sentence[end:]}"
+
+
+def quality_problem(
+    blanked: str, subject_hint: str, verb_forms: set[str], language: Language, person: str,
+) -> str | None:
+    """Why a blanked sentence isn't good enough to show a learner, or None if it is."""
+    if not _has_one_clean_blank(blanked):
+        return "blank"
+    words = re.findall(r"[^\W\d_]+", blanked.lower())
+    if len(words) < 4:
+        return "too short"
+    if not blanked.rstrip(" \"'»”’").endswith((".", "!", "?")):
+        return "not a full sentence"
+    if any(w in verb_forms for w in words):
+        return "another form of the same verb"
+    if not subject_hint:
+        return "no subject"
     if _subject_hint_conflicts(language, person, subject_hint):
-        return False
-    return True
+        return "wrong person"
+    return None
 
 
 PERSON_DESC = {
@@ -278,52 +310,107 @@ async def target_forms(db: AsyncSession, language: Language, row: VerbConjugatio
     return correct_form, alternates
 
 
+# Bump when the prompt or checks change: stocked sentences from older versions are discarded
+SENTENCE_PROMPT_VERSION = 2
+
+# One worked example per language, for a verb/tense/person that's never the target
+_EXAMPLES: dict[Language, str] = {
+    Language.spanish: (
+        'For "viajábamos" (viajar, pretérito imperfecto, 1st person plural): '
+        '{"sentence": "Todos los veranos nosotros viajábamos a la costa con mis abuelos.", "subject_hint": "nosotros"}'
+    ),
+    Language.french: (
+        'For "finiras" (finir, futur, 2nd person singular): '
+        '{"sentence": "Demain, tu finiras tes devoirs avant le dîner.", "subject_hint": "tu"}'
+    ),
+    Language.english: (
+        'For "walks" (walk, present, 3rd person singular): '
+        '{"sentence": "Every morning she walks her dog in the park.", "subject_hint": "she"}'
+    ),
+}
+
+
 def build_sentence_messages(language: Language, row: VerbConjugation, correct_form: str) -> list[dict]:
     lang_name = LANGUAGE_NAMES[language]
     person_desc = PERSON_DESC.get(row.person, row.person)
     hint = _disambiguation_hint(language, row.mood, row.tense)
     pronoun = _PRIMARY_PRONOUN.get(language, {}).get(row.person, person_desc)
+    example = _EXAMPLES.get(language)
     return [
         {
             "role": "system",
-            "content": "You are a language teacher. Respond with valid JSON only, no extra text.",
+            "content": f"You write short example sentences for {lang_name} learners. Respond with valid JSON only.",
         },
         {
             "role": "user",
             "content": (
-                f"Step 1: think of a natural {lang_name} sentence built around the word '{correct_form}' "
-                f"(the verb '{row.verb_infinitive}', conjugated as {row.mood} — {row.tense}, {person_desc}). "
-                f"'{correct_form}' must be the sentence's one and only main verb, in normal word order "
-                f"(subject, then '{correct_form}', then the rest) — do not add any other conjugated verb "
-                f"anywhere else in the sentence, and do not substitute a different verb in its place. In "
-                f"particular, do NOT reach for a periphrasis like 'soler + infinitive' ('solía caminar', "
-                f"'used to walk') as a workaround for conveying a habitual/ongoing meaning — express that "
-                f"through the tense of '{correct_form}' itself and the context clue below, not a second verb. "
-                f"Step 2: in that sentence, replace '{correct_form}' — and nothing else — with exactly "
-                f"'___' (three underscores), with a normal space on both sides of it, exactly like every "
-                f"other word boundary in the sentence. Do not attach '___' directly to another word or "
-                f"to any leftover letters. "
-                f"The sentence's subject MUST be '{pronoun}' — or, if you use a name or noun phrase "
-                f"instead of the pronoun itself, it must be grammatically identical to '{pronoun}' "
-                f"(e.g. a single named person for 'él/ella', or the speaker plus at least one other "
-                f"person for 'nosotros'). Every other detail in the sentence — other pronouns, "
-                f"possessives like 'my'/'mi', reflexive references — must also agree with '{pronoun}' "
-                f"as the subject. Do not switch to a different grammatical person anywhere in the sentence. "
-                f"The sentence MUST include {hint}. "
-                f"A learner must be able to tell which tense is required just from reading the "
-                f"sentence's context — do not write a sentence that would also make sense with a "
-                f"different tense in the same blank. "
-                f"If that context clue is an introductory clause (e.g. one starting with a word "
-                f"meaning 'when'/'if'), it must come first, followed by a comma, and then the MAIN "
-                f"clause — with '{correct_form}' as ITS verb, right after the subject, in normal word "
-                f"order — must come second. Do not place '___' before the introductory clause; do not "
-                f"write the main clause with a different verb while leaving '___' stranded elsewhere. "
-                f"Return JSON with exactly these keys: "
-                f'"sentence" (the sentence with ___), '
-                f'"subject_hint" (the grammatical subject as it appears in the sentence, e.g. "je", "nous", "María").'
+                f'Write one natural, everyday {lang_name} sentence (6 to 14 words) that uses the exact word(s) '
+                f'"{correct_form}" — the verb "{row.verb_infinitive}" in the {tense_name(row.mood, row.tense)}, {person_desc}.\n'
+                f"Rules:\n"
+                f'- Use "{correct_form}" exactly once, spelled exactly like that, as the main verb of the sentence.\n'
+                f'- Do not use any other form of "{row.verb_infinitive}" anywhere in the sentence.\n'
+                f'- The subject is "{pronoun}" (or a name or noun phrase meaning the same person), and every other '
+                f"pronoun or possessive must agree with it.\n"
+                f"- Include {hint}, so that only this tense fits.\n"
+                f"- Correct grammar and natural word order; end with a full stop, question mark or exclamation mark.\n"
+                + (f"Example — {example}\n" if example else "")
+                + 'Return JSON with exactly these keys: "sentence" (the full sentence) and '
+                '"subject_hint" (the subject as it appears in the sentence).'
             ),
         },
     ]
+
+
+_verb_forms_cache: dict[tuple[Language, str], set[str]] = {}
+
+
+async def verb_forms(db: AsyncSession, language: Language, verb: str) -> set[str]:
+    """Every single-word form of `verb` (lowercased, ambiguous function words removed)."""
+    key = (language, verb)
+    if key not in _verb_forms_cache:
+        forms = (await db.execute(
+            select(VerbConjugation.form).distinct().where(
+                VerbConjugation.language == language, VerbConjugation.verb_infinitive == verb,
+            )
+        )).scalars().all()
+        words = {w for f in [*forms, verb] for w in f.lower().split()}
+        _verb_forms_cache[key] = words - _AMBIGUOUS_WORDS.get(language, set())
+    return _verb_forms_cache[key]
+
+
+async def assess(
+    db: AsyncSession, language: Language, row: VerbConjugation,
+    correct_form: str, alternates: list[str], data: object,
+) -> tuple[str | None, str | None]:
+    """Turn the LLM's JSON into a blanked sentence: (sentence, None) or (None, reason it was rejected)."""
+    if not isinstance(data, dict):
+        return None, "not JSON"
+    sentence = str(data.get("sentence", ""))
+    subject_hint = str(data.get("subject_hint", "")).strip()
+    blanked = blank_out(sentence, [correct_form, *alternates])
+    if blanked is None:
+        return None, "target form missing or repeated"
+    problem = quality_problem(blanked, subject_hint, await verb_forms(db, language, row.verb_infinitive), language, row.person)
+    return (None, problem) if problem else (blanked, None)
+
+
+async def judge_sentence(client: LLMClient, language: Language, sentence: str) -> bool:
+    """Second opinion from the LLM on grammar/naturalness (used for the background
+    stock only, where the extra call costs no user any waiting)."""
+    lang_name = LANGUAGE_NAMES[language]
+    messages = [
+        {"role": "system", "content": f"You are a strict {lang_name} teacher checking example sentences for learners. Respond with valid JSON only."},
+        {"role": "user", "content": (
+            f'Sentence: "{sentence}"\n'
+            f"Is this grammatically correct, natural {lang_name} that a native speaker would actually say? "
+            'Reply {"correct": true} or {"correct": false, "problem": "<short reason>"}.'
+        )},
+    ]
+    try:
+        data = await client.chat_json(messages, max_tokens=60)
+    except (json.JSONDecodeError, KeyError, httpx.HTTPStatusError, httpx.RequestError):
+        return False
+    return isinstance(data, dict) and data.get("correct") is True
 
 
 async def generate_one(
@@ -331,9 +418,11 @@ async def generate_one(
     language: Language,
     tenses: list[TenseFilter],
     client: LLMClient | None = None,
+    judge: bool = False,
 ) -> SentenceExerciseItem | None:
     """One generation attempt: a validated item, or None if the LLM's output was unusable.
 
+    judge=True adds an LLM grammar check (slower; meant for the background stock).
     Raises NoConjugationData if no verb matches `tenses`.
     """
     client = client or llm_client
@@ -346,15 +435,14 @@ async def generate_one(
         data = await client.chat_json(build_sentence_messages(language, row, correct_form), max_tokens=SENTENCE_MAX_TOKENS)
     except (json.JSONDecodeError, KeyError, httpx.HTTPStatusError, httpx.RequestError):
         return None
-    if not isinstance(data, dict):
+    blanked, _problem = await assess(db, language, row, correct_form, alternates, data)
+    if blanked is None:
         return None
-    sentence = str(data.get("sentence", "")).strip()
-    subject_hint = str(data.get("subject_hint", "")).strip()
-    if not _sentence_is_valid(sentence, subject_hint, correct_form, alternates, language, row.person):
+    if judge and not await judge_sentence(client, language, " ".join(str(data["sentence"]).split())):
         return None
     return SentenceExerciseItem(
-        sentence=sentence,
-        subject_hint=subject_hint,
+        sentence=blanked,
+        subject_hint=str(data.get("subject_hint", "")).strip(),
         verb_infinitive=row.verb_infinitive,
         mood=row.mood,
         tense=canonical_tense(row.tense),
