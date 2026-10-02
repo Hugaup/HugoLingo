@@ -16,6 +16,8 @@ export const TOPIC_LABELS = {
   basics: 'Basics',
   out_and_about: 'Out and about',
   social: 'Social',
+  // Saved while reading
+  my_words: 'My words',
 }
 
 export const topicLabel = topic => TOPIC_LABELS[topic] ?? topic

@@ -148,6 +148,14 @@ export const api = {
     return request('GET', `/vocab/${language}/items?${params}`)
   },
 
+  lookupWord: (language, word, context = '') =>
+    request('POST', '/vocab/lookup', { language, word, context }),
+
+  addMyWord: (language, { lemma, translation, pos = null, example = '' }) =>
+    request('POST', '/vocab/my-words', { language, lemma, translation, pos, example }),
+
+  removeMyWord: (itemId) => request('DELETE', `/vocab/my-words/${itemId}`),
+
   checkVocab: (itemId, exercise, { answer = '', knew } = {}) =>
     request('POST', '/vocab/check', { item_id: itemId, exercise, answer, ...(knew === undefined ? {} : { knew }) }),
 

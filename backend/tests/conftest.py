@@ -113,6 +113,14 @@ async def spanish_verbs(db):
 
 
 @pytest.fixture
+async def vocab(db):
+    """The real Spanish and French vocabulary files (backend/data/vocabulary), loaded into the test DB."""
+    from app.services.vocabulary import VOCAB_LANGUAGES, load_entries, upsert_items
+    for language in VOCAB_LANGUAGES:
+        await upsert_items(db, load_entries(language))
+
+
+@pytest.fixture
 async def new_client():
     """Factory for independent clients — each one is a separate browser/cookie jar."""
     async with AsyncExitStack() as stack:

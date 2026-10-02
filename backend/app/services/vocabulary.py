@@ -11,7 +11,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -66,12 +66,19 @@ async def upsert_items(db: AsyncSession, rows: list[dict]) -> int:
         return 0
     stmt = pg_insert(VocabItem).values(rows)
     stmt = stmt.on_conflict_do_update(
-        constraint="uq_vocab_item",
+        # the partial unique index on shared (owner_id IS NULL) items
+        index_elements=["language", "kind", "text"],
+        index_where=VocabItem.owner_id.is_(None),
         set_={c: stmt.excluded[c] for c in rows[0] if c not in ("language", "kind", "text")},
     )
     await db.execute(stmt)
     await db.commit()
     return len(rows)
+
+
+def visible_to(user_id: int):
+    """Shared items plus the user's own saved words."""
+    return or_(VocabItem.owner_id.is_(None), VocabItem.owner_id == user_id)
 
 
 # ── Grading ──────────────────────────────────────────────────────────────────
@@ -124,8 +131,12 @@ def cloze(item: VocabItem) -> str | None:
 async def distractors(db: AsyncSession, item: VocabItem, n: int = 3, rng: random.Random | None = None) -> list[VocabItem]:
     """Wrong options for multiple choice: same kind (and part of speech), same topic first."""
     rng = rng or random.Random()
+    # Options always come from the shared list; a personal word competes with shared words
     query = select(VocabItem).where(
-        VocabItem.language == item.language, VocabItem.kind == item.kind, VocabItem.id != item.id,
+        VocabItem.language == item.language,
+        VocabItem.kind == ("word" if item.kind == "personal" else item.kind),
+        VocabItem.owner_id.is_(None),
+        VocabItem.id != item.id,
     )
     if item.pos:
         query = query.where(VocabItem.pos == item.pos)
@@ -150,7 +161,7 @@ async def build_session(
 ) -> list[dict]:
     """Due reviews first, then new items (most common first), then the weakest seen ones."""
     rng = rng or random.Random()
-    scope = [VocabItem.language == language]
+    scope = [VocabItem.language == language, visible_to(user_id)]
     if kind:
         scope.append(VocabItem.kind == kind)
     if topic:
@@ -237,7 +248,7 @@ async def overview(db: AsyncSession, user_id: int, language: Language, now: date
             func.count(VocabReview.id).filter(VocabReview.due_at <= now),
         )
         .outerjoin(VocabReview, (VocabReview.item_id == VocabItem.id) & (VocabReview.user_id == user_id))
-        .where(VocabItem.language == language)
+        .where(VocabItem.language == language, visible_to(user_id))
         .group_by(VocabItem.kind, VocabItem.topic)
     )).all()
     groups = [

@@ -73,6 +73,7 @@ export default function Vocabulary() {
 function Home({ overview, mode, setMode, start, browse }) {
   const words = overview.groups.filter(g => g.kind === 'word').sort((a, b) => byTopicOrder(a.topic, b.topic))
   const phrases = overview.groups.filter(g => g.kind === 'phrase')
+  const mine = overview.groups.find(g => g.kind === 'personal')
   const sum = (groups, key) => groups.reduce((n, g) => n + g[key], 0)
 
   return (
@@ -109,6 +110,20 @@ function Home({ overview, mode, setMode, start, browse }) {
           <button style={s.link} onClick={() => browse({ kind: 'phrase' })}>See all</button>
         </div>
       </section>
+
+      {mine && (
+        <section style={{ ...s.card, ...s.phrases }} aria-label="My words">
+          <div>
+            <h2 style={s.cardTitle}>My words</h2>
+            <p style={s.cardSub}>Words you saved while reading</p>
+            <Progress learned={mine.learned} total={mine.total} />
+          </div>
+          <div style={s.cardActions}>
+            <button style={s.primary} onClick={() => start({ kind: 'personal' })}>Practise</button>
+            <button style={s.link} onClick={() => browse({ kind: 'personal' })}>See all</button>
+          </div>
+        </section>
+      )}
 
       <h2 style={s.sectionTitle}>Words by topic</h2>
       <div style={s.grid}>

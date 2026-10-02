@@ -14,13 +14,17 @@ from app.schemas import (
     VocabCheckResponse,
     VocabOverview,
     VocabSessionItem,
+    WordLookupRequest,
+    WordLookupResponse,
+    AddWordRequest,
+    AddWordResponse,
 )
-from app.services import vocabulary
+from app.services import lookup, vocabulary
 from app.services.grading import Grade
 
 router = APIRouter(prefix="/vocab", tags=["vocabulary"])
 
-Kind = Literal["word", "phrase"]
+Kind = Literal["word", "phrase", "personal"]  # personal = the user's own saved words
 
 
 @router.get("/{language}/overview", response_model=VocabOverview)
@@ -55,7 +59,7 @@ async def items(
     query = (
         select(VocabItem, VocabReview.box)
         .outerjoin(VocabReview, (VocabReview.item_id == VocabItem.id) & (VocabReview.user_id == user.id))
-        .where(VocabItem.language == language)
+        .where(VocabItem.language == language, vocabulary.visible_to(user.id))
         .order_by(VocabItem.topic, VocabItem.level, VocabItem.frequency_rank.nulls_last(), VocabItem.id)
     )
     if kind:
@@ -65,6 +69,45 @@ async def items(
     return [{**vocabulary.item_dict(item), "box": box} for item, box in (await db.execute(query)).all()]
 
 
+@router.post("/lookup", response_model=WordLookupResponse)
+async def lookup_word(
+    req: WordLookupRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        found = await lookup.lookup(db, req.language, req.word, req.context)
+    except lookup.LookupFailed:
+        raise HTTPException(502, "Couldn't look that word up right now — is Ollama running?")
+    saved = await lookup.is_saved(db, user.id, found["item_id"], req.language, found["lemma"])
+    return WordLookupResponse(**found, in_my_words=saved)
+
+
+@router.post("/my-words", response_model=AddWordResponse)
+async def add_my_word(
+    req: AddWordRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    item, added = await lookup.add_to_my_words(
+        db, user.id, req.language, req.lemma.strip(), req.translation.strip(), req.pos, req.example.strip(),
+    )
+    return AddWordResponse(item_id=item.id, added=added)
+
+
+@router.delete("/my-words/{item_id}", status_code=204)
+async def remove_my_word(
+    item_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    item = await db.get(VocabItem, item_id)
+    if item is None or item.owner_id != user.id:  # only personal words can be removed
+        raise HTTPException(404, "No such word in your list")
+    await db.delete(item)
+    await db.commit()
+
+
 @router.post("/check", response_model=VocabCheckResponse)
 async def check(
     req: VocabCheckRequest,
@@ -72,7 +115,7 @@ async def check(
     db: AsyncSession = Depends(get_db),
 ):
     item = await db.get(VocabItem, req.item_id)
-    if item is None:
+    if item is None or item.owner_id not in (None, user.id):
         raise HTTPException(404, "No such vocabulary item")
 
     accepted = vocabulary.accepted_answers(item, req.exercise)

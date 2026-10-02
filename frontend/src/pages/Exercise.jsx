@@ -4,6 +4,7 @@ import { api } from '../api'
 import FeedbackPanel from '../components/FeedbackPanel'
 import CharPicker from '../components/conjugation/CharPicker'
 import SessionSummary from '../components/SessionSummary'
+import ClickableText from '../components/reading/ClickableText'
 
 export default function Exercise() {
   const { state } = useLocation()
@@ -96,7 +97,7 @@ export default function Exercise() {
       </div>
 
       <div style={styles.card}>
-        <ExerciseBody type={type} content={content} />
+        <ExerciseBody type={type} content={content} language={language} />
 
         {!result && (
           <div>
@@ -131,7 +132,7 @@ export default function Exercise() {
   )
 }
 
-function ExerciseBody({ type, content }) {
+function ExerciseBody({ type, content, language }) {
   if (type === 'conjugation') {
     return (
       <div>
@@ -153,7 +154,8 @@ function ExerciseBody({ type, content }) {
     const q = content.questions?.[0]
     return (
       <div>
-        <p style={styles.passage}>{content.passage}</p>
+        <p style={styles.tip}>Tip: click any word to see what it means and save it.</p>
+        <ClickableText text={content.passage} language={language} style={styles.passage} />
         {q && <p style={styles.prompt}>{q.question}</p>}
       </div>
     )
@@ -184,6 +186,7 @@ const styles = {
   card: { background: '#f8f9fa', borderRadius: 12, padding: '1.5rem' },
   instruct: { color: '#555', marginBottom: '0.75rem', fontSize: '0.95rem' },
   prompt: { fontSize: '1.25rem', fontWeight: 500, lineHeight: 1.6, marginBottom: '0.5rem' },
+  tip: { fontSize: '0.8rem', color: '#9ca3af', margin: '0 0 0.4rem' },
   passage: { fontSize: '1rem', lineHeight: 1.8, background: 'white', borderRadius: 8, padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e7eb' },
   hint: { fontSize: '0.85rem', color: '#6b7280', marginBottom: '1rem' },
   inputRow: { display: 'flex', gap: '0.5rem', marginTop: '1rem' },

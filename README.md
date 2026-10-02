@@ -124,6 +124,8 @@ Words and everyday phrases (logic in `app/services/vocabulary.py`, data in `back
 - `GET /vocab/{language}/session?kind=word|phrase&topic=&count=` — due items first, then new ones (most common first), then the weakest; each with three wrong options and a fill-the-gap sentence.
 - `GET /vocab/{language}/items` — browse a topic or all phrases, with the user's review box.
 - `POST /vocab/check` — grades flashcard / multiple-choice / typing / fill-the-gap answers (article optional, punctuation ignored, accent slips = "almost"), records it and moves the review box.
+- `POST /vocab/lookup` — meaning of a word clicked in a reading passage: curated vocabulary first (also verb forms like *tengo* → *tener*, plurals, *l'eau* → *eau*), then a cache of earlier AI lookups, then the LLM (cached after).
+- `POST /vocab/my-words` / `DELETE /vocab/my-words/{id}` — save a word to review (curated words get a review; others become personal "My words" items) / remove a personal word.
 
 #### `app/routers/chat.py`
 - `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama.
@@ -199,6 +201,9 @@ Creates `vocab_items`, `vocab_reviews`, `vocab_attempts` (raw SQL, reuses the `l
 #### `scripts/seed_vocabulary.py`
 Loads `backend/data/vocabulary/{language}.json` into `vocab_items` (upsert — re-run after editing the JSON). Words were chosen and ranked with the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) subtitle frequency lists (CC BY-SA 4.0); translations, topics and examples are curated in the JSON.
 
+#### `alembic/versions/a7c9e1f3b5d6_add_personal_words.py`
+Adds `vocab_items.owner_id` (personal words) with partial unique indexes for shared vs personal items, and the `word_lookups` cache.
+
 #### `alembic/versions/e5a7c9d1f3b4_add_sentence_pool_prompt_version.py`
 Adds `sentence_pool.prompt_version`; sentences from older prompts are never served.
 
@@ -242,6 +247,9 @@ Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity cha
 
 #### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
 Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
+
+#### `src/components/reading/ClickableText.jsx`
+Used for reading passages: every word is a button; clicking shows a popover with the dictionary form, meaning and source, and "Add to my words". Saved words show up as "My words" on the Vocabulary page.
 
 #### `src/components/MistakeExplanation.jsx` / `SessionSummary.jsx`
 Compact feedback after a mistake (one line, all forms behind a toggle) and the end-of-session recap (score, mistakes with accent slips marked, "Review these now") shared by the drill, sentence completion and the classic exercise flow.
