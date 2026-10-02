@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../api'
+import SpeakButton from '../SpeakButton'
 import { allTranslations, byTopicOrder, topicLabel } from '../../utils/vocab'
 
 const LEVEL = ['', 'A1', 'A2', 'B1', 'B2', 'C1']
@@ -44,7 +45,7 @@ export default function VocabBrowse({ language, kind, topic, onBack, onPractise 
             {items.map(r => (
               <li key={r.id} style={s.row}>
                 <div style={s.main}>
-                  <span style={s.word}>{r.display}</span>
+                  <span style={s.word}>{r.display}<SpeakButton text={r.text} language={language} /></span>
                   <span style={s.translation}>{allTranslations(r)}</span>
                 </div>
                 <p style={s.example}>{r.example}</p>

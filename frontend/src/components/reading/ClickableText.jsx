@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../api'
+import SpeakButton from '../SpeakButton'
 
 // Splits text into words (kept, odd indices) and everything between them
 const WORD = /(\p{L}+(?:['’-]\p{L}+)*)/u
@@ -110,6 +111,7 @@ function WordPopover({ language, word, sentence, position, onClose }) {
           <p style={s.lemma}>
             {data.lemma}
             {data.pos && <span style={s.pos}> {data.pos}</span>}
+            <SpeakButton text={data.lemma} language={language} />
           </p>
           <p style={s.translation}>{data.translation.split(';').map(t => t.trim()).join(' / ')}</p>
           {data.source === 'ai' || data.source === 'dictionary'

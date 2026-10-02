@@ -217,3 +217,18 @@ async def test_reviews_belong_to_each_user(logged_in, db, vocab):
 ])
 async def test_vocabulary_requires_login(client, method, path):
     assert (await client.request(method, path, json={})).status_code == 401
+
+
+# ── Dictation ────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("text,answer,result", [
+    ("pan", "Compro pan todas las mañanas.", "correct"),
+    ("pan", "compro pan todas las mañanas", "correct"),      # case and punctuation don't matter
+    ("pan", "compro pan todas las mananas", "almost"),       # accent slip
+    ("pan", "compro pan todas las semanas", "wrong"),
+    ("¿cuánto cuesta?", "cuánto cuesta", "correct"),         # phrases are dictated whole
+])
+async def test_dictation(logged_in, db, vocab, text, answer, result):
+    alice, _ = await logged_in()
+    data = await check(alice, (await item(db, text)).id, "dictation", answer)
+    assert data["result"] == result
