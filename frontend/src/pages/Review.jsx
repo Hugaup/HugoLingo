@@ -4,6 +4,7 @@ import { api } from '../api'
 import CharPicker from '../components/conjugation/CharPicker'
 import MistakeExplanation from '../components/MistakeExplanation'
 import SessionSummary from '../components/SessionSummary'
+import SpeakButton from '../components/SpeakButton'
 import { PERSON_LABELS, tenseWithMood } from '../utils/conjugationUtils'
 
 const DRILL_LENGTH = 10
@@ -132,6 +133,7 @@ function Drill({ language, onRestart }) {
               {result.result === 'almost' && <>≈ Almost — check the accents: <strong>{result.expected}</strong></>}
               {result.result === 'wrong' && <>✗ Correct answer: <strong>{result.expected}</strong>
                 {result.alternates.length > 0 && <> (also {result.alternates.join(', ')})</>}</>}
+              <SpeakButton text={result.expected} language={language} />
             </p>
             <button ref={nextRef} style={s.primary} onClick={next}>
               {index + 1 === prompts.length ? 'See results' : 'Next →'}

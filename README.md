@@ -123,7 +123,7 @@ Words and everyday phrases (logic in `app/services/vocabulary.py`, data in `back
 - `GET /vocab/{language}/overview` — per topic: items, seen, learned (review box ≥ 3), due.
 - `GET /vocab/{language}/session?kind=word|phrase&topic=&count=` — due items first, then new ones (most common first), then the weakest; each with three wrong options and a fill-the-gap sentence.
 - `GET /vocab/{language}/items` — browse a topic or all phrases, with the user's review box.
-- `POST /vocab/check` — grades flashcard / multiple-choice / typing / fill-the-gap answers (article optional, punctuation ignored, accent slips = "almost"), records it and moves the review box.
+- `POST /vocab/check` — grades flashcard / multiple-choice / typing / fill-the-gap / dictation answers (article optional, punctuation ignored, accent slips = "almost"), records it and moves the review box.
 - `POST /vocab/lookup` — meaning of a word clicked in a reading passage: curated vocabulary first (also verb forms like *tengo* → *tener*, plurals, *l'eau* → *eau*), then a cache of earlier AI lookups, then the LLM (cached after).
 - `POST /vocab/my-words` / `DELETE /vocab/my-words/{id}` — save a word to review (curated words get a review; others become personal "My words" items) / remove a personal word.
 
@@ -246,10 +246,13 @@ Weak-spot drill: one verb + tense + person at a time, graded by the server, keyb
 Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`).
 
 #### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
-Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
+Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap, Listening), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
 
 #### `src/components/reading/ClickableText.jsx`
 Used for reading passages: every word is a button; clicking shows a popover with the dictionary form, meaning and source, and "Add to my words". Saved words show up as "My words" on the Vocabulary page.
+
+#### `src/utils/speech.js` / `src/components/SpeakButton.jsx`
+Pronunciation with the browser's built-in speech synthesis (free, offline, no backend). `SpeakButton` (🔊) appears next to vocabulary words, examples, browse rows, the reading popup, the drill's correct answer and the completed practice sentence. It renders nothing in browsers without speech support, where the Listening mode is hidden too. **Dictation** (Listening mode, and every other review for well-known items in Mixed mode) plays a phrase or a word's example sentence, with a 🐢 slower replay; misheard words are highlighted after checking.
 
 #### `src/components/MistakeExplanation.jsx` / `SessionSummary.jsx`
 Compact feedback after a mistake (one line, all forms behind a toggle) and the end-of-session recap (score, mistakes with accent slips marked, "Review these now") shared by the drill, sentence completion and the classic exercise flow.

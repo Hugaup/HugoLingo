@@ -233,7 +233,9 @@ class GridResponse(BaseModel):
 
 # ── Vocabulary ────────────────────────────────────────────────────────────────
 
-VocabExercise = Literal["flashcard", "choice_to_native", "choice_to_target", "type_to_target", "type_to_native", "cloze"]
+VocabExercise = Literal[
+    "flashcard", "choice_to_native", "choice_to_target", "type_to_target", "type_to_native", "cloze", "dictation",
+]
 
 
 class VocabItemOut(BaseModel):

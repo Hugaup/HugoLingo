@@ -5,6 +5,7 @@ import { sortTenses, groupTensesBySection, tenseLabel, tenseWithMood } from '../
 import CharPicker from './CharPicker'
 import MistakeExplanation from '../MistakeExplanation'
 import SessionSummary from '../SessionSummary'
+import SpeakButton from '../SpeakButton'
 
 function bannerColor(result) {
   if (result.form_correct && result.tense_correct) return '#d1fae5'
@@ -158,7 +159,11 @@ Answer any follow-up questions clearly with examples.`
       <div style={s.progress}>{idx + 1} / {items.length}</div>
 
       <div style={s.sentenceCard}>
-        <p style={s.sentence}>{item.sentence}</p>
+        <p style={s.sentence}>
+          {/* Once checked, show (and offer to read) the completed sentence */}
+          {result ? item.sentence.replace('___', item.correct_form) : item.sentence}
+          {result && <SpeakButton text={item.sentence.replace('___', item.correct_form)} language={language} label="Listen to the sentence" />}
+        </p>
         <p style={s.hint}>Subject: <strong>{item.subject_hint}</strong> · Verb: <em>{item.verb_infinitive}</em></p>
       </div>
 

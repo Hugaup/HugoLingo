@@ -23,7 +23,7 @@ from app.services.sentences import blank_out
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "vocabulary"
 VOCAB_LANGUAGES = [Language.spanish, Language.french]
 
-EXERCISES = ("flashcard", "choice_to_native", "choice_to_target", "type_to_target", "type_to_native", "cloze")
+EXERCISES = ("flashcard", "choice_to_native", "choice_to_target", "type_to_target", "type_to_native", "cloze", "dictation")
 LEARNED_BOX = 3  # answered right on three separate reviews in a row
 
 _PUNCTUATION = re.compile(r"[¿?¡!.,;:\"«»“”—–()]")
@@ -106,6 +106,9 @@ def accepted_answers(item: VocabItem, exercise: str) -> list[str]:
         return list(dict.fromkeys(a for a in answers if a))
     if exercise == "cloze":
         return [item.text]
+    if exercise == "dictation":
+        # Phrases are short enough to dictate whole; words are heard in their example sentence
+        return [item.text if item.kind == "phrase" else item.example]
     return list(dict.fromkeys([item.text, with_article(item)]))
 
 

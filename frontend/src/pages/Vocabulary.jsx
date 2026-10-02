@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import VocabSession from '../components/vocab/VocabSession'
 import VocabBrowse from '../components/vocab/VocabBrowse'
+import { canSpeak } from '../utils/speech'
 import { MODES, byTopicOrder, topicLabel } from '../utils/vocab'
 
 const SESSION_LENGTH = 10
@@ -79,7 +80,7 @@ function Home({ overview, mode, setMode, start, browse }) {
   return (
     <>
       <div style={s.modes} role="radiogroup" aria-label="Exercise type">
-        {MODES.map(m => (
+        {MODES.filter(m => !m.needsSpeech || canSpeak()).map(m => (
           <button
             key={m.id}
             role="radio"
