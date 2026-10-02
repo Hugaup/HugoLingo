@@ -118,6 +118,13 @@ Answer history, weak spots and review (logic in `app/services/history.py`):
 
 The sentence-completion check and the old conjugation exercise check record their answers server-side.
 
+#### `app/routers/vocabulary.py`
+Words and everyday phrases (logic in `app/services/vocabulary.py`, data in `backend/data/vocabulary/`):
+- `GET /vocab/{language}/overview` — per topic: items, seen, learned (review box ≥ 3), due.
+- `GET /vocab/{language}/session?kind=word|phrase&topic=&count=` — due items first, then new ones (most common first), then the weakest; each with three wrong options and a fill-the-gap sentence.
+- `GET /vocab/{language}/items` — browse a topic or all phrases, with the user's review box.
+- `POST /vocab/check` — grades flashcard / multiple-choice / typing / fill-the-gap answers (article optional, punctuation ignored, accent slips = "almost"), records it and moves the review box.
+
 #### `app/routers/chat.py`
 - `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama.
 - `POST /chat/stream` — same, but streams the reply as plain text while it's written. Used by every chat panel (text appears within ~0.1–0.4 s instead of after the full reply).
@@ -186,6 +193,12 @@ Adds `attempts.is_almost` (accent-only slips, default false).
 #### `alembic/versions/d4f6b8c0e2a3_add_sentence_pool.py`
 Creates `sentence_pool` (pre-generated practice sentences; raw SQL, reuses the `language` enum).
 
+#### `alembic/versions/f6b8d0e2a4c5_add_vocabulary.py`
+Creates `vocab_items`, `vocab_reviews`, `vocab_attempts` (raw SQL, reuses the `language` enum).
+
+#### `scripts/seed_vocabulary.py`
+Loads `backend/data/vocabulary/{language}.json` into `vocab_items` (upsert — re-run after editing the JSON). Words were chosen and ranked with the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) subtitle frequency lists (CC BY-SA 4.0); translations, topics and examples are curated in the JSON.
+
 #### `alembic/versions/e5a7c9d1f3b4_add_sentence_pool_prompt_version.py`
 Adds `sentence_pool.prompt_version`; sentences from older prompts are never served.
 
@@ -226,6 +239,9 @@ Weak-spot drill: one verb + tense + person at a time, graded by the server, keyb
 
 #### `src/pages/Progress.jsx` (`/progress`)
 Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`).
+
+#### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
+Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
 
 #### `src/components/MistakeExplanation.jsx` / `SessionSummary.jsx`
 Compact feedback after a mistake (one line, all forms behind a toggle) and the end-of-session recap (score, mistakes with accent slips marked, "Review these now") shared by the drill, sentence completion and the classic exercise flow.
@@ -281,7 +297,7 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 ## Docker
 
-`docker-compose.yml` runs three services: `postgres:16-alpine` (port 5433), FastAPI backend (port 8000), and React/nginx frontend (port 5173). `backend/entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — a fast no-op once already seeded), then starts uvicorn. Ollama stays on the host at `host.docker.internal:11434`.
+`docker-compose.yml` runs three services: `postgres:16-alpine` (port 5433), FastAPI backend (port 8000), and React/nginx frontend (port 5173). `backend/entrypoint.sh` runs `alembic upgrade head`, then `scripts/seed_conjugations.py` (idempotent — a fast no-op once already seeded), then `scripts/seed_vocabulary.py`, then starts uvicorn. Ollama stays on the host at `host.docker.internal:11434`.
 
 `frontend/nginx.conf` — nginx config for the production frontend container; proxies `/api/` to the backend service.
 
@@ -294,5 +310,6 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Welcome` and `Settings`) — **not** `pages/Home.jsx`, which is dead code no longer imported by `App.jsx`
 4. Run migration: `alembic revision --autogenerate -m "add language X" && alembic upgrade head`
 5. If mlconjug3 supports it, add to `LANG_CODES` in `scripts/seed_conjugations.py` and re-seed
+6. For vocabulary, add `backend/data/vocabulary/{language}.json` and the language to `VOCAB_LANGUAGES`, then run `scripts/seed_vocabulary.py`
 
 See [CLAUDE.md](CLAUDE.md#adding-a-new-language) for the full mlconjug3 data-quality checklist (person-index quirks, phantom list entries, etc.) — every item on it caused a real, silent bug for Spanish or French and is worth checking before trusting a new language's seeded data.

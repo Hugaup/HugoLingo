@@ -131,6 +131,26 @@ export const api = {
 
   getGrid: (language, verbs = 12) => request('GET', `/history/grid/${language}?verbs=${verbs}`),
 
+  // Vocabulary
+  getVocabOverview: (language) => request('GET', `/vocab/${language}/overview`),
+
+  getVocabSession: (language, { kind, topic, count = 10 } = {}) => {
+    const params = new URLSearchParams({ count: String(count) })
+    if (kind) params.set('kind', kind)
+    if (topic) params.set('topic', topic)
+    return request('GET', `/vocab/${language}/session?${params}`)
+  },
+
+  getVocabItems: (language, { kind, topic } = {}) => {
+    const params = new URLSearchParams()
+    if (kind) params.set('kind', kind)
+    if (topic) params.set('topic', topic)
+    return request('GET', `/vocab/${language}/items?${params}`)
+  },
+
+  checkVocab: (itemId, exercise, { answer = '', knew } = {}) =>
+    request('POST', '/vocab/check', { item_id: itemId, exercise, answer, ...(knew === undefined ? {} : { knew }) }),
+
   // Chat
   chat: (messages) =>
     request('POST', '/chat', { messages }),
