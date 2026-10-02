@@ -322,3 +322,43 @@ class VocabCheckResponse(BaseModel):
     expected: str
     accepted: list[str]
     box: int
+
+
+# ── Conversation practice ────────────────────────────────────────────────────
+
+class ConversationScenario(BaseModel):
+    id: str
+    title: str
+    description: str
+    goal: str
+
+
+class ConversationLine(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=2000)
+
+
+class ConversationReplyRequest(BaseModel):
+    language: Language
+    scenario: str
+    messages: list[ConversationLine] = Field(default_factory=list, max_length=200)
+
+
+class ConversationCheckRequest(BaseModel):
+    language: Language
+    scenario: str
+    previous: str | None = Field(default=None, max_length=2000)  # the AI's line being answered
+    message: str = Field(min_length=1, max_length=1000)
+
+
+class VerbMistake(BaseModel):
+    verb: str
+    wrong: str
+    right: str
+
+
+class ConversationCheckResponse(BaseModel):
+    result: Literal["correct", "almost", "wrong"]
+    corrected: str | None
+    explanation: str | None
+    verb_mistakes: list[VerbMistake]

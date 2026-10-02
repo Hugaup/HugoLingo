@@ -26,7 +26,10 @@ class LLMClient:
         # Timing/token counts of the last non-streamed call (benchmarking, logs)
         self.last_metrics: dict = {}
 
-    def _payload(self, messages: list[dict], *, json_mode: bool, max_tokens: int | None, stream: bool) -> dict:
+    def _payload(
+        self, messages: list[dict], *, json_mode: bool, max_tokens: int | None, stream: bool,
+        temperature: float | None = None,
+    ) -> dict:
         payload = {
             "model": self.model,
             "messages": messages,
@@ -35,14 +38,20 @@ class LLMClient:
             "keep_alive": settings.ollama_keep_alive,
             "options": {"num_predict": max_tokens or settings.ollama_max_tokens},
         }
+        if temperature is not None:
+            payload["options"]["temperature"] = temperature
         if json_mode:
             payload["format"] = "json"
         if self.model.startswith(THINKING_MODEL_PREFIXES):
             payload["think"] = False
         return payload
 
-    async def chat(self, messages: list[dict], json_mode: bool = False, max_tokens: int | None = None) -> str:
-        payload = self._payload(messages, json_mode=json_mode, max_tokens=max_tokens, stream=False)
+    async def chat(
+        self, messages: list[dict], json_mode: bool = False, max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> str:
+        payload = self._payload(messages, json_mode=json_mode, max_tokens=max_tokens, stream=False,
+                                temperature=temperature)
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(self.url, json=payload)
             response.raise_for_status()
@@ -52,8 +61,10 @@ class LLMClient:
         }
         return data["message"]["content"]
 
-    async def chat_json(self, messages: list[dict], max_tokens: int | None = None) -> dict:
-        raw = await self.chat(messages, json_mode=True, max_tokens=max_tokens)
+    async def chat_json(
+        self, messages: list[dict], max_tokens: int | None = None, temperature: float | None = None,
+    ) -> dict:
+        raw = await self.chat(messages, json_mode=True, max_tokens=max_tokens, temperature=temperature)
         return json.loads(raw)
 
     async def chat_stream(self, messages: list[dict], max_tokens: int | None = None) -> AsyncIterator[str]:

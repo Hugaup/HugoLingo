@@ -10,6 +10,7 @@ import Settings from './pages/Settings'
 import Review from './pages/Review'
 import Progress from './pages/Progress'
 import Vocabulary from './pages/Vocabulary'
+import Conversation from './pages/Conversation'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/practice/:language/conjugation" element={<Conjugation />} />
             <Route path="/practice/:language/review" element={<Review />} />
             <Route path="/practice/:language/vocabulary" element={<Vocabulary />} />
+            <Route path="/practice/:language/conversation" element={<Conversation />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/exercise" element={<Exercise />} />
             <Route path="/settings" element={<Settings />} />

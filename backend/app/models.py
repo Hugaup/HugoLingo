@@ -189,6 +189,30 @@ class VocabItem(Base):
     )
 
 
+class ConversationTurn(Base):
+    """One message the learner sent in an AI conversation, and how the AI's check graded it.
+
+    Counts toward the daily stats like any answer; verb mistakes found in it are
+    also stored as `attempts` (source "conversation") so they feed weak spots.
+    """
+    __tablename__ = "conversation_turns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    scenario: Mapped[str] = mapped_column(String(32), nullable=False)
+    message: Mapped[str] = mapped_column(String(1000), nullable=False)
+    corrected: Mapped[str | None] = mapped_column(String(1000), nullable=True)  # NULL when it was right
+    explanation: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_almost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_conversation_turns_user_created", "user_id", "created_at"),
+    )
+
+
 class WordLookup(Base):
     """Cached AI dictionary answer for a word clicked while reading (one LLM call per word, ever)."""
     __tablename__ = "word_lookups"
