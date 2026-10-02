@@ -2,37 +2,50 @@ import { useState, useRef, useEffect } from 'react'
 import { api } from '../../api'
 import CharPicker from './CharPicker'
 
-export default function ChatPanel({ initialMessages = [], systemPrompt = null, placeholder = 'Ask a question...', language = null }) {
+// autoAsk: a question sent automatically when the panel opens. Only the answer
+// is shown (the question stays hidden but is kept as context for follow-ups).
+export default function ChatPanel({ initialMessages = [], systemPrompt = null, placeholder = 'Ask a question...', language = null, autoAsk = null }) {
   const [messages, setMessages] = useState(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef(null)
+  const autoAsked = useRef(false)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function send() {
-    const text = input.trim()
-    if (!text || loading) return
-    setInput('')
-
-    const userMsg = { role: 'user', content: text }
-    const history = [...messages, userMsg]
+  async function ask(text, hidden, previous) {
+    const history = [...previous, { role: 'user', content: text, hidden }]
     setMessages(history)
     setLoading(true)
-
     try {
-      const toSend = systemPrompt
-        ? [{ role: 'system', content: systemPrompt }, ...history]
-        : history
-      const { content } = await api.chat(toSend)
-      setMessages([...history, { role: 'assistant', content }])
+      const toSend = [
+        ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
+        ...history.map(({ role, content }) => ({ role, content })),
+      ]
+      // Show the reply as the model writes it instead of after it has finished
+      await api.chatStream(toSend, soFar => setMessages([...history, { role: 'assistant', content: soFar }]))
     } catch (e) {
       setMessages([...history, { role: 'assistant', content: `Error: ${e.message}` }])
     } finally {
       setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    if (!autoAsk || autoAsked.current) return
+    autoAsked.current = true
+    ask(autoAsk, true, initialMessages)
+    // Asked once, when the panel opens
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAsk])
+
+  function send() {
+    const text = input.trim()
+    if (!text || loading) return
+    setInput('')
+    ask(text, false, messages)
   }
 
   function handleKey(e) {
@@ -42,12 +55,13 @@ export default function ChatPanel({ initialMessages = [], systemPrompt = null, p
   return (
     <div style={s.wrap}>
       <div style={s.history}>
-        {messages.map((m, i) => (
+        {messages.map((m, i) => !m.hidden && (
           <div key={i} style={m.role === 'user' ? s.user : s.assistant}>
             <span style={s.bubble(m.role)}>{m.content}</span>
           </div>
         ))}
-        {loading && (
+        {/* Typing indicator until the first words of the reply stream in */}
+        {loading && messages[messages.length - 1]?.role !== 'assistant' && (
           <div style={s.assistant}>
             <span style={{ ...s.bubble('assistant'), color: '#888' }}>...</span>
           </div>

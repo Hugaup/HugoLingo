@@ -73,6 +73,7 @@ ORM models and enums:
 - `Progress` — user_id, exercise_id, user_answer, is_correct, created_at
 - `Attempt` — one row per conjugation answer from any practice area: user, language, source (`sentence`/`verb_table`/`drill`/`exercise`), verb, mood, tense, person, answer, expected, is_correct
 - `ReviewItem` — spaced-repetition (Leitner) box per user × verb × tense: box 0–5, due_at, right/wrong counts
+- `SentencePoolItem` — a validated, ready-to-serve practice sentence (deleted when served)
 - `VerbConjugation` — 1.68M-row lookup table: language, verb_infinitive, mood, tense, person, form
 
 ### `app/schemas.py`
@@ -118,17 +119,21 @@ Answer history, weak spots and review (logic in `app/services/history.py`):
 The sentence-completion check and the old conjugation exercise check record their answers server-side.
 
 #### `app/routers/chat.py`
-- `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama. Used by the in-app grammar tutor chat.
+- `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama.
+- `POST /chat/stream` — same, but streams the reply as plain text while it's written. Used by every chat panel (text appears within ~0.1–0.4 s instead of after the full reply).
 
 #### `app/routers/conjugation_exercises.py`
 Sentence-fill-in-the-blank conjugation exercises:
-- `POST /conjugation-exercises/sentence/generate` — picks a random DB conjugation row matching requested tenses, asks the LLM to write a sentence using that exact form with `___` as the blank.
-- `POST /conjugation-exercises/sentence/check` — compares user's form + tense identification against the DB answer, then asks the LLM for a 2–3 sentence explanation.
+- `POST /conjugation-exercises/sentence/generate` — serves ready-made sentences from the background stock (`sentence_pool`) first, then generates the rest live (`services/sentences.py`: random DB conjugation row → LLM sentence with `___` as the blank → validity checks).
+- `POST /conjugation-exercises/sentence/check` — grades form + tense identification against the DB answer, records the attempt and returns a rule-based hint. It does **not** call the LLM (that took ~10 s); the frontend streams the AI's longer explanation from `/chat/stream` only when the user opens it.
 
 ### Services
 
 #### `app/services/llm.py`
-`LLMClient` singleton wrapping `POST /api/chat` on Ollama. Two methods: `chat(messages)` → string, `chat_json(messages)` → parsed dict. The only file that knows about Ollama — swap provider here only.
+`LLMClient` singleton wrapping `POST /api/chat` on Ollama: `chat()`, `chat_json()`, `chat_stream()` (async generator), `warm_up()`. Keeps the model loaded (`OLLAMA_KEEP_ALIVE`), caps reply length (`max_tokens`), disables "thinking" for qwen3/deepseek-r1. The only file that knows about Ollama — swap provider here only. Model choice: see [docs/llm-benchmark.md](docs/llm-benchmark.md) and `scripts/benchmark_llm.py`.
+
+#### `app/services/sentences.py` / `app/services/sentence_pool.py`
+Sentence generation (prompt, validity checks, `generate_one`) and the background stock of validated sentences: 20 per language by default (`SENTENCE_POOL_SIZE`), refilled after use and at startup, paused while any user waits on the LLM (`live_request()`).
 
 #### `app/services/exercise_gen.py`
 - `LANGUAGE_NAMES` — display names map.
@@ -178,6 +183,9 @@ Creates `attempts` and `review_items` (raw SQL, reuses the `language` enum).
 #### `alembic/versions/c3e5a7b9d1f2_add_attempts_is_almost.py`
 Adds `attempts.is_almost` (accent-only slips, default false).
 
+#### `alembic/versions/d4f6b8c0e2a3_add_sentence_pool.py`
+Creates `sentence_pool` (pre-generated practice sentences; raw SQL, reuses the `language` enum).
+
 #### `scripts/set_password.py`
 Set or reset a user's password, optionally renaming them. Use it to claim the pre-auth `default` user (id 1) so its history is kept:
 ```bash
@@ -206,7 +214,7 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 `AuthProvider` loads `/auth/me` on startup and exposes `{ user, loading, login, signup, logout, setUser }` via `useAuth()`. Any 401 from the API (expired session) clears the user, which sends them to `/login`.
 
 ### `src/api.js`
-Single module for all backend calls. All paths prefixed with `/api`; the session cookie rides along automatically. Methods: `signup`, `login`, `logout`, `me`, `updateSettings`, `changePassword`, `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `recordAttempts`, `getWeakSpots`, `getDrill`, `checkDrill`, `getStats`, `getGrid`, `chat`, `generateSentences`, `checkSentence`. Errors are thrown as `ApiError` (with `.status`).
+Single module for all backend calls. All paths prefixed with `/api`; the session cookie rides along automatically. Methods: `signup`, `login`, `logout`, `me`, `updateSettings`, `changePassword`, `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `recordAttempts`, `getWeakSpots`, `getDrill`, `checkDrill`, `getStats`, `getGrid`, `chat`, `chatStream`, `generateSentences`, `checkSentence`. Errors are thrown as `ApiError` (with `.status`).
 
 ### Pages
 

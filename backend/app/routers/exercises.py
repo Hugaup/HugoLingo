@@ -7,6 +7,7 @@ from app.dependencies import get_current_user
 from app.models import Exercise, Progress, User, ExerciseType
 from app.schemas import GenerateExerciseRequest, ExerciseResponse, CheckAnswerRequest, CheckAnswerResponse
 from app.services.exercise_gen import generate_exercise, CHECKERS, check_conjugation
+from app.services import sentence_pool
 from app.services.grading import grade
 from app.services.history import AttemptIn, record_attempts
 
@@ -16,7 +17,8 @@ router = APIRouter(prefix="/exercises", tags=["exercises"])
 @router.post("/generate", response_model=ExerciseResponse)
 async def generate(req: GenerateExerciseRequest, db: AsyncSession = Depends(get_db)):
     try:
-        content = await generate_exercise(req.type, req.language, req.difficulty)
+        with sentence_pool.live_request():  # background refills wait while a user does
+            content = await generate_exercise(req.type, req.language, req.difficulty)
     except ValueError as e:
         raise HTTPException(status_code=502, detail=str(e))
 

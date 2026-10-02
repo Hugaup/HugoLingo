@@ -21,21 +21,44 @@ function errorMessage(detail, fallback) {
   return fallback
 }
 
-async function request(method, path, body) {
+function send(method, path, body) {
   // Session cookie is httpOnly and same-origin (via the /api proxy), so fetch sends it automatically
-  const res = await fetch(`${BASE}${path}`, {
+  return fetch(`${BASE}${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
   })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    // A 401 from /auth/login just means wrong credentials, not an expired session
-    if (res.status === 401 && path !== '/auth/login') onUnauthorized?.()
-    throw new ApiError(errorMessage(err.detail, 'Request failed'), res.status)
-  }
+}
+
+async function throwIfFailed(res, path) {
+  if (res.ok) return
+  const err = await res.json().catch(() => ({ detail: res.statusText }))
+  // A 401 from /auth/login just means wrong credentials, not an expired session
+  if (res.status === 401 && path !== '/auth/login') onUnauthorized?.()
+  throw new ApiError(errorMessage(err.detail, 'Request failed'), res.status)
+}
+
+async function request(method, path, body) {
+  const res = await send(method, path, body)
+  await throwIfFailed(res, path)
   if (res.status === 204) return null
   return res.json()
+}
+
+// Plain-text streaming response: onText(textSoFar) is called as each piece arrives
+async function streamText(path, body, onText) {
+  const res = await send('POST', path, body)
+  await throwIfFailed(res, path)
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let text = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    text += decoder.decode(value, { stream: true })
+    onText(text)
+  }
+  return text
 }
 
 export const api = {
@@ -111,6 +134,8 @@ export const api = {
   // Chat
   chat: (messages) =>
     request('POST', '/chat', { messages }),
+
+  chatStream: (messages, onText) => streamText('/chat/stream', { messages }, onText),
 
   // Conjugation exercises
   generateSentences: (language, tenses, count) =>

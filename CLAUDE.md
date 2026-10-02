@@ -63,19 +63,21 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
 │   ├── exercises.py            — POST /exercises/generate, POST /exercises/check
 │   ├── progress.py             — GET /progress (current user)
 │   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
-│   ├── chat.py                 — POST /chat, freeform passthrough to the LLM
-│   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate|check — LLM-written fill-in-the-blank sentences built around a random verb_conjugations row
+│   ├── chat.py                 — POST /chat, POST /chat/stream (plain-text streaming) — freeform passthrough to the LLM
+│   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate (stock first, then live via services/sentences) | check (no LLM call)
 │   └── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
-    ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat
+    ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
+    ├── sentences.py         — sentence-generation prompt, validity checks, generate_one(); COMMON_TENSES
+    ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
     ├── grading.py           — grade(answer, accepted) → correct | almost (accent-only difference) | wrong; normalize/fold_accents
@@ -87,7 +89,9 @@ backend/app/
 
 **Key design decisions:**
 
-- **LLM abstraction:** `LLMClient` in `services/llm.py` is the only file that knows about Ollama. It is instantiated once at module level (`llm_client = LLMClient()`). To swap providers, change only this file.
+- **LLM abstraction:** `LLMClient` in `services/llm.py` is the only file that knows about Ollama. It is instantiated once at module level (`llm_client = LLMClient()`). To swap providers, change only this file. Every request sets `keep_alive` (model stays loaded), a `num_predict` cap (`max_tokens=` per call; sentences 200, explanations 250, default 600) and `think: false` for thinking-model families (qwen3, deepseek-r1). The model is warmed up at startup (`main.py` lifespan). Model choice is backed by `docs/llm-benchmark.md` / `scripts/benchmark_llm.py` — re-run it before switching models or after changing prompts.
+
+- **Never make a user wait on the LLM when it can be avoided.** Sentence practice is served from `sentence_pool` (pre-generated, validated, deleted when served, refilled in the background); the sentence check returns the rule-based hint instantly and the LLM's long explanation is streamed from `/chat/stream` only if the user opens it (`ChatPanel autoAsk`). Ollama handles one request at a time, so **any endpoint where a user waits on the LLM must wrap the call in `sentence_pool.live_request()`** — background refills pause while it's held (for streams, hold it inside the generator). Tests set `LLM_WARMUP=false` / `SENTENCE_POOL_ENABLED=false`; drive the pool explicitly with `sentence_pool.refill(..., session_factory=TestSession, client=fake)`.
 
 - **Conjugation answer checking is async; grammar and reading are sync.** `check_conjugation` in `exercise_gen.py` is `async` because it does a DB fallback lookup — if the LLM's `correct_answer` doesn't match, it queries `verb_conjugations` to accept any valid form of the verb. The router special-cases this with `await check_conjugation(..., db, exercise.language)` rather than going through the `CHECKERS` dict (which only contains grammar and reading).
 
@@ -122,6 +126,8 @@ Backend `.env` (auto-loaded by `config.py`):
 DATABASE_URL=postgresql+asyncpg://localhost/language_learning
 OLLAMA_URL=http://localhost:11434
 OLLAMA_MODEL=qwen2.5:7b
+# Optional (defaults shown): OLLAMA_KEEP_ALIVE=30m, OLLAMA_MAX_TOKENS=600,
+# LLM_WARMUP=true, SENTENCE_POOL_ENABLED=true, SENTENCE_POOL_SIZE=20
 ```
 
 ## Frontend styling

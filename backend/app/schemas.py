@@ -135,7 +135,6 @@ class SentenceCheckResponse(BaseModel):
     form_correct: bool
     form_result: Literal["correct", "almost", "wrong"]
     tense_correct: bool
-    explanation: str
     hint: MistakeExplanation | None = None
 
 

@@ -132,6 +132,32 @@ class ReviewItem(Base):
     )
 
 
+class SentencePoolItem(Base):
+    """A pre-generated, already-validated fill-in-the-blank sentence waiting to be served.
+
+    Filled in the background by services/sentence_pool.py so sentence practice
+    starts instantly; each row is deleted when it's handed to a user.
+    """
+    __tablename__ = "sentence_pool"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    verb_infinitive: Mapped[str] = mapped_column(String(128), nullable=False)
+    mood: Mapped[str] = mapped_column(String(64), nullable=False)
+    tense: Mapped[str] = mapped_column(String(64), nullable=False)  # canonical_tense()
+    person: Mapped[str] = mapped_column(String(32), nullable=False)
+    sentence: Mapped[str] = mapped_column(String(512), nullable=False)
+    subject_hint: Mapped[str] = mapped_column(String(128), nullable=False)
+    correct_form: Mapped[str] = mapped_column(String(128), nullable=False)
+    alternates: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    model: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_sentence_pool_language_tense", "language", "mood", "tense"),
+    )
+
+
 class VerbConjugation(Base):
     __tablename__ = "verb_conjugations"
 

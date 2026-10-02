@@ -179,7 +179,7 @@ SENTENCE_ITEM = {
 
 @pytest.fixture
 def fake_llm(monkeypatch):
-    async def chat(messages):
+    async def chat(messages, **kwargs):
         return "Because it's a completed action in the past."
     monkeypatch.setattr(llm.llm_client, "chat", chat)
 
@@ -200,8 +200,10 @@ async def test_sentence_check_records_the_answer(logged_in, fake_llm, db):
     assert a.is_correct is False  # right form but wrong tense named still counts as a miss
 
 
-async def test_sentence_answer_is_kept_even_if_the_llm_is_down(logged_in, monkeypatch, db):
-    async def broken(messages):
+async def test_sentence_check_never_waits_on_the_llm(logged_in, monkeypatch, db):
+    # The check used to block ~10 s on an LLM explanation; now it must not call the LLM at all,
+    # so it's instant and still works with Ollama down
+    async def broken(messages, **kwargs):
         raise httpx.ConnectError("ollama down")
     monkeypatch.setattr(llm.llm_client, "chat", broken)
 
@@ -210,7 +212,7 @@ async def test_sentence_answer_is_kept_even_if_the_llm_is_down(logged_in, monkey
         "item": SENTENCE_ITEM, "user_form": "tuve", "language": "spanish",
         "user_mood": "Indicativo", "user_tense": "Indicativo pretérito perfecto simple",
     })
-    assert r.status_code == 502
+    assert r.status_code == 200
     assert (await db.execute(select(Attempt.is_correct))).scalar_one() is True
 
 

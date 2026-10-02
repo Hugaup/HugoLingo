@@ -1,9 +1,28 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.config import settings
 from app.dependencies import get_current_user
 from app.routers import auth, exercises, progress, verbs, chat, conjugation_exercises, history
+from app.services import sentence_pool
+from app.services.llm import llm_client
 
-app = FastAPI(title="HugoLingo API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Both run in the background: the API is usable immediately, even with Ollama down
+    if settings.llm_warmup:
+        warm_up = asyncio.create_task(llm_client.warm_up())
+    sentence_pool.start()
+    yield
+    await sentence_pool.stop()
+    if settings.llm_warmup:
+        warm_up.cancel()
+
+
+app = FastAPI(title="HugoLingo API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
