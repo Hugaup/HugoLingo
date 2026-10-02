@@ -111,7 +111,7 @@ Answer history, weak spots and review (logic in `app/services/history.py`):
 - `POST /history/attempts` — record answers graded in the browser (verb table only).
 - `GET /history/weak-spots/{language}` — weakest verbs, tenses and verb+tense pairs (recency-weighted error rate, mistakes fade with a 14-day half-life) plus how many review items are due.
 - `GET /history/drill/{language}?count=` — prompts for the review drill: due items first, then weak spots; persons you got wrong come first.
-- `POST /history/drill/check` — grades a drill answer against `verb_conjugations` (compound tenses, both subjunctive spellings) and records it.
+- `POST /history/drill/check` — grades a drill answer against `verb_conjugations` (compound tenses, both subjunctive spellings) as `correct`/`almost`/`wrong`, records it, and returns a one-line explanation plus the whole tense for mistakes.
 - `GET /history/stats?language=&tz=&days=` — totals, accuracy, per-day activity, today's count and streak, in the user's timezone.
 - `GET /history/grid/{language}` — accuracy per verb × tense for the most-practised verbs.
 
@@ -136,6 +136,12 @@ Sentence-fill-in-the-blank conjugation exercises:
 - `GENERATORS` dict — prompt-builder functions per exercise type.
 - `CHECKERS` dict — answer-check functions for grammar and reading (sync).
 - `check_conjugation` — async checker: if LLM's `correct_answer` doesn't match, falls back to querying `verb_conjugations` to accept any valid form.
+
+#### `app/services/grading.py`
+`grade(answer, accepted)` → `correct`, `almost` (only accents differ — still logged as a mistake, with `attempts.is_almost`), or `wrong`. Used by the drill, sentence completion and the classic exercise check; `frontend/src/utils/grading.js` mirrors it for the verb table.
+
+#### `app/services/explain.py`
+Rule-based (no LLM) one-line explanations: accent slip, another person's form, a form from another tense, irregular vs a model regular verb (hablar/comer/vivir, parler/finir/vendre) with the new stem, or the regular pattern itself.
 
 #### `app/services/auth.py`
 Pure helpers, no DB: `hash_password`/`verify_password` (stdlib scrypt, self-describing `scrypt$n$r$p$salt$hash` format), `new_session_token`, `hash_token`.
@@ -168,6 +174,9 @@ Adds password/settings columns to `users` and creates `user_sessions` (raw SQL, 
 
 #### `alembic/versions/b2d4f6a8c0e1_add_history.py`
 Creates `attempts` and `review_items` (raw SQL, reuses the `language` enum).
+
+#### `alembic/versions/c3e5a7b9d1f2_add_attempts_is_almost.py`
+Adds `attempts.is_almost` (accent-only slips, default false).
 
 #### `scripts/set_password.py`
 Set or reset a user's password, optionally renaming them. Use it to claim the pre-auth `default` user (id 1) so its history is kept:
@@ -206,6 +215,9 @@ Weak-spot drill: one verb + tense + person at a time, graded by the server, keyb
 
 #### `src/pages/Progress.jsx` (`/progress`)
 Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`).
+
+#### `src/components/MistakeExplanation.jsx` / `SessionSummary.jsx`
+Compact feedback after a mistake (one line, all forms behind a toggle) and the end-of-session recap (score, mistakes with accent slips marked, "Review these now") shared by the drill, sentence completion and the classic exercise flow.
 
 #### `src/components/WorkOnThis.jsx`
 Compact panel (on `Practice` and `Progress`) listing the user's weakest verb + tenses with a "Practise these" button into the drill.

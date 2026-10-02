@@ -25,7 +25,7 @@ async def test_drill_check_grades_and_records(logged_in, spanish_verbs, db):
     alice, user = await logged_in()
 
     r = await alice.post("/history/drill/check", json=drill("tener", "1s", "tuve"))
-    assert r.json() == {"is_correct": True, "expected": "tuve", "alternates": []}
+    assert r.json() == {"is_correct": True, "result": "correct", "expected": "tuve", "alternates": [], "explanation": None}
 
     r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
     assert r.json()["is_correct"] is False
@@ -48,7 +48,7 @@ async def test_drill_check_builds_compound_tenses(logged_in, spanish_verbs):
     alice, _ = await logged_in()
     compuesto = {"mood": "Indicativo", "tense": "Indicativo pretérito perfecto compuesto"}
     r = await alice.post("/history/drill/check", json=drill("tener", "1s", "he tenido", compuesto))
-    assert r.json() == {"is_correct": True, "expected": "he tenido", "alternates": []}
+    assert (r.json()["result"], r.json()["expected"], r.json()["alternates"]) == ("correct", "he tenido", [])
     r = await alice.post("/history/drill/check", json=drill("tener", "1s", "tenido", compuesto))
     assert r.json()["is_correct"] is False
 
@@ -57,7 +57,7 @@ async def test_drill_check_accepts_both_subjunctive_spellings(logged_in, spanish
     alice, _ = await logged_in()
     subj = {"mood": "Subjuntivo", "tense": "Subjuntivo pretérito imperfecto"}  # canonical name
     r = await alice.post("/history/drill/check", json=drill("tener", "1s", "tuviese", subj))
-    assert r.json() == {"is_correct": True, "expected": "tuviera", "alternates": ["tuviese"]}
+    assert (r.json()["result"], r.json()["expected"], r.json()["alternates"]) == ("correct", "tuviera", ["tuviese"])
     # Both spellings are one tense in the history
     assert (await db.execute(select(Attempt.tense))).scalar_one() == "Subjuntivo pretérito imperfecto"
 

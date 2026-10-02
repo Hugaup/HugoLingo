@@ -101,6 +101,8 @@ class Attempt(Base):
     user_answer: Mapped[str] = mapped_column(String(512), nullable=False)
     expected: Mapped[str] = mapped_column(String(512), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    # Accent-only slip: shown as "almost" but still counted as a mistake (is_correct False)
+    is_almost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     __table_args__ = (

@@ -1,11 +1,5 @@
 export const PERSONS = ['1s', '2s', '3s', '1p', '2p', '3p']
 
-export function isFormCorrect(userAnswer, correct, alternates = []) {
-  const u = userAnswer.trim().toLowerCase()
-  const c = correct.trim().toLowerCase()
-  return u === c || alternates.map(a => a.toLowerCase()).includes(u)
-}
-
 export const PERSON_LABELS = {
   french:   { '1s': 'je', '2s': 'tu', '3s': 'il/elle', '1p': 'nous', '2p': 'vous', '3p': 'ils/elles' },
   spanish:  { '1s': 'yo', '2s': 'tú', '3s': 'él/ella', '1p': 'nosotros', '2p': 'vosotros', '3p': 'ellos/ellas' },

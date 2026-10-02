@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../../api'
-import { PERSONS, PERSON_LABELS, sortTenses, tenseLabel, isFormCorrect } from '../../utils/conjugationUtils'
+import { useNavigate } from 'react-router-dom'
+import { PERSONS, PERSON_LABELS, sortTenses, tenseLabel } from '../../utils/conjugationUtils'
+import { gradeForm } from '../../utils/grading'
 import CharPicker from './CharPicker'
 import TenseChipSelector from './TenseChipSelector'
 
@@ -170,6 +172,7 @@ function Setup({ language, onStart }) {
 
 // ── Exercise screen ───────────────────────────────────────────────────────────
 function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
+  const navigate = useNavigate()
   const labels = PERSON_LABELS[language] || {}
 
   const cells = useMemo(() => {
@@ -200,7 +203,7 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
   function submit() {
     const res = {}
     cells.forEach(c => {
-      res[key(c)] = isFormCorrect(answers[key(c)] || '', c.correct, c.alternates)
+      res[key(c)] = gradeForm(answers[key(c)] || '', c.correct, c.alternates)
     })
     setResults(res)
     setSubmitted(true)
@@ -213,7 +216,8 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
       person: c.person,
       user_answer: answers[key(c)] || '',
       expected: c.correct,
-      is_correct: res[key(c)],
+      is_correct: res[key(c)] === 'correct',
+      is_almost: res[key(c)] === 'almost',
     }))).catch(() => {})
   }
 
@@ -229,14 +233,24 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
     return sortTenses(language, [...seen.values()])
   }, [cells, language])
 
-  const score = submitted ? Object.values(results).filter(Boolean).length : 0
+  const graded = Object.values(results)
+  const score = graded.filter(r => r === 'correct').length
+  const almost = graded.filter(r => r === 'almost').length
 
   return (
     <div>
       {submitted && (
         <div style={{ ...s.banner, background: score === cells.length ? '#d1fae5' : '#fef3c7' }}>
-          {score}/{cells.length} correct
-          <button style={s.resetBtn} onClick={onReset}>Try again</button>
+          <span>
+            {score}/{cells.length} correct
+            {almost > 0 && <span style={s.almostNote}> · {almost} only an accent away (counted as mistakes)</span>}
+          </span>
+          <span style={s.bannerActions}>
+            {score < cells.length && (
+              <button style={s.resetBtn} onClick={() => navigate(`/practice/${language}/review`)}>Review mistakes →</button>
+            )}
+            <button style={s.resetBtn} onClick={onReset}>Try again</button>
+          </span>
         </div>
       )}
 
@@ -269,16 +283,17 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
                         const cell = cells.find(c => c.verb === verb && c.mood === tc.mood && c.tense === tc.tense && c.person === person)
                         if (!cell) return <td key={`${tc.mood}||${tc.tense}`} style={s.td}>—</td>
                         const k = key(cell)
-                        const correct = results[k]
+                        const grade = results[k]
                         return (
                           <td key={k} style={{
                             ...s.td,
-                            background: submitted ? (correct ? '#d1fae5' : '#fee2e2') : undefined,
+                            background: submitted ? CELL_BACKGROUND[grade] : undefined,
                           }}>
                             {submitted ? (
                               <span>
+                                {grade === 'almost' && <span title="Only the accents are off" aria-label="almost">≈ </span>}
                                 {answers[k] || '—'}
-                                {!correct && (
+                                {grade !== 'correct' && (
                                   <span style={s.correction}>
                                     {' → '}{[cell.correct, ...cell.alternates].join(' / ')}
                                   </span>
@@ -327,6 +342,8 @@ export default function VerbTableExercise({ language, onBack }) {
   )
 }
 
+const CELL_BACKGROUND = { correct: '#d1fae5', almost: '#fef3c7', wrong: '#fee2e2' }
+
 const s = {
   sectionTitle: { fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem' },
   field: { marginBottom: '1.25rem' },
@@ -347,6 +364,8 @@ const s = {
   charPicker: { position: 'sticky', top: 0, zIndex: 5, boxShadow: '0 2px 6px rgba(0,0,0,0.06)' },
   banner: { padding: '0.75rem 1rem', borderRadius: 8, marginBottom: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   resetBtn: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 6, padding: '0.3rem 0.85rem', cursor: 'pointer', fontSize: '0.85rem' },
+  almostNote: { fontWeight: 400, color: '#92400e', fontSize: '0.88rem' },
+  bannerActions: { display: 'flex', gap: '0.5rem', flexShrink: 0 },
   verbBlock: { marginBottom: '2rem' },
   verbTitle: { fontSize: '1.1rem', fontWeight: 700, color: '#1e1b4b', marginBottom: '0.5rem' },
   table: { borderCollapse: 'collapse', width: '100%' },

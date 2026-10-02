@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { api } from '../../api'
+import CharPicker from './CharPicker'
 
-export default function ChatPanel({ initialMessages = [], systemPrompt = null, placeholder = 'Ask a question...' }) {
+export default function ChatPanel({ initialMessages = [], systemPrompt = null, placeholder = 'Ask a question...', language = null }) {
   const [messages, setMessages] = useState(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -66,6 +67,7 @@ export default function ChatPanel({ initialMessages = [], systemPrompt = null, p
           Send
         </button>
       </div>
+      {language && <CharPicker language={language} style={s.charPicker} />}
     </div>
   )
 }
@@ -86,6 +88,7 @@ const s = {
     whiteSpace: 'pre-wrap',
   }),
   inputRow: { display: 'flex', gap: '0.5rem', padding: '0.75rem', borderTop: '1px solid #e5e7eb', background: '#f9fafb' },
+  charPicker: { margin: '0 0.75rem 0.75rem' },
   textarea: { flex: 1, border: '1px solid #d1d5db', borderRadius: 8, padding: '0.5rem 0.75rem', fontSize: '0.9rem', resize: 'none', fontFamily: 'inherit' },
   sendBtn: { padding: '0 1.25rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' },
 }

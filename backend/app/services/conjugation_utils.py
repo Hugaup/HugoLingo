@@ -8,6 +8,16 @@ FORM_ALTERNATES: dict[str, list[str]] = {
     "ha":  ["hay"],
 }
 
+PERSON_ORDER = ["1s", "2s", "3s", "1p", "2p", "3p"]
+
+# The canonical subject pronoun for each person (LLM prompts, explanations)
+PRONOUNS: dict[Language, dict[str, str]] = {
+    Language.spanish: {"1s": "yo", "2s": "tú", "3s": "él/ella", "1p": "nosotros", "2p": "vosotros", "3p": "ellos/ellas"},
+    Language.french: {"1s": "je", "2s": "tu", "3s": "il/elle", "1p": "nous", "2p": "vous", "3p": "ils/elles"},
+    Language.english: {"1s": "I", "2s": "you", "3s": "he/she", "1p": "we", "2p": "you (plural)", "3p": "they"},
+}
+
+
 def canonical_tense(tense: str) -> str:
     """Collapse Spanish subjunctive imperfecto/pluscuamperfecto "(1)"/"(2)" suffixes
     (interchangeable -ra vs -se spellings, e.g. hablara/hablase) into one shared
@@ -62,6 +72,54 @@ async def load_haber_forms(
     return forms
 
 
+async def tense_table(
+    db: AsyncSession,
+    language: Language,
+    verb: str,
+    mood: str,
+    tense: str,
+    person: str | None = None,
+) -> dict[str, list[str]]:
+    """Accepted answers for one verb+tense, keyed by person, primary form first.
+
+    `tense` may be canonical (suffix-stripped): both "(1)"/"(2)" spellings are
+    accepted. Compound tenses are resolved to auxiliary + participle, and
+    FORM_ALTERNATES are included. Restrict to one person with `person`.
+    """
+    query = (
+        select(VerbConjugation)
+        .where(
+            VerbConjugation.language == language,
+            func.lower(VerbConjugation.verb_infinitive) == verb.lower(),
+            func.lower(VerbConjugation.mood) == mood.lower(),
+            func.lower(VerbConjugation.tense).in_([t.lower() for t in variant_tense_names(canonical_tense(tense))]),
+        )
+        .order_by(VerbConjugation.tense)
+    )
+    if person is not None:
+        query = query.where(VerbConjugation.person == person)
+    rows = (await db.execute(query)).scalars().all()
+
+    haber_forms: dict = {}
+    if language == Language.spanish:
+        needed = {COMPOUND_AUX_MAP[r.tense.lower()] for r in rows if r.tense.lower() in COMPOUND_AUX_MAP}
+        haber_forms = await load_haber_forms(db, language, needed)
+
+    table: dict[str, list[str]] = {}
+    for row in rows:
+        form = row.form
+        aux = COMPOUND_AUX_MAP.get(row.tense.lower()) if haber_forms else None
+        if aux and (haber := haber_forms.get((*aux, row.person))):
+            form = f"{haber} {form}"
+        forms = table.setdefault(row.person, [])
+        for candidate in [form, *FORM_ALTERNATES.get(form.lower(), [])]:
+            if candidate.lower() not in (f.lower() for f in forms):
+                forms.append(candidate)
+
+    order = {p: i for i, p in enumerate(PERSON_ORDER)}
+    return dict(sorted(table.items(), key=lambda kv: order.get(kv[0], len(order))))
+
+
 async def expected_forms(
     db: AsyncSession,
     language: Language,
@@ -70,30 +128,8 @@ async def expected_forms(
     tense: str,
     person: str,
 ) -> list[str]:
-    """Every accepted answer for one prompt, primary form first.
-
-    `tense` may be canonical (suffix-stripped): both "(1)"/"(2)" spellings are
-    accepted. Compound tenses are resolved to auxiliary + participle, and
-    FORM_ALTERNATES are included. Empty list if the prompt doesn't exist.
-    """
-    result = await db.execute(
-        select(VerbConjugation)
-        .where(
-            VerbConjugation.language == language,
-            func.lower(VerbConjugation.verb_infinitive) == verb.lower(),
-            func.lower(VerbConjugation.mood) == mood.lower(),
-            func.lower(VerbConjugation.tense).in_([t.lower() for t in variant_tense_names(canonical_tense(tense))]),
-            VerbConjugation.person == person,
-        )
-        .order_by(VerbConjugation.tense)
-    )
-    forms: list[str] = []
-    for row in result.scalars().all():
-        form = await resolve_compound_form(db, language, row.tense, row.person, row.form)
-        for candidate in [form, *FORM_ALTERNATES.get(form.lower(), [])]:
-            if candidate.lower() not in (f.lower() for f in forms):
-                forms.append(candidate)
-    return forms
+    """Every accepted answer for one prompt, primary form first ([] if it doesn't exist)."""
+    return (await tense_table(db, language, verb, mood, tense, person)).get(person, [])
 
 
 async def resolve_compound_form(

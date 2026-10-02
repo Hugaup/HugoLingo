@@ -50,13 +50,10 @@ class AttemptIn:
     user_answer: str
     expected: str
     is_correct: bool
+    is_almost: bool = False
 
 
 # ── Pure helpers ─────────────────────────────────────────────────────────────
-
-def normalize_answer(text: str) -> str:
-    return " ".join(text.split()).lower()
-
 
 def next_review(box: int, correct: bool, now: datetime) -> tuple[int, datetime]:
     new_box = min(box + 1, MAX_BOX) if correct else 0
@@ -144,7 +141,7 @@ async def record_attempts(
             user_id=user_id, language=language, source=source,
             verb_infinitive=a.verb_infinitive, mood=a.mood, tense=tense, person=a.person,
             user_answer=a.user_answer[:512], expected=a.expected[:512],
-            is_correct=a.is_correct, created_at=now,
+            is_correct=a.is_correct, is_almost=a.is_almost and not a.is_correct, created_at=now,
         ))
         if a.mood and tense:
             key = (a.verb_infinitive, a.mood, tense)
