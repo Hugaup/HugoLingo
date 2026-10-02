@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import exercises, progress, verbs, chat, conjugation_exercises
+from app.dependencies import get_current_user
+from app.routers import auth, exercises, progress, verbs, chat, conjugation_exercises
 
 app = FastAPI(title="HugoLingo API")
 
@@ -11,11 +12,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(exercises.router)
-app.include_router(progress.router)
-app.include_router(verbs.router)
-app.include_router(chat.router)
-app.include_router(conjugation_exercises.router)
+app.include_router(auth.router)
+
+# Everything except /auth and /health requires a logged-in user
+login_required = [Depends(get_current_user)]
+app.include_router(exercises.router, dependencies=login_required)
+app.include_router(progress.router, dependencies=login_required)
+app.include_router(verbs.router, dependencies=login_required)
+app.include_router(chat.router, dependencies=login_required)
+app.include_router(conjugation_exercises.router, dependencies=login_required)
 
 
 @app.get("/health")

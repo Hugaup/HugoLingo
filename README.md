@@ -18,6 +18,22 @@ uvicorn app.main:app --reload
 cd frontend && npm run dev
 ```
 
+Open http://localhost:5173 and create an account (or claim the pre-login `default` user's history with `scripts/set_password.py`, see below).
+
+## Tests
+
+```bash
+# Backend — needs Postgres running; uses a separate `language_learning_test` DB (auto-created, never your real data)
+cd backend && source .venv/bin/activate
+pip install -r requirements-dev.txt   # first time only
+pytest
+
+# Frontend — Vitest + React Testing Library, backend is mocked
+cd frontend && npm test
+```
+
+CI runs both suites, plus `alembic upgrade head && alembic check` on a fresh database, on every PR.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the branching workflow and CI checks.
 
 ## Architecture Overview
@@ -36,7 +52,10 @@ All API calls go through `/api` prefix (Vite strips it before forwarding). Ollam
 ## Backend
 
 ### `app/main.py`
-FastAPI entry point. Registers all routers, adds CORS for `localhost:5173`, exposes `GET /health`.
+FastAPI entry point. Registers all routers, adds CORS for `localhost:5173`, exposes `GET /health`. Every router except `auth` is registered with `dependencies=[Depends(get_current_user)]`, so the whole API requires login except `/auth/*` and `/health`.
+
+### `app/dependencies.py`
+`get_current_user` — resolves the `hugolingo_session` cookie to a `User` via the `user_sessions` table, or raises 401.
 
 ### `app/config.py`
 Reads `DATABASE_URL`, `OLLAMA_URL`, `OLLAMA_MODEL` from `.env` via Pydantic Settings.
@@ -48,7 +67,8 @@ Async SQLAlchemy engine + `AsyncSessionLocal`. Exports `get_db` FastAPI dependen
 ORM models and enums:
 - `Language` enum — `french | spanish | english | norwegian | galician`
 - `ExerciseType` enum — `verb_conjugation | grammar_correction | reading_comprehension`
-- `User` — id, username, native_language, created_at
+- `User` — id, username, password_hash (nullable for pre-auth accounts), native_language, target_language, level (1–5, same scale as difficulty), daily_goal, created_at
+- `UserSession` — user_id, token_hash (SHA-256 of the cookie token), created_at, expires_at (30 days)
 - `Exercise` — id, type, language, difficulty, content (JSON), created_at
 - `Progress` — user_id, exercise_id, user_answer, is_correct, created_at
 - `VerbConjugation` — 1.68M-row lookup table: language, verb_infinitive, mood, tense, person, form
@@ -60,12 +80,19 @@ Pydantic request/response schemas for all endpoints, plus `SentenceExerciseItem`
 
 #### `app/routers/exercises.py`
 - `POST /exercises/generate` — calls `exercise_gen.py` to build a prompt, sends it to the LLM, persists the Exercise row, returns the exercise.
-- `POST /exercises/check` — grammar/reading answers are checked synchronously via `CHECKERS` dict; conjugation answers go through `check_conjugation` (async DB fallback).
+- `POST /exercises/check` — grammar/reading answers are checked synchronously via `CHECKERS` dict; conjugation answers go through `check_conjugation` (async DB fallback). The `Progress` row is attributed to the logged-in user.
+
+#### `app/routers/auth.py`
+Cookie-session auth (httpOnly, SameSite=Lax; set `COOKIE_SECURE=true` when serving over HTTPS):
+- `POST /auth/signup` — create an account (username 3–32 chars of `A-Za-z0-9_.-`, password ≥ 4 chars, no other rules) and log in.
+- `POST /auth/login` / `POST /auth/logout` — logout deletes the session row, so the cookie is dead server-side.
+- `GET /auth/me` / `PATCH /auth/me` — profile + settings (`target_language`, `level`, `daily_goal`).
+- `POST /auth/password` — change password; logs out every other session.
+
+Usernames keep their casing but are unique and matched case-insensitively.
 
 #### `app/routers/progress.py`
-- `GET /progress/{user_id}` — returns exercise history with correctness stats.
-- `POST /users` — create a user.
-- `GET /users/{user_id}` — fetch user (unused by frontend; `user_id=1` is hardcoded everywhere).
+- `GET /progress` — the logged-in user's exercise history with correctness stats.
 
 #### `app/routers/verbs.py`
 Verb dictionary endpoints backed by the `verb_conjugations` table:
@@ -97,6 +124,9 @@ Sentence-fill-in-the-blank conjugation exercises:
 - `CHECKERS` dict — answer-check functions for grammar and reading (sync).
 - `check_conjugation` — async checker: if LLM's `correct_answer` doesn't match, falls back to querying `verb_conjugations` to accept any valid form.
 
+#### `app/services/auth.py`
+Pure helpers, no DB: `hash_password`/`verify_password` (stdlib scrypt, self-describing `scrypt$n$r$p$salt$hash` format), `new_session_token`, `hash_token`.
+
 #### `app/services/conjugation_utils.py`
 Spanish compound tense resolution, plus tense-name canonicalization used across all languages:
 - `COMPOUND_AUX_MAP` — maps compound tense names to their `haber` auxiliary tense.
@@ -120,6 +150,15 @@ Creates `users`, `exercises`, `progress` tables plus the `language` and `exercis
 #### `alembic/versions/7805ad5fd2c8_add_verb_conjugations_table.py`
 Creates `verb_conjugations` table using raw SQL to avoid enum re-creation conflict.
 
+#### `alembic/versions/a1c3e5f7b9d2_add_auth.py`
+Adds password/settings columns to `users` and creates `user_sessions` (raw SQL, reuses the `language` enum).
+
+#### `scripts/set_password.py`
+Set or reset a user's password, optionally renaming them. Use it to claim the pre-auth `default` user (id 1) so its history is kept:
+```bash
+python scripts/set_password.py default mypassword --rename hugo
+```
+
 #### `scripts/seed_conjugations.py`
 One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads `verbs-{lang}.json` + `conjugation-{lang}.json`, computes `root + suffix` for each form, bulk-inserts into `verb_conjugations`. Run once after migrations.
 
@@ -129,14 +168,20 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 
 ### Routing (`src/App.jsx`)
 ```
+/login, /signup            → Auth  (public)
+── behind <RequireAuth> (redirects to /login, then back) ──
 /                          → Welcome
 /practice/:language        → Practice  (exercise type picker)
 /practice/:language/conjugation → Conjugation  (verb drill hub)
 /exercise                  → Exercise  (grammar/reading answer screen)
+/settings                  → Settings  (learning prefs, change password)
 ```
 
+### Auth (`src/auth/`)
+`AuthProvider` loads `/auth/me` on startup and exposes `{ user, loading, login, signup, logout, setUser }` via `useAuth()`. Any 401 from the API (expired session) clears the user, which sends them to `/login`.
+
 ### `src/api.js`
-Single module for all backend calls. All paths prefixed with `/api`. Methods: `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `chat`, `generateSentences`, `checkSentence`.
+Single module for all backend calls. All paths prefixed with `/api`; the session cookie rides along automatically. Methods: `signup`, `login`, `logout`, `me`, `updateSettings`, `changePassword`, `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `chat`, `generateSentences`, `checkSentence`. Errors are thrown as `ApiError` (with `.status`).
 
 ### Pages
 
@@ -198,7 +243,7 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 1. Add to `Language` enum in `backend/app/models.py`
 2. Add display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add to `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` — **not** `pages/Home.jsx`, which is dead code no longer imported by `App.jsx`
+3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Welcome` and `Settings`) — **not** `pages/Home.jsx`, which is dead code no longer imported by `App.jsx`
 4. Run migration: `alembic revision --autogenerate -m "add language X" && alembic upgrade head`
 5. If mlconjug3 supports it, add to `LANG_CODES` in `scripts/seed_conjugations.py` and re-seed
 

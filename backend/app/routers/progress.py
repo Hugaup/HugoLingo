@@ -1,37 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models import Progress, Exercise, User
-from app.schemas import ProgressStatsResponse, UserCreate, UserResponse
+from app.schemas import ProgressStatsResponse
 
 router = APIRouter(tags=["progress"])
 
 
-@router.post("/users", response_model=UserResponse, status_code=201)
-async def create_user(req: UserCreate, db: AsyncSession = Depends(get_db)):
-    user = User(username=req.username, native_language=req.native_language)
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
-
-
-@router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    user = await db.get(User, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
-
-@router.get("/progress/{user_id}", response_model=ProgressStatsResponse)
-async def get_progress(user_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/progress", response_model=ProgressStatsResponse)
+async def get_progress(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Progress, Exercise)
         .join(Exercise, Progress.exercise_id == Exercise.id)
-        .where(Progress.user_id == user_id)
+        .where(Progress.user_id == user.id)
     )
     rows = result.all()
 

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.models import Exercise, Progress, User, ExerciseType
 from app.schemas import GenerateExerciseRequest, ExerciseResponse, CheckAnswerRequest, CheckAnswerResponse
 from app.services.exercise_gen import generate_exercise, CHECKERS, check_conjugation
@@ -30,7 +31,11 @@ async def generate(req: GenerateExerciseRequest, db: AsyncSession = Depends(get_
 
 
 @router.post("/check", response_model=CheckAnswerResponse)
-async def check(req: CheckAnswerRequest, db: AsyncSession = Depends(get_db)):
+async def check(
+    req: CheckAnswerRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     exercise = await db.get(Exercise, req.exercise_id)
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
@@ -47,7 +52,7 @@ async def check(req: CheckAnswerRequest, db: AsyncSession = Depends(get_db)):
     correct_answer = _get_correct_answer(exercise)
 
     progress = Progress(
-        user_id=req.user_id,
+        user_id=user.id,
         exercise_id=exercise.id,
         user_answer=req.user_answer,
         is_correct=is_correct,

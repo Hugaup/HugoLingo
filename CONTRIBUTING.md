@@ -16,8 +16,8 @@ pull request.
 2. Commit as you go; push early and often.
 3. Open a PR targeting `main` once ready for review (or ready to merge, solo).
 4. CI runs automatically on every push to the PR and on `main` itself
-   (frontend lint/build, backend install/import check, Docker build
-   validation — see `.github/workflows/ci.yml`).
+   (frontend lint/test/build, backend pytest + migration check against a
+   Postgres service, Docker build validation — see `.github/workflows/ci.yml`).
 5. Merge only once all checks are green. `main` is protected — direct
    pushes and merges with failing checks are blocked.
 6. Delete the feature branch after merge.
@@ -26,12 +26,17 @@ pull request.
 
 ```bash
 # Frontend
-cd frontend && npm run lint && npm run build
+cd frontend && npm run lint && npm test && npm run build
 
-# Backend
-cd backend && python -c "import app.main"
+# Backend (Postgres must be running; tests use a separate *_test database)
+cd backend && pytest
 ```
 
-No automated test suite exists yet (backend or frontend) — CI is
-lint/build/import validation only, by design, until a testing strategy is
-adopted separately.
+Every feature branch should add tests for what it changes:
+
+- **Backend** — `backend/tests/`, pytest + httpx against the real FastAPI app
+  and a throwaway Postgres DB. Fixtures in `conftest.py`: `client`,
+  `new_client` (independent cookie jars), `logged_in(username, password)`, `db`.
+- **Frontend** — `frontend/src/test/`, Vitest + React Testing Library.
+  `mockBackend({...})` fakes `fetch`; `renderAppAt(path)` renders the full app
+  with routing and auth.

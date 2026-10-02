@@ -28,6 +28,15 @@ cd frontend
 npm run dev
 ```
 
+## Tests
+
+```bash
+cd backend && source .venv/bin/activate && pytest     # needs Postgres; uses language_learning_test (auto-created, refuses non-"test" DB names)
+cd frontend && npm test                                 # Vitest + RTL, fetch is mocked
+```
+
+Every feature should ship with tests (user requirement). Backend fixtures (`tests/conftest.py`): `client`, `new_client()` (separate cookie jars = separate browsers), `logged_in(username, password)` → `(client, user_json)`, `db`. The test schema is built from `Base.metadata.create_all`, not migrations — CI separately runs `alembic upgrade head && alembic check` to catch model/migration drift. Frontend helpers (`src/test/helpers.jsx`): `mockBackend({'METHOD /path': {status, body} | fn})`, `calls(fetchMock)`, `renderAppAt(path)`.
+
 ## Database
 
 **Migrations:**
@@ -50,18 +59,21 @@ This reads mlconjug3's bundled JSON files (`data/conjug_manager/verbs-{lang}.jso
 
 ```
 backend/app/
-├── main.py          — FastAPI app, CORS (allows localhost:5173), router registration
-├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL
+├── main.py          — FastAPI app, CORS (allows localhost:5173), router registration (login required on all but auth)
+├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
-├── models.py        — ORM models: User, Exercise, Progress, VerbConjugation (+ enums)
+├── dependencies.py  — get_current_user (session cookie → User, else 401)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
+│   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
 │   ├── exercises.py            — POST /exercises/generate, POST /exercises/check
-│   ├── progress.py             — GET /progress/{user_id}, POST /users, GET /users/{user_id}
+│   ├── progress.py             — GET /progress (current user)
 │   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
 │   ├── chat.py                 — POST /chat, freeform passthrough to the LLM
 │   └── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate|check — LLM-written fill-in-the-blank sentences built around a random verb_conjugations row
 └── services/
+    ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     └── conjugation_utils.py — Spanish compound-tense resolution (pairs a participle row with the matching haber row, e.g. tense "pretérito perfecto compuesto" + person "1s" → "he hablado") and FORM_ALTERNATES (interchangeable forms, e.g. "hay"/"ha")
@@ -79,13 +91,15 @@ backend/app/
 
 - **Frontend Vite proxy:** `fetch('/api/exercises/generate')` → Vite strips `/api` → hits `localhost:8000/exercises/generate`. All API calls go through `/api` prefix. The `api.js` module is the only place that constructs fetch calls.
 
-- **React Router state-passing:** `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
+- **React Router state-passing:** (all of these sit under the `RequireAuth` layout route) `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
 
 - **Two parallel conjugation-practice paths:** the original `ExerciseType.conjugation` flow (`exercises.py` + `exercise_gen.py`, single LLM-generated fill-in-the-blank, DB-validated) still exists and is reachable via the "Conjugation" card on `Practice`. Separately, `pages/Conjugation.jsx` (routed at `/practice/:language/conjugation`) is a richer practice area — verb lookup/tables (`verbs.py`, pure DB reads, no LLM), sentence completion (`conjugation_exercises.py`, LLM-generated), and freeform chat (`chat.py`) — built directly on `verb_conjugations` rather than going through `Exercise`/`ExerciseType`. The two paths don't share code beyond the DB table and `LLMClient`.
 
 - **Spanish compound tenses need two DB rows:** `verb_conjugations` only stores the participle for compound tenses (e.g. "pretérito perfecto compuesto" stores "hablado", not "he hablado"). `conjugation_utils.COMPOUND_AUX_MAP` + `load_haber_forms`/`resolve_compound_form` look up the matching `haber` conjugation and prepend it. Used by both `verbs.py` (table display) and `conjugation_exercises.py` (marking the correct answer). Only applies to Spanish — French/English compounds aren't in the seed data.
 
-- **Single user:** Auth is not implemented. `user_id=1` is hardcoded as default throughout. The `users` table and `POST /users` endpoint exist but are unused by the frontend.
+- **Auth is cookie sessions, not JWT.** `routers/auth.py` (signup/login/logout/me/password) issues a random token in an httpOnly `hugolingo_session` cookie; only its SHA-256 is stored in `user_sessions`, so logout and password change revoke sessions server-side. `dependencies.get_current_user` is applied to every non-auth router in `main.py` via `include_router(..., dependencies=...)` — **new routers must be registered the same way** or they'll be public. Routes that need the user object also take `user: User = Depends(get_current_user)` (FastAPI caches it per request). Never accept a `user_id` from the request body. Passwords: stdlib scrypt in `services/auth.py`, deliberately no rules beyond length ≥ 4 (product decision). On the frontend, `AuthProvider` + `RequireAuth` gate every route except `/login`/`/signup`, and `api.js` reports any 401 back to `AuthProvider` so expired sessions bounce to login.
+
+- **Pre-auth users have `password_hash = NULL`** and can't log in until claimed with `scripts/set_password.py <username> <password> [--rename new]`. The original hardcoded `default` user (id 1) holds early progress history.
 
 - **Difficulty maps to tenses:** `TENSES_BY_DIFFICULTY` in `exercise_gen.py` controls which tenses the LLM is allowed to pick at each level (A1–C1). This is the only place difficulty semantics are defined. It only governs the `exercises.py` flow — the `Conjugation` practice area picks tenses via `verbs.py`'s `get_tenses`/`get_random_verbs` instead, with no difficulty concept.
 
@@ -110,7 +124,7 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 
 1. Add the value to `Language` enum in `backend/app/models.py`
 2. Add its display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add it to the `LANGUAGES` array in `frontend/src/pages/Welcome.jsx` (**not** `Home.jsx` — that file is dead code, see React Router note above)
+3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Welcome` and `Settings`; **not** `Home.jsx` — that file is dead code, see React Router note above)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
 6. **Before trusting the seeded data, audit it for these mlconjug3 quirks** — every one of these caused a real, silent bug for Spanish and/or French (see the git history around the conjugation-data PRs) and is worth checking for any new language before calling the seed "done":
@@ -122,4 +136,4 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
    - **Fix at the source, then backfill.** `insert_rows` uses `on_conflict_do_nothing()`, so re-running the seed script after fixing `build_rows()` does **not** correct already-seeded bad rows — delete the affected `(language, mood)` rows and re-insert.
 7. **Wire the new language into the frontend's tense organization** (`frontend/src/utils/conjugationUtils.js`) — `MOOD_ORDER`, `TENSE_ORDER_IN_MOOD`, `SECTION_MOODS`, and `TENSE_LABEL_OVERRIDES` are all keyed per language. Without an entry, tenses still work but sort into an unordered bucket and show raw/awkward DB labels instead of clean ones.
 
-Note: the `Language` enum already has `norwegian` and `galician`, but `Welcome.jsx` currently only lists French/Spanish/English — Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).
+Note: the `Language` enum already has `norwegian` and `galician`, but `constants.js` currently only lists French/Spanish/English — Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).
