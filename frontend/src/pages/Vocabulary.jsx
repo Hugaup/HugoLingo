@@ -5,6 +5,7 @@ import VocabSession from '../components/vocab/VocabSession'
 import VocabBrowse from '../components/vocab/VocabBrowse'
 import { canSpeak } from '../utils/speech'
 import { MODES, byTopicOrder, topicLabel } from '../utils/vocab'
+import { ui } from '../theme'
 
 const SESSION_LENGTH = 10
 
@@ -163,12 +164,12 @@ function Progress({ learned, total }) {
 }
 
 const s = {
-  page: { maxWidth: 820, margin: '0 auto', padding: '2rem 1.5rem 3rem', fontFamily: 'system-ui, sans-serif' },
-  back: { background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontFamily: 'inherit' },
-  title: { fontSize: '1.7rem', fontWeight: 800, color: '#1e1b4b', margin: '0.75rem 0 1.25rem' },
+  page: ui.page,
+  back: ui.back,
+  title: ui.h1,
   modes: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' },
-  chip: { padding: '0.4rem 0.9rem', borderRadius: 999, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: '0.88rem', fontFamily: 'inherit', color: '#374151' },
-  chipActive: { border: '1px solid #4f46e5', background: '#4f46e5', color: '#fff' },
+  chip: ui.chip,
+  chipActive: ui.chipOn,
   review: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', background: '#eef2ff', borderRadius: 12, padding: '0.9rem 1.1rem', marginBottom: '1rem', color: '#1e1b4b' },
   card: { display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#f8f9fa', borderRadius: 12, padding: '1rem 1.1rem' },
   phrases: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
@@ -182,8 +183,8 @@ const s = {
   fill: { height: '100%', background: '#4f46e5', borderRadius: 3 },
   count: { fontSize: '0.75rem', color: '#6b7280', whiteSpace: 'nowrap' },
   due: { fontSize: '0.75rem', color: '#4f46e5', fontWeight: 600 },
-  primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.45rem 0.95rem', fontSize: '0.88rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  link: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', padding: 0, fontSize: '0.85rem', fontFamily: 'inherit' },
+  primary: { ...ui.primary, padding: '0.45rem 0.95rem', fontSize: '0.88rem' },
+  link: ui.link,
   muted: { color: '#6b7280' },
   error: { color: '#b91c1c' },
 }

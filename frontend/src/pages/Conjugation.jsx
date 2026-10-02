@@ -4,6 +4,7 @@ import TenseGuide from '../components/conjugation/TenseGuide'
 import VerbLookup from '../components/conjugation/VerbLookup'
 import VerbTableExercise from '../components/conjugation/VerbTableExercise'
 import SentenceCompletion from '../components/conjugation/SentenceCompletion'
+import { ui } from '../theme'
 
 export default function Conjugation() {
   const { language } = useParams()
@@ -81,17 +82,17 @@ export default function Conjugation() {
 }
 
 const s = {
-  page: { maxWidth: 940, margin: '0 auto', padding: '1.5rem 1rem', fontFamily: 'system-ui, sans-serif' },
+  page: { ...ui.page, maxWidth: 940 },
   topBar: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' },
-  back: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500, padding: 0, whiteSpace: 'nowrap' },
-  title: { fontSize: '1.6rem', fontWeight: 700, margin: 0 },
+  back: { ...ui.back, whiteSpace: 'nowrap' },
+  title: { ...ui.h1, margin: 0 },
   tabRow: { display: 'flex', borderBottom: '2px solid #e5e7eb', marginBottom: '1.5rem' },
   tab: { padding: '0.6rem 1.5rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, color: '#6b7280', borderBottom: '3px solid transparent', marginBottom: -2 },
   tabOn: { color: '#4f46e5', borderBottomColor: '#4f46e5' },
   content: { minHeight: 400 },
   subTabRow: { display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' },
-  subTab: { padding: '0.4rem 1.1rem', borderRadius: 8, border: '2px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '0.9rem' },
-  subTabOn: { borderColor: '#4f46e5', background: '#eff6ff', color: '#4f46e5', fontWeight: 600 },
+  subTab: { ...ui.chip, borderRadius: 8 },
+  subTabOn: ui.chipSoftOn,
   chooseLabel: { fontWeight: 600, color: '#374151', marginBottom: '1rem' },
   exerciseCards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' },
   exCard: { display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#fff', border: '2px solid #e5e7eb', borderRadius: 12, padding: '1.5rem', cursor: 'pointer', textAlign: 'left' },

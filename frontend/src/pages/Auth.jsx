@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { ui } from '../theme'
 
 // Mirrors the backend rules in schemas.py (SignupRequest) for instant feedback
 const USERNAME_RE = /^[A-Za-z0-9_.-]{3,32}$/
@@ -94,14 +95,14 @@ export default function Auth({ mode }) {
 }
 
 const s = {
-  page: { maxWidth: 400, margin: '0 auto', padding: '5rem 1.5rem 2rem', fontFamily: 'system-ui, sans-serif' },
+  page: { ...ui.page, maxWidth: 400, paddingTop: '5rem' },
   brand: { textAlign: 'center', fontSize: '2.25rem', fontWeight: 800, color: '#4f46e5', margin: '0 0 2rem' },
-  card: { display: 'flex', flexDirection: 'column', background: '#f8f9fa', borderRadius: 12, padding: '1.75rem' },
+  card: { ...ui.panel, display: 'flex', flexDirection: 'column', padding: '1.75rem' },
   title: { fontSize: '1.25rem', fontWeight: 700, color: '#1e1b4b', margin: '0 0 1.25rem' },
   label: { fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' },
   input: { padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 8, fontSize: '1rem', fontFamily: 'inherit', marginBottom: '1rem' },
   error: { color: '#b91c1c', background: '#fef2f2', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.9rem', margin: '0 0 1rem' },
-  submit: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.7rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  submit: { ...ui.primary, padding: '0.7rem', fontSize: '1rem' },
   switch: { textAlign: 'center', fontSize: '0.9rem', color: '#6b7280', margin: '1.25rem 0 0' },
   link: { color: '#4f46e5', fontWeight: 600, textDecoration: 'none' },
 }

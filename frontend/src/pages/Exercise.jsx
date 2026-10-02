@@ -5,6 +5,7 @@ import FeedbackPanel from '../components/FeedbackPanel'
 import CharPicker from '../components/conjugation/CharPicker'
 import SessionSummary from '../components/SessionSummary'
 import ClickableText from '../components/reading/ClickableText'
+import { ui } from '../theme'
 
 export default function Exercise() {
   const { state } = useLocation()
@@ -177,13 +178,13 @@ function inputPlaceholder(type) {
 }
 
 const styles = {
-  page: { maxWidth: 680, margin: '0 auto', padding: '2rem 1rem', fontFamily: 'system-ui, sans-serif' },
+  page: { ...ui.page, maxWidth: 680 },
   topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
-  back: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.95rem', padding: 0 },
+  back: ui.back,
   progress: { fontSize: '0.9rem', fontWeight: 600, color: '#6b7280' },
   meta: { display: 'flex', gap: '0.5rem', marginBottom: '1rem', marginTop: 0 },
   badge: { background: '#e0e7ff', color: '#3730a3', padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600, textTransform: 'capitalize' },
-  card: { background: '#f8f9fa', borderRadius: 12, padding: '1.5rem' },
+  card: ui.panel,
   instruct: { color: '#555', marginBottom: '0.75rem', fontSize: '0.95rem' },
   prompt: { fontSize: '1.25rem', fontWeight: 500, lineHeight: 1.6, marginBottom: '0.5rem' },
   tip: { fontSize: '0.8rem', color: '#9ca3af', margin: '0 0 0.4rem' },
@@ -192,6 +193,6 @@ const styles = {
   inputRow: { display: 'flex', gap: '0.5rem', marginTop: '1rem' },
   input: { flex: 1, padding: '0.6rem 0.9rem', borderRadius: 8, border: '2px solid #ddd', fontSize: '1rem', outline: 'none' },
   submitBtn: { padding: '0.6rem 1.25rem', borderRadius: 8, background: '#4f46e5', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '1rem' },
-  nextBtn: { marginTop: '1.25rem', width: '100%', padding: '0.7rem', borderRadius: 8, background: '#4f46e5', color: 'white', border: 'none', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' },
+  nextBtn: { ...ui.primary, marginTop: '1.25rem', width: '100%', padding: '0.7rem', fontSize: '1rem' },
   error: { color: '#dc2626', fontSize: '0.9rem', marginTop: '0.5rem' },
 }

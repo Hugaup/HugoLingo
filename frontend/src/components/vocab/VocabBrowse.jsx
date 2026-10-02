@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../../api'
 import SpeakButton from '../SpeakButton'
 import { allTranslations, byTopicOrder, topicLabel } from '../../utils/vocab'
+import { ui } from '../../theme'
 
 const LEVEL = ['', 'A1', 'A2', 'B1', 'B2', 'C1']
 
@@ -71,8 +72,8 @@ function groupBy(rows) {
 
 const s = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' },
-  back: { background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 0, fontSize: '0.9rem', fontFamily: 'inherit' },
-  primary: { background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1rem', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  back: ui.back,
+  primary: { ...ui.primary, padding: '0.5rem 1rem', fontSize: '0.9rem' },
   title: { fontSize: '1.3rem', fontWeight: 800, color: '#1e1b4b', margin: '1rem 0' },
   section: { marginBottom: '1.25rem' },
   group: { fontSize: '0.95rem', fontWeight: 700, color: '#4f46e5', margin: '0 0 0.4rem' },

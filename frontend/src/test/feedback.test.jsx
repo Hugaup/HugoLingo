@@ -75,6 +75,15 @@ describe('review drill feedback', () => {
 })
 
 describe('verb table feedback', () => {
+  it("can't be started before the tenses have loaded", async () => {
+    mockBackend({ ...ME, 'GET /verbs/tenses/spanish': { status: 500, body: { detail: 'Database is down' } } })
+    renderAppAt('/practice/spanish/conjugation')
+    await userEvent.click(await screen.findByRole('button', { name: 'Test Yourself' }))
+    await userEvent.click(screen.getByRole('button', { name: /Verb Table/ }))
+    expect(await screen.findByText(/Couldn't load the tenses/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Loading tenses…' })).toBeDisabled()
+  })
+
   it('marks accent slips as almost, reports them, and links to the review drill', async () => {
     const fetchMock = mockBackend({
       ...ME,

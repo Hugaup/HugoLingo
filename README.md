@@ -230,11 +230,15 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 ```
 /login, /signup            → Auth  (public)
 ── behind <RequireAuth> (redirects to /login, then back) ──
-/                          → Welcome
+/                          → Dashboard  (first visit: pick a language; then today's goal, Continue, what's due)
 /practice/:language        → Practice  (exercise type picker)
 /practice/:language/conjugation → Conjugation  (verb drill hub)
+/practice/:language/review → Review  (weak-spot drill)
+/practice/:language/vocabulary → Vocabulary
+/practice/:language/conversation → Conversation  (AI role-play)
+/progress                  → Progress  (stats and charts)
 /exercise                  → Exercise  (grammar/reading answer screen)
-/settings                  → Settings  (learning prefs, change password)
+/settings                  → Settings  (learning prefs, change password, log out)
 ```
 
 ### Auth (`src/auth/`)
@@ -269,8 +273,11 @@ Compact feedback after a mistake (one line, all forms behind a toggle) and the e
 #### `src/components/WorkOnThis.jsx`
 Compact panel (on `Practice` and `Progress`) listing the user's weakest verb + tenses with a "Practise these" button into the drill.
 
-#### `src/pages/Welcome.jsx`
-Landing page with language selector chips. Navigates to `/practice/:language`.
+#### `src/pages/Dashboard.jsx` (`/`)
+First visit: pick the language you're learning (saved as `target_language`). After that: today's answers against the daily goal and the streak, a "Continue practising" button, how many words and verb tenses are due (each a shortcut), tiles for Vocabulary / Conversation / Conjugation / Review, the "Work on this" panel, and a flag switcher to change language.
+
+#### `src/components/TopBar.jsx`
+Practice (your language) · Progress · Settings, with the current page highlighted. On phones (≤ 640 px) the username and Log out are hidden so it fits; Settings has a Log out button.
 
 #### `src/pages/Practice.jsx`
 Exercise-type picker for a given language (verb conjugation, grammar correction, reading comprehension). Calls `api.generateExercise()` then navigates to `/exercise` with the exercise in `location.state`.
@@ -308,7 +315,7 @@ Free-form chat with the LLM tutor. Calls `api.chat()` directly.
 Accent character insertion helper (é, ñ, ø, etc.) for input fields.
 
 ### Styling
-No CSS framework. Each component has a `const styles = { ... }` object at the bottom. Design tokens: primary `#4f46e5`, card background `#f8f9fa`, border-radius 8–12px, font `system-ui`. Toggle buttons use a `chip/chipActive` pattern.
+No CSS framework. Each component has a `const s = { ... }` object at the bottom, built from the shared tokens and pieces in `src/theme.js` (`color`, `radius`, and `ui.page / h1 / primary / secondary / chip / chipOn / panel / tile …`). `src/index.css` only holds what inline styles can't do: base reset, focus ring, disabled buttons, tile hover (`hl-tile`) and the phone breakpoint (`hl-wide-only`).
 
 ### `vite.config.js`
 Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
@@ -327,7 +334,7 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 1. Add to `Language` enum in `backend/app/models.py`
 2. Add display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Welcome` and `Settings`) — **not** `pages/Home.jsx`, which is dead code no longer imported by `App.jsx`
+3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Dashboard` and `Settings`)
 4. Run migration: `alembic revision --autogenerate -m "add language X" && alembic upgrade head`
 5. If mlconjug3 supports it, add to `LANG_CODES` in `scripts/seed_conjugations.py` and re-seed
 6. For vocabulary, add `backend/data/vocabulary/{language}.json` and the language to `VOCAB_LANGUAGES`, then run `scripts/seed_vocabulary.py`

@@ -5,6 +5,7 @@ import { PERSONS, PERSON_LABELS, sortTenses, tenseLabel } from '../../utils/conj
 import { gradeForm } from '../../utils/grading'
 import CharPicker from './CharPicker'
 import TenseChipSelector from './TenseChipSelector'
+import { ui } from '../../theme'
 
 const VERB_ENDINGS = { french: ['-er', '-ir', '-re'], spanish: ['-ar', '-er', '-ir'], english: [] }
 
@@ -19,6 +20,7 @@ function Setup({ language, onStart }) {
   const [subjects, setSubjects]       = useState([...PERSONS])
   const [availTenses, setAvailTenses] = useState([])
   const [selTenses, setSelTenses]     = useState([])
+  const [tensesReady, setTensesReady] = useState(false)  // Start waits for the tense list
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState(null)
 
@@ -29,7 +31,8 @@ function Setup({ language, onStart }) {
       const sorted = sortTenses(language, data)
       setAvailTenses(sorted)
       setSelTenses(sorted.slice(0, 3).map(t => `${t.mood}||${t.tense}`))
-    }).catch(() => {})
+      setTensesReady(true)
+    }).catch(e => setError(`Couldn't load the tenses: ${e.message}`))
   }, [language])
 
   useEffect(() => {
@@ -163,8 +166,8 @@ function Setup({ language, onStart }) {
       </div>
 
       {error && <p style={s.error}>{error}</p>}
-      <button style={s.startBtn} onClick={handleStart} disabled={loading}>
-        {loading ? 'Loading…' : 'Start exercise →'}
+      <button style={s.startBtn} onClick={handleStart} disabled={loading || !tensesReady}>
+        {!tensesReady ? 'Loading tenses…' : loading ? 'Loading…' : 'Start exercise →'}
       </button>
     </div>
   )
@@ -349,8 +352,8 @@ const s = {
   field: { marginBottom: '1.25rem' },
   label: { display: 'block', fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#555', marginBottom: '0.5rem' },
   chips: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
-  chip: { padding: '0.35rem 0.85rem', borderRadius: 20, border: '2px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '0.88rem' },
-  chipOn: { borderColor: '#4f46e5', background: '#4f46e5', color: '#fff' },
+  chip: { ...ui.chip, padding: '0.35rem 0.85rem' },
+  chipOn: ui.chipOn,
   hint: { fontSize: '0.82rem', color: '#6b7280', margin: '0 0 0.35rem' },
   input: { width: '100%', padding: '0.5rem 0.75rem', border: '2px solid #d1d5db', borderRadius: 8, fontSize: '0.95rem', boxSizing: 'border-box' },
   suggestions: { position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, listStyle: 'none', margin: 0, padding: 0, zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: 200, overflowY: 'auto' },
@@ -359,7 +362,7 @@ const s = {
   removeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', fontWeight: 700, padding: 0 },
   textBtn: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.82rem', padding: '0.2rem 0', marginTop: '0.35rem' },
   error: { color: '#dc2626', fontSize: '0.9rem' },
-  startBtn: { marginTop: '1rem', padding: '0.7rem 1.75rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: '0.95rem' },
+  startBtn: { ...ui.primary, marginTop: '1rem', padding: '0.7rem 1.75rem' },
   backLink: { background: 'none', border: 'none', color: '#4f46e5', cursor: 'pointer', fontSize: '0.9rem', padding: 0, marginBottom: '1.25rem' },
   charPicker: { position: 'sticky', top: 0, zIndex: 5, boxShadow: '0 2px 6px rgba(0,0,0,0.06)' },
   banner: { padding: '0.75rem 1rem', borderRadius: 8, marginBottom: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
