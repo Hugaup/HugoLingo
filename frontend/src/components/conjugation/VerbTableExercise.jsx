@@ -204,6 +204,17 @@ function Exercise({ verbTables, subjects, tenseFilters, language, onReset }) {
     })
     setResults(res)
     setSubmitted(true)
+    // Feed the user's history (weak spots / review). Fire-and-forget: the
+    // results screen shouldn't wait on, or fail because of, the history save.
+    api.recordAttempts(language, 'verb_table', cells.map(c => ({
+      verb_infinitive: c.verb,
+      mood: c.mood,
+      tense: c.tense,
+      person: c.person,
+      user_answer: answers[key(c)] || '',
+      expected: c.correct,
+      is_correct: res[key(c)],
+    }))).catch(() => {})
   }
 
   const verbs = [...new Set(cells.map(c => c.verb))]

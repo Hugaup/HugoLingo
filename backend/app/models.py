@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Enum, JSON, UniqueConstraint
+from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Enum, JSON, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -79,6 +79,55 @@ class Progress(Base):
 
     user: Mapped["User"] = relationship(back_populates="progress")
     exercise: Mapped["Exercise"] = relationship(back_populates="progress")
+
+
+class Attempt(Base):
+    """One answer to one conjugation prompt, from any practice area.
+
+    mood/tense are the DB's names (tense passed through canonical_tense) when the
+    prompt came from verb_conjugations; both are NULL for the LLM-generated
+    exercises.py flow, whose free-text tense names don't map onto the DB.
+    """
+    __tablename__ = "attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    source: Mapped[str] = mapped_column(String(32), nullable=False)
+    verb_infinitive: Mapped[str] = mapped_column(String(128), nullable=False)
+    mood: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    tense: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    person: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    user_answer: Mapped[str] = mapped_column(String(512), nullable=False)
+    expected: Mapped[str] = mapped_column(String(512), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_attempts_user_language_created", "user_id", "language", "created_at"),
+    )
+
+
+class ReviewItem(Base):
+    """Spaced-repetition (Leitner box) state for one verb+tense, per user."""
+    __tablename__ = "review_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    verb_infinitive: Mapped[str] = mapped_column(String(128), nullable=False)
+    mood: Mapped[str] = mapped_column(String(64), nullable=False)
+    tense: Mapped[str] = mapped_column(String(64), nullable=False)
+    box: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    correct_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wrong_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "language", "verb_infinitive", "mood", "tense", name="uq_review_item"),
+        Index("ix_review_items_user_language_due", "user_id", "language", "due_at"),
+    )
 
 
 class VerbConjugation(Base):

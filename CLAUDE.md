@@ -63,7 +63,7 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
@@ -71,12 +71,14 @@ backend/app/
 │   ├── progress.py             — GET /progress (current user)
 │   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
 │   ├── chat.py                 — POST /chat, freeform passthrough to the LLM
-│   └── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate|check — LLM-written fill-in-the-blank sentences built around a random verb_conjugations row
+│   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate|check — LLM-written fill-in-the-blank sentences built around a random verb_conjugations row
+│   └── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
-    └── conjugation_utils.py — Spanish compound-tense resolution (pairs a participle row with the matching haber row, e.g. tense "pretérito perfecto compuesto" + person "1s" → "he hablado") and FORM_ALTERNATES (interchangeable forms, e.g. "hay"/"ha")
+    ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
+    └── conjugation_utils.py — expected_forms() (every accepted answer for one prompt), Spanish compound-tense resolution (pairs a participle row with the matching haber row, e.g. tense "pretérito perfecto compuesto" + person "1s" → "he hablado") and FORM_ALTERNATES (interchangeable forms, e.g. "hay"/"ha")
 ```
 
 `GET /health` is defined directly in `main.py`, not a router.
@@ -91,13 +93,17 @@ backend/app/
 
 - **Frontend Vite proxy:** `fetch('/api/exercises/generate')` → Vite strips `/api` → hits `localhost:8000/exercises/generate`. All API calls go through `/api` prefix. The `api.js` module is the only place that constructs fetch calls.
 
-- **React Router state-passing:** (all of these sit under the `RequireAuth` layout route) `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
+- **React Router state-passing:** (all of these sit under the `RequireAuth` layout route) `Welcome` (`/`) → `Practice` (`/practice/:language`) → either `Exercise` (`/exercise`, for grammar/reading/conjugation-quiz) or `Conjugation` (`/practice/:language/conjugation`, the verb-table/sentence-completion/chat area). `Practice` calls `api.generateExercise()` then navigates to `/exercise` with the exercise object in `location.state`; `Exercise` reads it back via `useLocation().state`. `/practice/:language/review` is the weak-spot drill (`Review.jsx`, reached from the `WorkOnThis` panel on `Practice` and `Progress`); `/progress` is the stats page (`Progress.jsx`, charts in `components/charts/`). **`pages/Home.jsx` is dead code** — it predates this flow and is no longer imported by `App.jsx`.
 
 - **Two parallel conjugation-practice paths:** the original `ExerciseType.conjugation` flow (`exercises.py` + `exercise_gen.py`, single LLM-generated fill-in-the-blank, DB-validated) still exists and is reachable via the "Conjugation" card on `Practice`. Separately, `pages/Conjugation.jsx` (routed at `/practice/:language/conjugation`) is a richer practice area — verb lookup/tables (`verbs.py`, pure DB reads, no LLM), sentence completion (`conjugation_exercises.py`, LLM-generated), and freeform chat (`chat.py`) — built directly on `verb_conjugations` rather than going through `Exercise`/`ExerciseType`. The two paths don't share code beyond the DB table and `LLMClient`.
 
 - **Spanish compound tenses need two DB rows:** `verb_conjugations` only stores the participle for compound tenses (e.g. "pretérito perfecto compuesto" stores "hablado", not "he hablado"). `conjugation_utils.COMPOUND_AUX_MAP` + `load_haber_forms`/`resolve_compound_form` look up the matching `haber` conjugation and prepend it. Used by both `verbs.py` (table display) and `conjugation_exercises.py` (marking the correct answer). Only applies to Spanish — French/English compounds aren't in the seed data.
 
 - **Auth is cookie sessions, not JWT.** `routers/auth.py` (signup/login/logout/me/password) issues a random token in an httpOnly `hugolingo_session` cookie; only its SHA-256 is stored in `user_sessions`, so logout and password change revoke sessions server-side. `dependencies.get_current_user` is applied to every non-auth router in `main.py` via `include_router(..., dependencies=...)` — **new routers must be registered the same way** or they'll be public. Routes that need the user object also take `user: User = Depends(get_current_user)` (FastAPI caches it per request). Never accept a `user_id` from the request body. Passwords: stdlib scrypt in `services/auth.py`, deliberately no rules beyond length ≥ 4 (product decision). On the frontend, `AuthProvider` + `RequireAuth` gate every route except `/login`/`/signup`, and `api.js` reports any 401 back to `AuthProvider` so expired sessions bounce to login.
+
+- **Every conjugation answer is recorded via `services/history.record_attempts`** — one `attempts` row per answer plus a Leitner box per (user, language, verb, mood, tense) in `review_items` (wrong → box 0, due now; right → next box, due in 1/3/7/14/30 days; a batch moves each box once). Wiring per practice area: sentence completion is recorded inside `/conjugation-exercises/sentence/check` (before the LLM call; naming the wrong tense counts as a miss); the review drill grades server-side in `/history/drill/check` via `conjugation_utils.expected_forms`; the verb table is graded **in the browser** and reports via `POST /history/attempts` (the only client-reported source — `source` is a `Literal["verb_table"]`); the old `exercises.py` conjugation flow records verb-level only (`mood`/`tense` NULL — its LLM tense names don't map to the DB, so it never creates review items). `attempts.tense` is always `canonical_tense()`d. A new practice area must record its answers or it won't feed "Work on this".
+
+- **Weak spots are computed, not stored:** `score_groups` takes the last 120 days of attempts, weights each by recency (half-life 14 days), and scores `weighted_wrong / (weighted_total + 2)`; anything ≥ 0.1 is flagged. Tuning knobs are the constants at the top of `services/history.py`. Stats days/streaks use the browser's IANA timezone (`tz` param, validated by `resolve_timezone`, passed to Postgres as a bind param).
 
 - **Pre-auth users have `password_hash = NULL`** and can't log in until claimed with `scripts/set_password.py <username> <password> [--rename new]`. The original hardcoded `default` user (id 1) holds early progress history.
 

@@ -141,6 +141,13 @@ export function tenseLabel(language, mood, tense) {
   return override || displayTenseName(mood, tense)
 }
 
+// tenseLabel plus the mood when the label alone is ambiguous across moods
+// (Spanish "presente" exists in both indicativo and subjuntivo).
+export function tenseWithMood(language, mood, tense) {
+  const label = tenseLabel(language, mood, tense)
+  return label.toLowerCase().includes(mood.toLowerCase()) ? label : `${label} (${mood.toLowerCase()})`
+}
+
 // Returns [{ section, tenses: [{ mood, tense }] }, ...] grouped into the
 // language's grammatical sections, with non-personal-form moods trailing in "Other".
 export function groupTensesBySection(language, tenseList) {

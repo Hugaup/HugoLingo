@@ -81,6 +81,33 @@ export const api = {
     return request('GET', url)
   },
 
+  // History / weak spots
+  recordAttempts: (language, source, attempts) =>
+    request('POST', '/history/attempts', { language, source, attempts }),
+
+  getWeakSpots: (language, limit = 8) => request('GET', `/history/weak-spots/${language}?limit=${limit}`),
+
+  getDrill: (language, count = 10) => request('GET', `/history/drill/${language}?count=${count}`),
+
+  checkDrill: (language, prompt, answer) =>
+    request('POST', '/history/drill/check', {
+      language,
+      verb_infinitive: prompt.verb_infinitive,
+      mood: prompt.mood,
+      tense: prompt.tense,
+      person: prompt.person,
+      answer,
+    }),
+
+  getStats: (language, days = 30) => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+    const params = new URLSearchParams({ tz, days: String(days) })
+    if (language) params.set('language', language)
+    return request('GET', `/history/stats?${params}`)
+  },
+
+  getGrid: (language, verbs = 12) => request('GET', `/history/grid/${language}?verbs=${verbs}`),
+
   // Chat
   chat: (messages) =>
     request('POST', '/chat', { messages }),

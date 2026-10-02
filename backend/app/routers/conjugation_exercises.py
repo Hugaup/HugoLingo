@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from app.database import get_db
-from app.models import VerbConjugation, Language
+from app.dependencies import get_current_user
+from app.models import VerbConjugation, Language, User
+from app.services.history import AttemptIn, record_attempts
 from app.schemas import (
     SentenceGenerateRequest,
     SentenceExerciseItem,
@@ -350,12 +352,24 @@ async def generate_sentences(req: SentenceGenerateRequest, db: AsyncSession = De
 
 
 @router.post("/sentence/check", response_model=SentenceCheckResponse)
-async def check_sentence(req: SentenceCheckRequest):
+async def check_sentence(
+    req: SentenceCheckRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     form_correct = _forms_match(req.user_form, req.item.correct_form, req.item.alternates)
     tense_correct = (
         req.user_mood.lower() == req.item.mood.lower()
         and req.user_tense.lower() == req.item.tense.lower()
     )
+
+    # Record before the LLM call so a slow/failed explanation doesn't lose the answer.
+    # Naming the wrong tense counts as a miss too: it's the tense the user struggled with.
+    await record_attempts(db, user.id, req.language, "sentence", [AttemptIn(
+        verb_infinitive=req.item.verb_infinitive, mood=req.item.mood, tense=req.item.tense,
+        person=req.item.person, user_answer=req.user_form, expected=req.item.correct_form,
+        is_correct=form_correct and tense_correct,
+    )])
 
     lang_name = LANGUAGE_NAMES[req.language]
     person_desc = PERSON_DESC.get(req.item.person, req.item.person)

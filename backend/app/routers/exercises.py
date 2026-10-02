@@ -7,6 +7,7 @@ from app.dependencies import get_current_user
 from app.models import Exercise, Progress, User, ExerciseType
 from app.schemas import GenerateExerciseRequest, ExerciseResponse, CheckAnswerRequest, CheckAnswerResponse
 from app.services.exercise_gen import generate_exercise, CHECKERS, check_conjugation
+from app.services.history import AttemptIn, record_attempts
 
 router = APIRouter(prefix="/exercises", tags=["exercises"])
 
@@ -44,6 +45,15 @@ async def check(
         is_correct, explanation = await check_conjugation(
             exercise.content, req.user_answer, db, exercise.language
         )
+        verb = str(exercise.content.get("verb_infinitive", "")).strip()
+        if verb:
+            # The LLM's free-text tense name doesn't map onto DB tenses, so this
+            # counts toward the verb's history only (mood/tense left empty).
+            await record_attempts(db, user.id, exercise.language, "exercise", [AttemptIn(
+                verb_infinitive=verb.lower(), mood=None, tense=None, person=None,
+                user_answer=req.user_answer, expected=str(exercise.content.get("correct_answer", "")),
+                is_correct=is_correct,
+            )])
     else:
         checker = CHECKERS.get(exercise.type)
         if not checker:

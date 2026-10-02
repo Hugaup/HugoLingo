@@ -15,6 +15,7 @@ export default function TopBar() {
       <Link to="/" style={s.brand}>HugoLingo</Link>
       <nav style={s.nav}>
         <span style={s.user}>{user.username}</span>
+        <Link to="/progress" style={s.link}>Progress</Link>
         <Link to="/settings" style={s.link}>Settings</Link>
         <button style={s.logout} onClick={handleLogout}>Log out</button>
       </nav>

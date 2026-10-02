@@ -76,6 +76,35 @@ async def db():
         yield session
 
 
+PERSONS = ["1s", "2s", "3s", "1p", "2p", "3p"]
+
+# A tiny slice of the real Spanish seed data, spelled exactly as mlconjug3 stores it
+SPANISH_VERBS = {
+    ("tener", "Indicativo", "Indicativo presente"): ["tengo", "tienes", "tiene", "tenemos", "tenéis", "tienen"],
+    ("tener", "Indicativo", "Indicativo pretérito perfecto simple"): ["tuve", "tuviste", "tuvo", "tuvimos", "tuvisteis", "tuvieron"],
+    ("tener", "Indicativo", "Indicativo pretérito perfecto compuesto"): ["tenido"] * 6,
+    ("tener", "Subjuntivo", "Subjuntivo pretérito imperfecto (1)"): ["tuviera", "tuvieras", "tuviera", "tuviéramos", "tuvierais", "tuvieran"],
+    ("tener", "Subjuntivo", "Subjuntivo pretérito imperfecto (2)"): ["tuviese", "tuvieses", "tuviese", "tuviésemos", "tuvieseis", "tuviesen"],
+    ("haber", "Indicativo", "Indicativo presente"): ["he", "has", "ha", "hemos", "habéis", "han"],
+    ("hablar", "Indicativo", "Indicativo presente"): ["hablo", "hablas", "habla", "hablamos", "habláis", "hablan"],
+    ("hablar", "Indicativo", "Indicativo pretérito perfecto simple"): ["hablé", "hablaste", "habló", "hablamos", "hablasteis", "hablaron"],
+}
+
+
+@pytest.fixture
+async def spanish_verbs(db):
+    """Seed verb_conjugations with SPANISH_VERBS."""
+    db.add_all(
+        models.VerbConjugation(
+            language=models.Language.spanish, verb_infinitive=verb, mood=mood, tense=tense,
+            person=person, form=form,
+        )
+        for (verb, mood, tense), forms in SPANISH_VERBS.items()
+        for person, form in zip(PERSONS, forms)
+    )
+    await db.commit()
+
+
 @pytest.fixture
 async def new_client():
     """Factory for independent clients — each one is a separate browser/cookie jar."""

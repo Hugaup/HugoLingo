@@ -62,6 +62,40 @@ async def load_haber_forms(
     return forms
 
 
+async def expected_forms(
+    db: AsyncSession,
+    language: Language,
+    verb: str,
+    mood: str,
+    tense: str,
+    person: str,
+) -> list[str]:
+    """Every accepted answer for one prompt, primary form first.
+
+    `tense` may be canonical (suffix-stripped): both "(1)"/"(2)" spellings are
+    accepted. Compound tenses are resolved to auxiliary + participle, and
+    FORM_ALTERNATES are included. Empty list if the prompt doesn't exist.
+    """
+    result = await db.execute(
+        select(VerbConjugation)
+        .where(
+            VerbConjugation.language == language,
+            func.lower(VerbConjugation.verb_infinitive) == verb.lower(),
+            func.lower(VerbConjugation.mood) == mood.lower(),
+            func.lower(VerbConjugation.tense).in_([t.lower() for t in variant_tense_names(canonical_tense(tense))]),
+            VerbConjugation.person == person,
+        )
+        .order_by(VerbConjugation.tense)
+    )
+    forms: list[str] = []
+    for row in result.scalars().all():
+        form = await resolve_compound_form(db, language, row.tense, row.person, row.form)
+        for candidate in [form, *FORM_ALTERNATES.get(form.lower(), [])]:
+            if candidate.lower() not in (f.lower() for f in forms):
+                forms.append(candidate)
+    return forms
+
+
 async def resolve_compound_form(
     db: AsyncSession,
     language: Language,

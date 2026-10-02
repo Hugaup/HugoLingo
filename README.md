@@ -71,6 +71,8 @@ ORM models and enums:
 - `UserSession` — user_id, token_hash (SHA-256 of the cookie token), created_at, expires_at (30 days)
 - `Exercise` — id, type, language, difficulty, content (JSON), created_at
 - `Progress` — user_id, exercise_id, user_answer, is_correct, created_at
+- `Attempt` — one row per conjugation answer from any practice area: user, language, source (`sentence`/`verb_table`/`drill`/`exercise`), verb, mood, tense, person, answer, expected, is_correct
+- `ReviewItem` — spaced-repetition (Leitner) box per user × verb × tense: box 0–5, due_at, right/wrong counts
 - `VerbConjugation` — 1.68M-row lookup table: language, verb_infinitive, mood, tense, person, form
 
 ### `app/schemas.py`
@@ -103,6 +105,17 @@ Verb dictionary endpoints backed by the `verb_conjugations` table:
 - `GET /verbs/table/{language}/{infinitive}?moods=` — full conjugation table. For Spanish, resolves compound tenses (e.g. `hablado → he hablado`) using `conjugation_utils.py`.
 
 Also contains `IRREGULAR_VERBS` sets per language used for "irregular" mode.
+
+#### `app/routers/history.py`
+Answer history, weak spots and review (logic in `app/services/history.py`):
+- `POST /history/attempts` — record answers graded in the browser (verb table only).
+- `GET /history/weak-spots/{language}` — weakest verbs, tenses and verb+tense pairs (recency-weighted error rate, mistakes fade with a 14-day half-life) plus how many review items are due.
+- `GET /history/drill/{language}?count=` — prompts for the review drill: due items first, then weak spots; persons you got wrong come first.
+- `POST /history/drill/check` — grades a drill answer against `verb_conjugations` (compound tenses, both subjunctive spellings) and records it.
+- `GET /history/stats?language=&tz=&days=` — totals, accuracy, per-day activity, today's count and streak, in the user's timezone.
+- `GET /history/grid/{language}` — accuracy per verb × tense for the most-practised verbs.
+
+The sentence-completion check and the old conjugation exercise check record their answers server-side.
 
 #### `app/routers/chat.py`
 - `POST /chat` — raw LLM chat relay; forwards a `messages` array directly to Ollama. Used by the in-app grammar tutor chat.
@@ -153,6 +166,9 @@ Creates `verb_conjugations` table using raw SQL to avoid enum re-creation confli
 #### `alembic/versions/a1c3e5f7b9d2_add_auth.py`
 Adds password/settings columns to `users` and creates `user_sessions` (raw SQL, reuses the `language` enum).
 
+#### `alembic/versions/b2d4f6a8c0e1_add_history.py`
+Creates `attempts` and `review_items` (raw SQL, reuses the `language` enum).
+
 #### `scripts/set_password.py`
 Set or reset a user's password, optionally renaming them. Use it to claim the pre-auth `default` user (id 1) so its history is kept:
 ```bash
@@ -181,9 +197,18 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 `AuthProvider` loads `/auth/me` on startup and exposes `{ user, loading, login, signup, logout, setUser }` via `useAuth()`. Any 401 from the API (expired session) clears the user, which sends them to `/login`.
 
 ### `src/api.js`
-Single module for all backend calls. All paths prefixed with `/api`; the session cookie rides along automatically. Methods: `signup`, `login`, `logout`, `me`, `updateSettings`, `changePassword`, `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `chat`, `generateSentences`, `checkSentence`. Errors are thrown as `ApiError` (with `.status`).
+Single module for all backend calls. All paths prefixed with `/api`; the session cookie rides along automatically. Methods: `signup`, `login`, `logout`, `me`, `updateSettings`, `changePassword`, `generateExercise`, `checkAnswer`, `getProgress`, `searchVerbs`, `getVerbTenses`, `getVerbEndings`, `getRandomVerbs`, `getVerbTable`, `recordAttempts`, `getWeakSpots`, `getDrill`, `checkDrill`, `getStats`, `getGrid`, `chat`, `generateSentences`, `checkSentence`. Errors are thrown as `ApiError` (with `.status`).
 
 ### Pages
+
+#### `src/pages/Review.jsx` (`/practice/:language/review`)
+Weak-spot drill: one verb + tense + person at a time, graded by the server, keyboard-only flow (Enter to check, Enter for next), summary of mistakes at the end.
+
+#### `src/pages/Progress.jsx` (`/progress`)
+Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`).
+
+#### `src/components/WorkOnThis.jsx`
+Compact panel (on `Practice` and `Progress`) listing the user's weakest verb + tenses with a "Practise these" button into the drill.
 
 #### `src/pages/Welcome.jsx`
 Landing page with language selector chips. Navigates to `/practice/:language`.

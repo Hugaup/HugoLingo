@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import { LEVELS as DIFFICULTIES } from '../constants'
+import WorkOnThis from '../components/WorkOnThis'
 
 const COUNTS = [1, 5, 10, 20]
 
@@ -57,6 +58,7 @@ export default function Practice() {
     <div style={s.page}>
       <button style={s.back} onClick={() => navigate('/')}>← Change language</button>
       <h1 style={s.title}>{cap(language)} Practice</h1>
+      {selectedType === null && <WorkOnThis language={language} />}
 
       {selectedType === null ? (
         <div style={s.typeGrid}>
