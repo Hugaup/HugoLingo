@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.models import ExerciseType, Language
 
 
@@ -19,7 +19,6 @@ class ExerciseResponse(BaseModel):
 class CheckAnswerRequest(BaseModel):
     exercise_id: int
     user_answer: str
-    user_id: int = 1
 
 
 class CheckAnswerResponse(BaseModel):
@@ -36,15 +35,41 @@ class ProgressStatsResponse(BaseModel):
     by_language: dict[str, dict]
 
 
-class UserCreate(BaseModel):
+# ── Auth / users ──────────────────────────────────────────────────────────────
+
+# Deliberately simple rules: the only password requirement is a minimum length.
+USERNAME_PATTERN = r"^[A-Za-z0-9_.-]+$"
+PASSWORD_MIN_LENGTH = 4
+
+
+class SignupRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=128)
+
+
+class LoginRequest(BaseModel):
     username: str
-    native_language: str = "english"
+    password: str
 
 
 class UserResponse(BaseModel):
     id: int
     username: str
     native_language: str
+    target_language: Language | None
+    level: int
+    daily_goal: int
+
+
+class UserSettingsUpdate(BaseModel):
+    target_language: Language | None = None
+    level: int | None = Field(default=None, ge=1, le=5)
+    daily_goal: int | None = Field(default=None, ge=1, le=500)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=128)
 
 
 # ── Chat ──────────────────────────────────────────────────────────────────────

@@ -1,14 +1,9 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { useAuth } from '../auth/AuthContext'
+import { LEVELS as DIFFICULTIES } from '../constants'
 
-const DIFFICULTIES = [
-  { value: 1, label: 'A1 — Beginner' },
-  { value: 2, label: 'A2 — Elementary' },
-  { value: 3, label: 'B1 — Intermediate' },
-  { value: 4, label: 'B2 — Upper Intermediate' },
-  { value: 5, label: 'C1 — Advanced' },
-]
 const COUNTS = [1, 5, 10, 20]
 
 const TYPE_CARDS = [
@@ -35,8 +30,9 @@ const TYPE_CARDS = [
 export default function Practice() {
   const { language } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [selectedType, setSelectedType] = useState(null)
-  const [difficulty, setDifficulty]     = useState(2)
+  const [difficulty, setDifficulty]     = useState(user.level)
   const [count, setCount]               = useState(5)
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState(null)

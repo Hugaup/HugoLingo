@@ -1,6 +1,28 @@
 const BASE = '/api'
 
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message)
+    this.status = status
+  }
+}
+
+// Called when any request comes back 401 (session missing/expired), so the
+// auth layer can drop the user and send them to the login page.
+let onUnauthorized = null
+export function setUnauthorizedHandler(fn) {
+  onUnauthorized = fn
+}
+
+// FastAPI sends a string for HTTPException and a list of {loc, msg} for validation errors
+function errorMessage(detail, fallback) {
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail)) return detail.map(d => d.msg).join('. ')
+  return fallback
+}
+
 async function request(method, path, body) {
+  // Session cookie is httpOnly and same-origin (via the /api proxy), so fetch sends it automatically
   const res = await fetch(`${BASE}${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
@@ -8,26 +30,34 @@ async function request(method, path, body) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || 'Request failed')
+    // A 401 from /auth/login just means wrong credentials, not an expired session
+    if (res.status === 401 && path !== '/auth/login') onUnauthorized?.()
+    throw new ApiError(errorMessage(err.detail, 'Request failed'), res.status)
   }
+  if (res.status === 204) return null
   return res.json()
 }
 
 export const api = {
+  // Auth
+  signup: (username, password) => request('POST', '/auth/signup', { username, password }),
+  login: (username, password) => request('POST', '/auth/login', { username, password }),
+  logout: () => request('POST', '/auth/logout'),
+  me: () => request('GET', '/auth/me'),
+  updateSettings: (settings) => request('PATCH', '/auth/me', settings),
+  changePassword: (currentPassword, newPassword) =>
+    request('POST', '/auth/password', { current_password: currentPassword, new_password: newPassword }),
+
   generateExercise: (type, language, difficulty) =>
     request('POST', '/exercises/generate', { type, language, difficulty }),
 
-  checkAnswer: (exerciseId, userAnswer, userId = 1) =>
+  checkAnswer: (exerciseId, userAnswer) =>
     request('POST', '/exercises/check', {
       exercise_id: exerciseId,
       user_answer: userAnswer,
-      user_id: userId,
     }),
 
-  getProgress: (userId = 1) => request('GET', `/progress/${userId}`),
-
-  createUser: (username, nativeLanguage = 'english') =>
-    request('POST', '/users', { username, native_language: nativeLanguage }),
+  getProgress: () => request('GET', '/progress'),
 
   // Verbs
   searchVerbs: (language, q, limit = 20) =>
