@@ -180,7 +180,8 @@ function Prompt({ item, exercise }) {
 function Example({ item }) {
   return (
     <p style={s.example}>
-      {item.example} <span style={s.exampleEn}>— {item.example_translation}</span>
+      {item.example}
+      {item.example_translation && <span style={s.exampleEn}> — {item.example_translation}</span>}
     </p>
   )
 }

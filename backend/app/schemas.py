@@ -285,6 +285,35 @@ class VocabCheckRequest(BaseModel):
     knew: bool | None = None  # flashcards are self-graded
 
 
+class WordLookupRequest(BaseModel):
+    language: Language
+    word: str = Field(min_length=1, max_length=64)
+    context: str = Field(default="", max_length=1000)  # the sentence it appeared in
+
+
+class WordLookupResponse(BaseModel):
+    word: str  # as clicked, lowercased
+    lemma: str  # dictionary form
+    translation: str
+    pos: str | None
+    source: Literal["vocabulary", "dictionary", "ai"]
+    item_id: int | None  # set when it's in the curated vocabulary
+    in_my_words: bool
+
+
+class AddWordRequest(BaseModel):
+    language: Language
+    lemma: str = Field(min_length=1, max_length=128)
+    translation: str = Field(min_length=1, max_length=256)
+    pos: str | None = Field(default=None, max_length=16)
+    example: str = Field(default="", max_length=512)
+
+
+class AddWordResponse(BaseModel):
+    item_id: int
+    added: bool  # False if it was already in the user's list
+
+
 class VocabCheckResponse(BaseModel):
     is_correct: bool
     result: Literal["correct", "almost", "wrong"]

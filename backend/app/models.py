@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime, timezone
 from sqlalchemy import String, Integer, Float, Boolean, DateTime, ForeignKey, Enum, JSON, UniqueConstraint, Index
+from sqlalchemy import text as sql_text  # VocabItem has a column named `text`
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -176,10 +177,32 @@ class VocabItem(Base):
     frequency_rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
     example: Mapped[str] = mapped_column(String(512), nullable=False)
     example_translation: Mapped[str] = mapped_column(String(512), nullable=False)
+    # NULL = shared, curated item; set = a word one user saved while reading (kind "personal")
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
 
     __table_args__ = (
-        UniqueConstraint("language", "kind", "text", name="uq_vocab_item"),
+        Index("uq_vocab_item_shared", "language", "kind", "text", unique=True,
+              postgresql_where=sql_text("owner_id IS NULL")),
+        Index("uq_vocab_item_personal", "owner_id", "language", "text", unique=True,
+              postgresql_where=sql_text("owner_id IS NOT NULL")),
         Index("ix_vocab_items_language_topic", "language", "topic"),
+    )
+
+
+class WordLookup(Base):
+    """Cached AI dictionary answer for a word clicked while reading (one LLM call per word, ever)."""
+    __tablename__ = "word_lookups"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    word: Mapped[str] = mapped_column(String(128), nullable=False)  # as clicked, lowercased
+    lemma: Mapped[str] = mapped_column(String(128), nullable=False)
+    translation: Mapped[str] = mapped_column(String(256), nullable=False)
+    pos: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        UniqueConstraint("language", "word", name="uq_word_lookup"),
     )
 
 

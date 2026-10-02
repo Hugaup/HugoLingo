@@ -11,13 +11,6 @@ TOPICS = {"people", "home", "food", "time", "places", "work_school", "body_healt
 PHRASE_TOPICS = {"greetings", "politeness", "basics", "out_and_about", "social"}
 
 
-@pytest.fixture
-async def vocab(db):
-    """The real Spanish and French vocabulary files, loaded into the test DB."""
-    for language in vocabulary.VOCAB_LANGUAGES:
-        await upsert_items(db, load_entries(language))
-
-
 async def item(db, text, language=Language.spanish):
     return (await db.execute(
         select(VocabItem).where(VocabItem.language == language, VocabItem.text == text)

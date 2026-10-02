@@ -64,7 +64,7 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, WordLookup, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
@@ -74,7 +74,7 @@ backend/app/
 │   ├── chat.py                 — POST /chat, POST /chat/stream (plain-text streaming) — freeform passthrough to the LLM
 │   ├── conjugation_exercises.py — POST /conjugation-exercises/sentence/generate (stock first, then live via services/sentences) | check (no LLM call)
 │   ├── history.py              — POST /history/attempts, GET /history/weak-spots|drill/{language}, POST /history/drill/check, GET /history/stats, GET /history/grid/{language}
-│   └── vocabulary.py           — GET /vocab/{language}/overview|session|items, POST /vocab/check
+│   └── vocabulary.py           — GET /vocab/{language}/overview|session|items, POST /vocab/check|lookup|my-words, DELETE /vocab/my-words/{id}
 └── services/
     ├── auth.py              — scrypt password hashing, session token generation/hashing (pure, no DB)
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
@@ -82,6 +82,7 @@ backend/app/
     ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
     ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
+    ├── lookup.py            — click-a-word lookup (curated → verb forms/plurals → word_lookups cache → LLM) and "my words"
     ├── vocabulary.py        — vocabulary seeding (upsert), accepted answers/grading, sessions (due → new → weak), Leitner reviews, overview
     ├── grading.py           — grade(answer, accepted) → correct | almost (accent-only difference) | wrong; normalize/fold_accents
     ├── explain.py           — explain_mistake(): one-line rule-based feedback (no LLM) + the whole tense for a "show all forms" toggle
@@ -119,6 +120,8 @@ backend/app/
 - **Mistake explanations are rule-based, not LLM** (`services/explain.py`), so they're instant and short (the user asked that feedback not crowd the screen). First matching rule wins: accent slip → another person's form in the same tense → a form from another tense → irregular vs the `REGULAR_MODELS` verb for that ending (with the shared stem, e.g. "tuv-") → the regular pattern. Frontend shows the line via `MistakeExplanation` (forms behind a toggle). Sentence completion still gets the LLM's longer explanation, but folded behind "AI explanation & questions". Every practice session ends in the shared `SessionSummary`.
 
 - **Vocabulary is curated data, not LLM output.** `backend/data/vocabulary/{language}.json` (Spanish, French; ~250 words in 11 topics + ~40 everyday phrases each) holds the word, article, English translations (`;`-separated alternatives), part of speech, a FrequencyWords subtitle-frequency `rank` (→ `level`: ≤1500 A1, ≤4000 A2, else B1) and an example that contains the word verbatim (used for fill-the-gap via `blank_out`). Edit the JSON and re-run `seed_vocabulary.py` — it upserts by (language, kind, text). Vocabulary has its own reviews/attempts tables (`vocab_reviews`, `vocab_attempts`, same Leitner scheduling) but counts toward the shared daily stats/streak (`history.stats` unions both attempt tables). Grading accepts the word with or without its article, and English answers with or without "to"/"the"/"a"; punctuation is ignored; accent-only slips are "almost" (multiple choice never is). The frontend picks the exercise per item (`utils/vocab.pickExercise`): new → flashcard, box 0–1 → multiple choice, box 2 → type it, box ≥3 → fill the gap.
+
+- **Reading teaches words** (`services/lookup.py`, `components/reading/ClickableText.jsx`): every word of a reading passage is clickable. Lookup order, cheapest reliable first: curated `vocab_items` (also via `verb_conjugations` forms → infinitive, simple plurals, French elision) → the `word_lookups` cache → the LLM (JSON: lemma/translation/pos, sentence as context, then cached — one LLM call per word ever; Spanish plural lemmas it returns unchanged are fixed by `singular_guess`). "Add to my words" gives a curated item a review due now, or creates a **personal** `vocab_items` row (`owner_id` = user, kind `personal`, topic `my_words`). Shared vs personal rows are kept apart by two partial unique indexes (`uq_vocab_item_shared` WHERE owner_id IS NULL — the one `upsert_items` targets — and `uq_vocab_item_personal`); every vocabulary query must filter with `vocabulary.visible_to(user_id)`.
 
 - **Weak spots are computed, not stored:** `score_groups` takes the last 120 days of attempts, weights each by recency (half-life 14 days), and scores `weighted_wrong / (weighted_total + 2)`; anything ≥ 0.1 is flagged. Tuning knobs are the constants at the top of `services/history.py`. Stats days/streaks use the browser's IANA timezone (`tz` param, validated by `resolve_timezone`, passed to Postgres as a bind param).
 
