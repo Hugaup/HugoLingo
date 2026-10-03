@@ -143,6 +143,31 @@ waits). A user waiting on an empty stock gets the live path — rule-made from
 curated examples, two LLM calls per attempt: Spanish median 2.6 s, worst 4.4 s,
 0/8 failures.
 
+## Run 5 — 2026-10-03, grammar by level (feature/grammar-quality)
+
+Exercises now follow the learner's level (`ERROR_TYPES`, CEFR 1–5). Model-made
+exercises only (bank off), qwen2.5:7b, ~2–4 s per attempt:
+
+| | First try (B2) | With verb-form shapes + one-word rule |
+|---|---|---|
+| Spanish B2 | 6/20 kept, about half flawed | 1/20 kept, correct |
+| French B2 | 5/20 kept, most flawed | 1/20 kept, correct |
+| English B2 | 7/20 kept, 3 flawed | 5/20 kept, correct |
+| Spanish B1 / C1 | — | 2/15 and 4/15 kept |
+
+Flaws in the first try, all now rejected by `shape_problem` / `find_fix`: a
+"mistake" that was already right (*es importante que reserve* — a valid
+subjunctive; *I wish I was*), mislabels (*tu arrive → arrives* sold as a
+missing subjunctive; *many schools is built* sold as a passive), two mistakes in
+one (*is build → are built*), several possible fixes (*si tu arrivais…, tu
+seras*), nonsense (*Paris en y hiver*) and wrong explanations — which is why
+model-made exercises are now explained by the type's fixed rule text.
+
+Takeaway: the 7B model can't be trusted to invent B1–C1 mistakes. It still adds
+variety (every kept one was checked by hand and was right), but the
+hand-written bank carries the higher levels: `BANK_SHARE` is 20/30/60/75/80 %
+for A1…C1, with 16 bank pairs per language at each of B1–C1.
+
 ## Decision
 
 **qwen2.5:7b** stays the default after run 2: best quality, now faster than

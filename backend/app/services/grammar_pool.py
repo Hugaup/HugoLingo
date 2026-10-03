@@ -71,6 +71,15 @@ async def pool_size(db: AsyncSession, language: Language) -> int:
     ) or 0
 
 
+async def _in_stock(db: AsyncSession, language: Language, corrected: str) -> bool:
+    return await db.scalar(
+        select(func.count()).select_from(GrammarPoolItem).where(
+            GrammarPoolItem.language == language, GrammarPoolItem.corrected_sentence == corrected,
+            GrammarPoolItem.prompt_version == GRAMMAR_PROMPT_VERSION,
+        )
+    ) > 0
+
+
 def _choose_level(language: Language, rng: random.Random) -> int:
     recent = _recent_levels.get(language)
     return rng.choice(recent) if recent else DEFAULT_LEVEL
@@ -104,8 +113,8 @@ async def refill(
                 item, _reason = await grammar.generate_one(db, language, level, client, rng)
             except grammar.LLMUnavailable:
                 return added
-            if item is None:
-                failures += 1
+            if item is None or await _in_stock(db, language, item.corrected_sentence):
+                failures += 1  # a bank exercise can come up twice
                 continue
             failures = 0
             db.add(GrammarPoolItem(

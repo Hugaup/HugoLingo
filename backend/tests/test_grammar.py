@@ -48,6 +48,9 @@ class FakeLLM:
         if "writing grammar exercises" in system:
             return self.pair
         if system.startswith("You write example sentences"):
+            if isinstance(self.written, list):  # a different sentence each time
+                self.written = self.written[1:] + self.written[:1]
+                return {"sentence": self.written[-1]}
             return {"sentence": self.written}
         raise AssertionError(f"unexpected prompt: {system}")
 
@@ -208,19 +211,34 @@ async def test_verify_rejects_identical_sentences_without_asking_the_model():
 SER_ESTAR = {
     ("ser", "Indicativo", "Indicativo presente"): ["soy", "eres", "es", "somos", "sois", "son"],
     ("estar", "Indicativo", "Indicativo presente"): ["estoy", "estás", "está", "estamos", "estáis", "están"],
+    ("tener", "Condicional", "Condicional Condicional"): ["tendría", "tendrías", "tendría", "tendríamos", "tendríais", "tendrían"],
+    ("hablar", "Subjuntivo", "Subjuntivo presente"): ["hable", "hables", "hable", "hablemos", "habléis", "hablen"],
+    ("hacer", "Indicativo", "Indicativo pretérito perfecto simple"): ["hice", "hiciste", "hizo", "hicimos", "hicisteis", "hicieron"],
 }
 
 
 @pytest.mark.parametrize("error_type,correct,wrong,ok", [
     ("por_para", "Este regalo es para ti.", "Este regalo es por ti.", True),
     ("por_para", "Este regalo es para ti.", "Este regalo es a ti.", False),
+    ("por_para", "Hoy hace mucho calor.", "Hoy hace mucho por calor.", False),  # an extra word, not a swap
+    ("relative_pronoun", "No sé lo que quieres.", "No sé que quieres.", True),  # here a missing word is the point
     ("ser_estar", "Mi madre está cansada hoy.", "Mi madre es cansada hoy.", True),
     ("ser_estar", "Mi madre está cansada hoy.", "Mi madre estás cansada hoy.", False),
-    ("preposition", "Voy al colegio cada día.", "Voy en el colegio cada día.", True),
-    ("preposition", "Voy al colegio cada día.", "Voy al colegios cada día.", False),
+    ("a_en", "Voy al colegio cada día.", "Voy en el colegio cada día.", True),
+    ("a_en", "Voy al colegio cada día.", "Voy al colegios cada día.", False),
     ("adjective_agreement", "La casa es muy blanca.", "La casa es muy blanco.", True),
     # a verb-ending slip the model labelled as adjective agreement
     ("adjective_agreement", "Ella come una manzana.", "Ella comes una manzana.", False),
+    # higher levels: another tense or mood of the same verb
+    ("si_clause", "Si tuviera tiempo, viajaría más.", "Si tendría tiempo, viajaría más.", True),
+    ("si_clause", "Si tuviera tiempo, viajaría más.", "Si comiera tiempo, viajaría más.", False),
+    ("preterite_form", "Ayer hice la cena.", "Ayer hací la cena.", True),
+    ("preterite_form", "Ayer hice la cena.", "Ayer hizo la cena.", False),  # a real form, not a made-up one
+    # the "mistake" must not already be a subjunctive: tú hables → hablas is fine, but él hable is subjunctive too
+    ("subjunctive_wish", "Quiero que hables más.", "Quiero que hablas más.", True),
+    ("subjunctive_wish", "Es importante que hables más.", "Es importante que hable más.", False),
+    # two words changed one for one is two mistakes
+    ("si_clause", "Si tuviera tiempo, viajaría más.", "Si tendría tiempos, viajaría más.", False),
 ])
 async def test_model_made_mistakes_must_match_their_type(db, spanish_verbs, error_type, correct, wrong, ok):
     await add_verbs(db, ES, SER_ESTAR)
@@ -228,13 +246,76 @@ async def test_model_made_mistakes_must_match_their_type(db, spanish_verbs, erro
     assert (problem is None) == ok
 
 
+async def test_shapes_see_through_french_elision(db):
+    await add_verbs(db, FR, {
+        ("avoir", "Indicatif", "Présent"): ["ai", "as", "a", "avons", "avez", "ont"],
+        ("être", "Indicatif", "Présent"): ["suis", "es", "est", "sommes", "êtes", "sont"],
+    })
+    assert await grammar.shape_problem(db, FR, "avoir_expressions", "J'ai très faim.", "Je suis très faim.") is None
+
+
+# ── Levels and the bank ──────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("language", [ES, FR, EN])
+def test_bank_exercises_are_well_formed(language):
+    bank = grammar.load_bank(language)
+    for level in range(1, 6):  # the bank carries the higher levels, where the model is weakest
+        assert len([b for b in bank if b.level == level]) >= (16 if level >= 3 else 8), f"level {level}"
+    assert len({b.correct for b in bank}) == len(bank)  # no duplicates
+    for b in bank:
+        assert b.type in grammar.ERROR_TYPES[language], b
+        assert pair_problem(b.correct, b.wrong) is None, b
+        assert b.why.strip(), b
+        assert all(a != b.correct and a.rstrip()[-1] in ".!?" for a in b.also), b
+
+
+def test_a_mistake_type_has_one_label_in_every_language():
+    labels = {}
+    for types in grammar.ERROR_TYPES.values():
+        for key, t in types.items():
+            assert labels.setdefault(key, t.label) == t.label, key
+
+
+@pytest.mark.parametrize("language", [ES, FR, EN])
+@pytest.mark.parametrize("level", [1, 2, 3, 4, 5])
+def test_generated_mistakes_belong_to_the_level(language, level):
+    rng = random.Random(level)
+    types = grammar.ERROR_TYPES[language]
+    for _ in range(200):
+        key = grammar.choose_type(language, level, rng)
+        assert types[key].level in (level, level - 1)
+        assert key in grammar.RULES[language] or types[key].describe  # something can make it
+    if level >= 3:  # the easy server-made mistakes stop after A2
+        assert not any(grammar.choose_type(language, level, rng) in grammar.RULES[language] for _ in range(200))
+
+
+def test_the_model_gets_a_worked_example():
+    prompt = grammar.model_messages(ES, 4, "travel", "si_clause")[1]["content"]
+    assert "level B2" in prompt
+    assert '"Si tendría tiempo, iría." instead of "Si tuviera tiempo, iría."' in prompt
+
+
+async def test_bank_exercises_need_no_llm(db, monkeypatch):
+    monkeypatch.setattr(grammar, "BANK_SHARE", {5: 1.0})
+    item, reason = await grammar.generate_one(db, ES, 5, DownLLM(), random.Random(0))
+    assert (reason, item.source) == ("ok", "bank")
+    assert item.corrected_sentence in {b.correct for b in grammar.load_bank(ES) if b.level == 5}
+    assert item.content()["error_label"]
+
+
 # ── Making exercises ─────────────────────────────────────────────────────────
 
+def made(monkeypatch, error_type):
+    """Make generate_one skip the bank and go for `error_type`."""
+    monkeypatch.setattr(grammar, "BANK_SHARE", {})
+    monkeypatch.setattr(grammar, "choose_type", lambda language, level, rng: error_type)
+
+
 async def test_rule_made_from_a_curated_example(db, vocab, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 0)
+    made(monkeypatch, "article_gender")
     monkeypatch.setattr(grammar, "CURATED_SHARE", {2: 1.0})
     llm = FakeLLM()
-    for seed in range(10):
+    for seed in range(20):
         item, reason = await grammar.generate_one(db, ES, 2, llm, random.Random(seed))
         if item:
             break
@@ -244,7 +325,7 @@ async def test_rule_made_from_a_curated_example(db, vocab, monkeypatch):
 
 
 async def test_rule_made_from_a_written_sentence(db, vocab, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 0)
+    made(monkeypatch, "article_gender")
     monkeypatch.setattr(grammar, "CURATED_SHARE", {})
     monkeypatch.setattr(grammar, "RULES", {ES: {"article_gender": grammar.article_gender}})
     item, reason = await grammar.generate_one(db, ES, 2, FakeLLM(written="Tengo un libro nuevo en casa."), random.Random(0))
@@ -253,24 +334,45 @@ async def test_rule_made_from_a_written_sentence(db, vocab, monkeypatch):
     assert item.explanation == "'libro' is masculine: el libro, un libro."
 
 
-async def test_model_made_prefers_the_checkers_explanation(db, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 1)
-    monkeypatch.setattr(grammar, "MODEL_ERRORS", {ES: {"por_para": "por/para"}})
+async def test_model_made_is_explained_by_its_types_rule(db, monkeypatch):
+    made(monkeypatch, "por_para")
     pair = {"correct": "Este regalo es para ti.", "wrong": "Este regalo es por ti.", "explanation": "Generator's note."}
-    item, reason = await grammar.generate_one(db, ES, 2, FakeLLM(pair=pair, why="Para marks who receives it."), random.Random(0))
+    item, reason = await grammar.generate_one(db, ES, 3, FakeLLM(pair=pair, why="Checker's note."), random.Random(0))
     assert reason == "ok"
-    assert (item.error_type, item.source, item.explanation) == ("por_para", "model", "Para marks who receives it.")
+    assert (item.error_type, item.source) == ("por_para", "model")
+    assert item.explanation == grammar.ERROR_TYPES[ES]["por_para"].rule
+
+
+def test_every_model_made_type_has_an_example_shape_and_rule():
+    for language, types in grammar.ERROR_TYPES.items():
+        for key, t in types.items():
+            if t.describe:
+                assert t.shape and t.rule and all(t.example), (language, key)
+                assert find_fix(*t.example) is not None, (language, key)  # the example itself is one change
 
 
 async def test_model_made_rejects_an_unchanged_sentence(db, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 1)
+    made(monkeypatch, "por_para")
     pair = {"correct": "Este regalo es para ti.", "wrong": "Este regalo es para ti.", "explanation": "?"}
-    item, reason = await grammar.generate_one(db, ES, 2, FakeLLM(pair=pair), random.Random(0))
+    item, reason = await grammar.generate_one(db, ES, 3, FakeLLM(pair=pair), random.Random(0))
     assert item is None and reason == "not exactly one small change"
 
 
-async def test_live_generation_is_rule_made_from_curated_examples(db, vocab, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 1)  # ignored when live
+async def test_model_made_rejects_a_copy_of_the_example(db, monkeypatch):
+    made(monkeypatch, "por_para")
+    pair = {"correct": "Gracias por todo.", "wrong": "Gracias para todo.", "explanation": "?"}
+    item, reason = await grammar.generate_one(db, ES, 3, FakeLLM(pair=pair), random.Random(0))
+    assert item is None and reason == "copied the example"
+
+
+async def test_live_generation_serves_the_bank_instantly(db, monkeypatch):
+    llm = FakeLLM()
+    item = await grammar.generate_live(db, FR, 4, llm, random.Random(0))
+    assert item.source == "bank" and llm.calls == 0
+
+
+async def test_live_generation_without_a_bank_is_rule_made_from_curated_examples(db, vocab, monkeypatch):
+    monkeypatch.setattr(grammar, "load_bank", lambda language: ())
     asked = []
     llm = FakeLLM()
     real = llm.chat_json
@@ -284,7 +386,8 @@ async def test_live_generation_is_rule_made_from_curated_examples(db, vocab, mon
     assert all(system.startswith("You check one message") for system in asked)  # no writing call
 
 
-async def test_generate_one_reports_ollama_down(db):
+async def test_generate_one_reports_ollama_down(db, monkeypatch):
+    monkeypatch.setattr(grammar, "BANK_SHARE", {})
     with pytest.raises(grammar.LLMUnavailable):
         for seed in range(5):  # whichever path it takes, the first LLM call fails
             await grammar.generate_one(db, EN, 2, DownLLM(), random.Random(seed))
@@ -319,6 +422,32 @@ def test_grading_says_what_went_wrong(answer, note):
     graded = grade_answer(CONTENT, answer)
     assert graded.result == "wrong"
     assert graded.explanation == f"{note} 'libro' is masculine: el libro, un libro."
+
+
+async def test_spanish_ra_and_se_subjunctives_are_both_right(db, spanish_verbs):
+    accepted = await grammar.accepted_corrections(db, ES, "Si tuviera tiempo, viajaría más.")
+    assert accepted == ["Si tuviera tiempo, viajaría más.", "Si tuviese tiempo, viajaría más."]
+    content = {"sentence_with_error": "Si tendría tiempo, viajaría más.", "corrected_sentence": accepted[0], "explanation": ""}
+    assert grade_answer(content, "si tuviese tiempo, viajaría más", accepted).result == "correct"
+    assert grade_answer(content, "si tuviese tiempo, viajaría más").result == "wrong"  # without the twins
+
+
+async def test_bank_alternatives_are_accepted(db):
+    accepted = await grammar.accepted_corrections(db, ES, "La empresa para la que trabajo está en Bilbao.")
+    assert "La empresa para la cual trabajo está en Bilbao." in accepted
+    assert await grammar.accepted_corrections(db, FR, "Une phrase sans variante.") == ["Une phrase sans variante."]
+
+
+async def test_check_accepts_any_right_correction(logged_in, db, spanish_verbs):
+    alice, _ = await logged_in()
+    exercise = Exercise(type=ExerciseType.grammar, language=ES, difficulty=4, content={
+        "sentence_with_error": "Si tendría tiempo, viajaría más.", "corrected_sentence": "Si tuviera tiempo, viajaría más.",
+        "explanation": "Si + imperfect subjunctive.", "error_type": "si_clause",
+    })
+    db.add(exercise)
+    await db.commit()
+    data = (await alice.post("/exercises/check", json={"exercise_id": exercise.id, "user_answer": "Si tuviese tiempo, viajaría más."})).json()
+    assert data["is_correct"] is True
 
 
 def test_grading_an_older_exercise_without_one_clear_change():
@@ -360,12 +489,13 @@ async def test_take_never_serves_an_older_version(db):
 
 
 async def test_refill_tops_up_and_purges_old_versions(db, vocab, monkeypatch):
-    monkeypatch.setattr(grammar, "MODEL_MADE_SHARE", 0)
+    made(monkeypatch, "article_gender")
     monkeypatch.setattr(grammar, "CURATED_SHARE", {})
     monkeypatch.setattr(grammar, "RULES", {ES: {"article_gender": grammar.article_gender}})
     db.add(pool_row(prompt_version=GRAMMAR_PROMPT_VERSION - 1))
     await db.commit()
-    added = await grammar_pool.refill(ES, target=3, session_factory=TestSession, client=FakeLLM(),
+    llm = FakeLLM(written=["Tengo un libro nuevo en casa.", "La casa de mi abuela es grande.", "El tren llega tarde hoy."])
+    added = await grammar_pool.refill(ES, target=3, session_factory=TestSession, client=llm,
                                       rng=random.Random(0), wait_while_busy=False)
     assert added == 3
     rows = (await db.execute(select(GrammarPoolItem))).scalars().all()
@@ -373,7 +503,17 @@ async def test_refill_tops_up_and_purges_old_versions(db, vocab, monkeypatch):
     assert {r.model for r in rows} == {"fake-llm"}
 
 
-async def test_refill_stops_when_ollama_is_down(db):
+async def test_refill_never_stocks_the_same_exercise_twice(db, monkeypatch):
+    monkeypatch.setattr(grammar, "BANK_SHARE", {2: 1.0})
+    two = tuple(grammar.BankItem(2, "ser_estar", f"Frase {i} correcta aquí.", f"Frase {i} incorrecta aquí.", "?") for i in range(2))
+    monkeypatch.setattr(grammar, "load_bank", lambda language: two)
+    added = await grammar_pool.refill(ES, target=5, session_factory=TestSession, client=DownLLM(),
+                                      rng=random.Random(0), wait_while_busy=False)
+    assert added == 2
+
+
+async def test_refill_stops_when_ollama_is_down(db, monkeypatch):
+    monkeypatch.setattr(grammar, "BANK_SHARE", {})
     added = await grammar_pool.refill(EN, target=3, session_factory=TestSession, client=DownLLM(),
                                       rng=random.Random(0), wait_while_busy=False)
     assert added == 0

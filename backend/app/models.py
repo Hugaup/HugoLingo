@@ -176,7 +176,7 @@ class GrammarPoolItem(Base):
     corrected_sentence: Mapped[str] = mapped_column(String(512), nullable=False)
     error_type: Mapped[str] = mapped_column(String(32), nullable=False)  # a services/grammar.ERROR_LABELS key
     explanation: Mapped[str] = mapped_column(String(500), nullable=False)
-    source: Mapped[str] = mapped_column(String(16), nullable=False)  # "rule" | "model": who made the mistake
+    source: Mapped[str] = mapped_column(String(16), nullable=False)  # "rule" | "model" | "bank": who made the mistake
     model: Mapped[str] = mapped_column(String(64), nullable=False)
     # services/grammar.GRAMMAR_PROMPT_VERSION it was made with; older ones are never served
     prompt_version: Mapped[int] = mapped_column(Integer, nullable=False)

@@ -68,7 +68,8 @@ async def check(
     almost = False
     fix = None
     if exercise.type == ExerciseType.grammar:
-        graded = grammar.grade_answer(exercise.content, req.user_answer)
+        accepted = await grammar.accepted_corrections(db, exercise.language, correct_answer)
+        graded = grammar.grade_answer(exercise.content, req.user_answer, accepted)
         is_correct, almost, explanation = graded.result == "correct", graded.result == "almost", graded.explanation
         fix = GrammarFix(**vars(graded.fix)) if graded.fix else None
     elif exercise.type == ExerciseType.conjugation:
