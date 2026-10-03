@@ -5,6 +5,15 @@ A Duolingo-alternative powered by a local LLM (Qwen2.5 7B via Ollama). Supports 
 ## Quick Start
 
 ```bash
+ollama pull qwen2.5:7b   # first time only
+./dev.sh                 # starts Postgres, Ollama, backend and frontend, opens the browser
+```
+
+Ctrl+C stops all of it (backend, frontend, Ollama and Postgres). `./dev.sh stop` does the same if the terminal was closed; `./dev.sh --no-open` skips opening the browser. The script runs pending migrations on start and refuses to launch if port 8000 or 5173 is already taken.
+
+To start the pieces by hand instead:
+
+```bash
 # Prerequisites
 brew services start postgresql@16
 ollama serve

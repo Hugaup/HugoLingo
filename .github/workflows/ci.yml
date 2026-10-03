@@ -64,6 +64,13 @@ jobs:
           alembic check
       - run: pytest -v
 
+  scripts:
+    name: Shell scripts (shellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: shellcheck dev.sh
+
   docker-build:
     name: Docker build validation
     runs-on: ubuntu-latest
