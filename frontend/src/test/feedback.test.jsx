@@ -194,6 +194,33 @@ describe('classic exercise flow feedback', () => {
     expect(within(summary).queryByRole('button', { name: 'Review these now →' })).not.toBeInTheDocument()
   })
 
+  it('starts the next exercise of a session with a fresh answer box', async () => {
+    let id = 0
+    mockBackend({
+      ...ME,
+      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'POST /exercises/generate': () => {
+        id += 1
+        return { body: { id, type: 'grammar', language: 'spanish', difficulty: 2,
+          content: { sentence_with_error: `Frase ${id} con un error.`, corrected_sentence: `Frase ${id} sin error.`, explanation: '' } } }
+      },
+      'POST /exercises/check': { body: { is_correct: true, almost: false, explanation: 'Well done.', correct_answer: 'x' } },
+    })
+    renderAppAt('/practice/spanish')
+
+    await userEvent.click(await screen.findByRole('button', { name: /Grammar/ }))
+    await userEvent.click(screen.getByRole('button', { name: '5', exact: true }))
+    await userEvent.click(screen.getByRole('button', { name: 'Start →' }))
+    await userEvent.type(await screen.findByPlaceholderText('Type the corrected sentence...'), 'Frase 1 sin error.{Enter}')
+    expect(await screen.findByText('Correct!')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next exercise →' }))
+    expect(await screen.findByText('Frase 2 con un error.')).toBeInTheDocument()
+    expect(screen.queryByText('Correct!')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Type the corrected sentence...')).toHaveValue('')
+    expect(screen.getByText('2 / 5')).toBeInTheDocument()
+  })
+
   it('marks the one grammar correction in the sentence', async () => {
     mockBackend({
       ...ME,

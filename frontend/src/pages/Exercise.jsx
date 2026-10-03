@@ -7,7 +7,14 @@ import SessionSummary from '../components/SessionSummary'
 import ClickableText from '../components/reading/ClickableText'
 import { ui } from '../theme'
 
+// "Next exercise" navigates to this same route, so React would keep the previous
+// exercise's answer and result; keying by exercise id starts each one fresh.
 export default function Exercise() {
+  const { state } = useLocation()
+  return <ExerciseRun key={state?.exercise?.id} />
+}
+
+function ExerciseRun() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const exercise = state?.exercise
