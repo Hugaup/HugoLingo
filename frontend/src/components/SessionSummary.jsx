@@ -61,9 +61,11 @@ const s = {
   note: { fontSize: '0.85rem', color: '#92400e', margin: '0 0 0.75rem' },
   perfect: { color: '#15803d', margin: '0 0 1.25rem' },
   list: { listStyle: 'none', padding: 0, margin: '0.5rem 0 1.25rem' },
-  item: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', alignItems: 'baseline', gap: '1rem', padding: '0.35rem 0', borderBottom: '1px solid #eceef1', fontSize: '0.9rem' },
-  what: { color: '#4b5563', minWidth: 0 },
-  answer: { whiteSpace: 'nowrap' },
+  // Short answers (tuvé → tuve) sit to the right of the label; long ones (whole
+  // sentences) wrap onto their own line instead of running over the label
+  item: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: '1rem', rowGap: '0.15rem', padding: '0.35rem 0', borderBottom: '1px solid #eceef1', fontSize: '0.9rem' },
+  what: { color: '#4b5563', flex: '1 1 10rem', minWidth: 0 },
+  answer: { minWidth: 0, overflowWrap: 'anywhere' },
   wrong: { color: '#b91c1c' },
   blank: { color: '#9ca3af' },
   badge: { marginLeft: '0.4rem', fontSize: '0.7rem', fontWeight: 600, color: '#92400e', background: '#fef3c7', borderRadius: 999, padding: '0.05rem 0.45rem' },

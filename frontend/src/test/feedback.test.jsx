@@ -248,6 +248,13 @@ describe('classic exercise flow feedback', () => {
     expect(within(correction).getByText('una').tagName).toBe('DEL')
     expect(within(correction).getByText('un').tagName).toBe('INS')
     expect(screen.queryByText('Correct answer:')).not.toBeInTheDocument()
+
+    // the recap names the mistake instead of repeating the sentence a third time
+    await userEvent.click(screen.getByRole('button', { name: 'Finish' }))
+    const mistakes = await screen.findByRole('list', { name: 'Mistakes' })
+    expect(within(mistakes).getByText('Article gender')).toBeInTheDocument()
+    expect(within(mistakes).getByText('Tengo una libro nuevo.').tagName).toBe('DEL')
+    expect(within(mistakes).getByText('Tengo un libro nuevo.')).toBeInTheDocument()
   })
 })
 

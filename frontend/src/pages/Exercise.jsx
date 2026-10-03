@@ -173,7 +173,8 @@ function ExerciseBody({ type, content, language }) {
 
 function summaryLabel(type, content) {
   const text = type === 'conjugation' ? `${content.verb_infinitive} · ${content.tense}`
-    : type === 'grammar' ? content.sentence_with_error
+    // the sentences themselves are the answer → expected pair; the label names the mistake
+    : type === 'grammar' ? content.error_label || content.sentence_with_error
     : content.questions?.[0]?.question ?? 'Reading'
   return text.length > 60 ? `${text.slice(0, 57)}…` : text
 }
