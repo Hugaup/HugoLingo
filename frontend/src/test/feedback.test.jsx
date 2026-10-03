@@ -193,6 +193,35 @@ describe('classic exercise flow feedback', () => {
     expect(within(summary).getByText('accents')).toBeInTheDocument()
     expect(within(summary).queryByRole('button', { name: 'Review these now →' })).not.toBeInTheDocument()
   })
+
+  it('marks the one grammar correction in the sentence', async () => {
+    mockBackend({
+      ...ME,
+      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'POST /exercises/generate': {
+        body: { id: 8, type: 'grammar', language: 'spanish', difficulty: 2,
+          content: { sentence_with_error: 'Tengo una libro nuevo.', corrected_sentence: 'Tengo un libro nuevo.',
+            error_type: 'article_gender', error_label: 'Article gender', explanation: "'libro' is masculine." } },
+      },
+      'POST /exercises/check': {
+        body: { is_correct: false, almost: false, correct_answer: 'Tengo un libro nuevo.',
+          explanation: "The mistake is still there: una → un. 'libro' is masculine.",
+          fix: { wrong: 'una', right: 'un', before: 'Tengo ', after: ' libro nuevo.' } },
+      },
+    })
+    renderAppAt('/practice/spanish')
+
+    await userEvent.click(await screen.findByRole('button', { name: /Grammar/ }))
+    await userEvent.click(screen.getByRole('button', { name: '1', exact: true }))
+    await userEvent.click(screen.getByRole('button', { name: 'Start →' }))
+    await userEvent.type(await screen.findByPlaceholderText('Type the corrected sentence...'), 'Tengo una libro nuevo.{Enter}')
+
+    const correction = (await screen.findByText('Correction:')).parentElement
+    expect(correction).toHaveTextContent('Correction: Tengo una un libro nuevo.')
+    expect(within(correction).getByText('una').tagName).toBe('DEL')
+    expect(within(correction).getByText('un').tagName).toBe('INS')
+    expect(screen.queryByText('Correct answer:')).not.toBeInTheDocument()
+  })
 })
 
 describe('accent buttons', () => {

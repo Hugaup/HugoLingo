@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     sentence_pool_size: int = 20
     # Have the LLM grade each stocked sentence's grammar before it's kept (background only)
     sentence_judge: bool = True
+    # Ready-made grammar exercises per language (services/grammar_pool.py; off with sentence_pool_enabled)
+    grammar_pool_size: int = 10
     # Set true when served over HTTPS so the session cookie is never sent in clear
     cookie_secure: bool = False
 

@@ -107,6 +107,42 @@ The model's one-line *explanation* was sometimes off ("added the accent on
 querer"), so when the fix is a verb form the conjugation data can pin down,
 the rule-based `explain_mistake` line replaces it.
 
+## Run 4 — 2026-10-03, grammar exercises (feature/grammar-quality)
+
+The old grammar prompt asked qwen2.5:7b for "a sentence with exactly one
+grammar error". Scored with the new checks (one small change, and the tuned
+conversation checker leaves the correct sentence alone and fixes the broken one
+back to it), only **8/20 Spanish and 12/20 French** old exercises passed — the
+rest had no real error, two errors, or a wrong "correction" (*él es un
+estudiante* "corrected" to *él es estudiantes*). Even some that passed were poor
+(*de belles arbores* → *d'arbres beaux*), and nearly every sentence was about fruit.
+
+New pipeline (`python scripts/benchmark_llm.py qwen2.5:7b --grammar --language X --level 2 --n 25-30`):
+
+| Language | Kept per attempt | ≈ s per attempt | Most common rejection |
+|---|---|---|---|
+| Spanish | 17–55% (3 runs) | 2.4 | checker changed the "correct" sentence |
+| French | 37–44% | 2.5 | same |
+| English | 40–48% | 2.5 | same / no rule applies |
+
+Reading the rejections: when the checker changes the "correct" sentence it is
+sometimes right (the model wrote *Voy al mercado comprar frutas*, missing *a*)
+and sometimes over-cautious (*mal tiempo* → *malo tiempo*); either way the
+exercise is dropped, so the false correction never reaches a learner. All kept
+exercises in these runs were checked by hand and had exactly one real mistake.
+Found and fixed while reading them: *la médecin* / *la estudiante* are correct
+(nouns of either gender → `GENDER_EXCEPTIONS`), *you wills go* (modals skipped),
+*je allons* (also needs j': vowel-initial swaps after je skipped), and
+*ella viajo* → *viaja* when *viajó* is also a fix (swaps an accent away from a
+right form are skipped). Model-made mistakes are often mislabelled (*ella comes*
+sold as adjective agreement), hence the per-type shape check, and the checker's
+explanation is preferred over the generator's.
+
+The kept rate only costs background time (the stock is refilled while nobody
+waits). A user waiting on an empty stock gets the live path — rule-made from
+curated examples, two LLM calls per attempt: Spanish median 2.6 s, worst 4.4 s,
+0/8 failures.
+
 ## Decision
 
 **qwen2.5:7b** stays the default after run 2: best quality, now faster than

@@ -161,6 +161,32 @@ class SentencePoolItem(Base):
     )
 
 
+class GrammarPoolItem(Base):
+    """A pre-made, already-checked grammar-correction exercise waiting to be served.
+
+    Filled in the background by services/grammar_pool.py; each row is deleted
+    when it's handed to a user.
+    """
+    __tablename__ = "grammar_pool"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    level: Mapped[int] = mapped_column(Integer, nullable=False)  # 1-5, A1-C1
+    sentence_with_error: Mapped[str] = mapped_column(String(512), nullable=False)
+    corrected_sentence: Mapped[str] = mapped_column(String(512), nullable=False)
+    error_type: Mapped[str] = mapped_column(String(32), nullable=False)  # a services/grammar.ERROR_LABELS key
+    explanation: Mapped[str] = mapped_column(String(500), nullable=False)
+    source: Mapped[str] = mapped_column(String(16), nullable=False)  # "rule" | "model": who made the mistake
+    model: Mapped[str] = mapped_column(String(64), nullable=False)
+    # services/grammar.GRAMMAR_PROMPT_VERSION it was made with; older ones are never served
+    prompt_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_grammar_pool_language_level", "language", "level"),
+    )
+
+
 class VocabItem(Base):
     """A word or everyday phrase to learn, seeded from data/vocabulary/{language}.json."""
     __tablename__ = "vocab_items"

@@ -8,9 +8,14 @@ seed), built with the app's own code:
     leaked, subject matches the person);
   - short explanations, like the feedback after a sentence check.
 
+With --grammar it instead runs the grammar-exercise pipeline (services/grammar.py)
+--n times: how many attempts pass the checks, why the others are rejected, and
+the time spent per kept exercise (rejected attempts included).
+
 Run from backend/ with Ollama running and the models pulled:
     source .venv/bin/activate
     python scripts/benchmark_llm.py qwen2.5:7b qwen2.5:3b qwen3:4b --n 20 --out results.json
+    python scripts/benchmark_llm.py qwen2.5:7b --grammar --language french --level 2 --n 30
 """
 import argparse
 import asyncio
@@ -19,6 +24,8 @@ import random
 import statistics
 import sys
 import time
+from collections import Counter
+from dataclasses import asdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -28,6 +35,7 @@ from sqlalchemy import select
 from app.database import AsyncSessionLocal
 from app.models import Language, VerbConjugation
 from app.routers.verbs import COMMON_VERBS
+from app.services import grammar
 from app.services.exercise_gen import LANGUAGE_NAMES
 from app.services.llm import LLMClient
 from app.services.sentences import (
@@ -129,6 +137,53 @@ async def bench_model(model: str, language: Language, prompts, judge: bool = Fal
     }
 
 
+async def bench_grammar(model: str, language: Language, level: int, n: int, seed: int) -> dict:
+    client = LLMClient(model=model)
+    await client.warm_up()
+    rng = random.Random(seed)
+    attempts = []
+    async with AsyncSessionLocal() as db:
+        for _ in range(n):
+            t = time.perf_counter()
+            try:
+                item, reason = await grammar.generate_one(db, language, level, client, rng)
+            except grammar.LLMUnavailable as e:
+                sys.exit(f"Ollama unavailable: {e}")
+            attempts.append({
+                "kept": item is not None, "reason": reason, "seconds": round(time.perf_counter() - t, 2),
+                "exercise": asdict(item) if item else None,
+            })
+    kept = [a for a in attempts if a["kept"]]
+    total = sum(a["seconds"] for a in attempts)
+    return {
+        "model": model,
+        "kept_rate": round(len(kept) / n, 2),
+        "seconds_per_kept": round(total / len(kept), 1) if kept else None,
+        "kept_by_source": dict(Counter(a["exercise"]["source"] for a in kept)),
+        "kept_by_type": dict(Counter(a["exercise"]["error_type"] for a in kept)),
+        "rejections": dict(Counter(a["reason"] for a in attempts if not a["kept"]).most_common()),
+        "attempts": attempts,
+    }
+
+
+def grammar_report(results: list[dict]) -> str:
+    lines = [
+        "| Model | Kept | Seconds per kept exercise | Rule-made | Model-made |",
+        "|---|---|---|---|---|",
+    ]
+    for r in results:
+        src = r["kept_by_source"]
+        lines.append(f"| {r['model']} | {r['kept_rate']:.0%} | {r['seconds_per_kept']} | "
+                     f"{src.get('rule', 0)} | {src.get('model', 0)} |")
+    for r in results:
+        lines.append(f"\n### {r['model']}\nRejected: {r['rejections'] or 'none'}\nKept by type: {r['kept_by_type']}\n")
+        for a in r["attempts"]:
+            if e := a["exercise"]:
+                lines.append(f"- [{e['source']}/{e['error_type']}] {e['sentence_with_error']}  →  {e['corrected_sentence']}"
+                             f"  ({e['explanation']})")
+    return "\n".join(lines)
+
+
 def markdown_table(results: list[dict]) -> str:
     lines = [
         "| Model | Load (s) | Sentence median (s) | Sentence p90 (s) | Tokens/s | Usable after checks | + judge approved | Explanation median (s) |",
@@ -151,9 +206,21 @@ async def main() -> None:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--out", help="write full results (incl. every sentence) as JSON")
     parser.add_argument("--judge", action="store_true", help="also run the LLM grammar judge on usable sentences")
+    parser.add_argument("--grammar", action="store_true", help="benchmark grammar-exercise generation instead")
+    parser.add_argument("--level", type=int, default=2, help="--grammar: learner level 1-5 (A1-C1)")
     args = parser.parse_args()
 
     language = Language(args.language)
+    if args.grammar:
+        results = []
+        for model in args.models:
+            print(f"… {model}", file=sys.stderr)
+            results.append(await bench_grammar(model, language, args.level, args.n, args.seed))
+        print(grammar_report(results))
+        if args.out:
+            Path(args.out).write_text(json.dumps(results, ensure_ascii=False, indent=2))
+        return
+
     prompts = await build_prompts(language, args.n, args.seed)
     results = []
     for model in args.models:

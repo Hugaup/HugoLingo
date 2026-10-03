@@ -8,7 +8,7 @@ from app.dependencies import get_current_user
 from app.routers import (
     auth, chat, conjugation_exercises, conversation, exercises, history, progress, verbs, vocabulary,
 )
-from app.services import sentence_pool
+from app.services import grammar_pool, sentence_pool
 from app.services.llm import llm_client
 
 
@@ -18,7 +18,9 @@ async def lifespan(app: FastAPI):
     if settings.llm_warmup:
         warm_up = asyncio.create_task(llm_client.warm_up())
     sentence_pool.start()
+    grammar_pool.start()
     yield
+    await grammar_pool.stop()
     await sentence_pool.stop()
     if settings.llm_warmup:
         warm_up.cancel()

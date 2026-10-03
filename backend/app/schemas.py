@@ -24,12 +24,21 @@ class CheckAnswerRequest(BaseModel):
     user_answer: str
 
 
+class GrammarFix(BaseModel):
+    """A grammar exercise's one correction, laid out for display: before + (wrong → right) + after."""
+    wrong: str
+    right: str
+    before: str
+    after: str
+
+
 class CheckAnswerResponse(BaseModel):
     is_correct: bool
     # Wrong only by accents — still a mistake, but shown as "almost"
     almost: bool = False
     explanation: str
     correct_answer: str
+    fix: GrammarFix | None = None  # grammar exercises only
 
 
 class ProgressStatsResponse(BaseModel):

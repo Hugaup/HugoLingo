@@ -66,11 +66,11 @@ backend/app/
 ├── config.py        — Settings from .env: DATABASE_URL, OLLAMA_URL, OLLAMA_MODEL, COOKIE_SECURE
 ├── database.py      — Async SQLAlchemy engine + AsyncSessionLocal + get_db dependency
 ├── dependencies.py  — get_current_user (session cookie → User, else 401)
-├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, VocabItem, VocabReview, VocabAttempt, WordLookup, ConversationTurn, VerbConjugation (+ enums)
+├── models.py        — ORM models: User, UserSession, Exercise, Progress, Attempt, ReviewItem, SentencePoolItem, GrammarPoolItem, VocabItem, VocabReview, VocabAttempt, WordLookup, ConversationTurn, VerbConjugation (+ enums)
 ├── schemas.py       — Pydantic request/response schemas
 ├── routers/
 │   ├── auth.py                 — POST /auth/signup|login|logout|password, GET|PATCH /auth/me
-│   ├── exercises.py            — POST /exercises/generate, POST /exercises/check
+│   ├── exercises.py            — POST /exercises/generate (grammar: stock first, then live via services/grammar), POST /exercises/check
 │   ├── progress.py             — GET /progress (current user)
 │   ├── verbs.py                — GET /verbs/search|tenses|endings|random/{language}, GET /verbs/table/{language}/{infinitive} — reads verb_conjugations directly, no LLM
 │   ├── chat.py                 — POST /chat, POST /chat/stream (plain-text streaming) — freeform passthrough to the LLM
@@ -83,7 +83,9 @@ backend/app/
     ├── llm.py               — LLMClient singleton wrapping Ollama /api/chat: chat/chat_json/chat_stream/warm_up
     ├── sentences.py         — sentence generation: prompt (v2), blank_out(), quality_problem(), judge_sentence(), generate_one(); COMMON_TENSES
     ├── sentence_pool.py     — background stock of validated sentences: take(), refill(), live_request()
-    ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts
+    ├── exercise_gen.py      — Prompt templates, answer checkers, GENERATORS/CHECKERS dicts (conjugation + reading)
+    ├── grammar.py           — grammar-correction exercises: rule-made mistakes, model-made ones + shape checks, verify(), grade_answer(), GRAMMAR_PROMPT_VERSION
+    ├── grammar_pool.py      — background stock of checked grammar exercises: take(), refill() (shares sentence_pool's lock)
     ├── history.py           — record_attempts (attempts + Leitner review boxes), weak-spot scoring, drill prompts, stats/streak, verb×tense grid
     ├── conversation.py      — role-play scenarios, reply prompt, message check (classify + verb_mistakes), record_turn
     ├── lookup.py            — click-a-word lookup (curated → verb forms/plurals → word_lookups cache → LLM) and "my words"
@@ -119,6 +121,8 @@ backend/app/
 
 - **Every conjugation answer is recorded via `services/history.record_attempts`** — one `attempts` row per answer plus a Leitner box per (user, language, verb, mood, tense) in `review_items` (wrong → box 0, due now; right → next box, due in 1/3/7/14/30 days; a batch moves each box once). Wiring per practice area: sentence completion is recorded inside `/conjugation-exercises/sentence/check` (before the LLM call; naming the wrong tense counts as a miss); the review drill grades server-side in `/history/drill/check` via `conjugation_utils.expected_forms`; the verb table is graded **in the browser** and reports via `POST /history/attempts` (the only client-reported source — `source` is a `Literal["verb_table"]`); the old `exercises.py` conjugation flow records verb-level only (`mood`/`tense` NULL — its LLM tense names don't map to the DB, so it never creates review items). `attempts.tense` is always `canonical_tense()`d. A new practice area must record its answers or it won't feed "Work on this".
 
+- **Grammar exercises: the server makes the mistake** (`services/grammar.py`). The old "write a sentence with one error" prompt often returned a sentence with no error, or two. Now most exercises are *rule-made*: a correct sentence (a curated vocabulary example or one the model writes) is broken by a rule that's wrong by construction — article gender from the noun's curated article (`la libro`), contraction (`a el`, `à le`), subject–verb agreement swapped from `verb_conjugations` (only after a written subject pronoun starting a clause; never a form that's right for that subject in another tense, even an accent away), English `a/an`. The rest are *model-made* (ser/estar, por/para, être/avoir…) and must pass a per-type `shape_problem` check (the model mislabels its own mistakes). Every exercise passes `verify`: exactly one change of ≤ 3 words (`find_fix`), and two calls of the tuned conversation `CHECK_PROMPT` agree — the correct sentence comes back unchanged and the broken one comes back as exactly the correct one. Exercises come from `grammar_pool` (nearest level; live fallback is rule-made from curated examples). Grading ignores capitals/punctuation/spacing, accents-only is "almost", and the response carries a `fix` (before / wrong / right / after) that `FeedbackPanel` marks up. Nouns that take either article (el agua, la estudiante, la médecin) are in `GENDER_EXCEPTIONS`. **Bump `GRAMMAR_PROMPT_VERSION` when a prompt, rule or check changes.** Measure with `scripts/benchmark_llm.py --grammar` (docs/llm-benchmark.md run 4).
+
 - **One grader, three outcomes.** Every exact-answer check goes through `services/grading.grade()`: `correct`, `almost` (equal once accents are folded — tuvó/tuvo, nino/niño) or `wrong`. Product rule: **"almost" is shown kindly but always recorded as a mistake** (`is_correct=False`, `attempts.is_almost=True`). The browser-graded verb table uses the mirror `frontend/src/utils/grading.js` — change both together. Reading answers keep their own loose matching and never return "almost".
 
 - **Mistake explanations are rule-based, not LLM** (`services/explain.py`), so they're instant and short (the user asked that feedback not crowd the screen). First matching rule wins: accent slip → another person's form in the same tense → a form from another tense → irregular vs the `REGULAR_MODELS` verb for that ending (with the shared stem, e.g. "tuv-") → the regular pattern. Frontend shows the line via `MistakeExplanation` (forms behind a toggle). Sentence completion still gets the LLM's longer explanation, but folded behind "AI explanation & questions". Every practice session ends in the shared `SessionSummary`.
@@ -144,7 +148,7 @@ DATABASE_URL=postgresql+asyncpg://localhost/language_learning
 OLLAMA_URL=http://localhost:11434
 OLLAMA_MODEL=qwen2.5:7b
 # Optional (defaults shown): OLLAMA_KEEP_ALIVE=30m, OLLAMA_MAX_TOKENS=600,
-# LLM_WARMUP=true, SENTENCE_POOL_ENABLED=true, SENTENCE_POOL_SIZE=20
+# LLM_WARMUP=true, SENTENCE_POOL_ENABLED=true (also the grammar pool), SENTENCE_POOL_SIZE=20, GRAMMAR_POOL_SIZE=10
 ```
 
 ## Frontend styling
