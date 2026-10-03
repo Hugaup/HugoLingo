@@ -8,6 +8,8 @@ A language learning web app (alternative to Duolingo) powered by a local LLM (Qw
 
 ## Running the app
 
+`./dev.sh` (repo root) starts everything: brew Postgres, `ollama serve`, `alembic upgrade head`, uvicorn `--reload` on 8000 and Vite on 5173 (`--strictPort`), with `[api]`/`[web]`-prefixed logs, then opens the browser. Ctrl+C stops all four (including the Ollama app and Postgres); `./dev.sh stop` does the same from another terminal. It must stay bash 3.2 compatible (macOS default) and pass `shellcheck` (CI runs it). Manual steps, if needed:
+
 **Prerequisites — start these first:**
 ```bash
 brew services start postgresql@16
