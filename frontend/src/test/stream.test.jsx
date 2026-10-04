@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { api } from '../api'
 import { ALICE, calls, mockBackend, renderAppAt } from './helpers'
 
@@ -30,6 +30,16 @@ describe('streamed AI replies', () => {
     const sent = calls(fetchMock).find(c => c.key === 'POST /chat/stream').body.messages
     expect(sent[0].role).toBe('system')
     expect(sent.at(-1)).toEqual({ role: 'user', content: '¿Qué es el pretérito?' })
+  })
+
+  it('opening the conjugation page does not scroll down to the chat panel', async () => {
+    mockBackend({ ...ME, 'GET /verbs/tenses/spanish': { body: [] } })
+    const scrollIntoView = vi.spyOn(Element.prototype, 'scrollIntoView')
+    renderAppAt('/practice/spanish/conjugation')
+
+    await screen.findByPlaceholderText(/Ask about spanish tenses/)
+    expect(scrollIntoView).not.toHaveBeenCalled()
+    scrollIntoView.mockRestore()
   })
 
   it('shows an error in the chat when the AI request fails', async () => {
