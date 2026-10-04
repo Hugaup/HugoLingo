@@ -9,12 +9,12 @@ const ME = { 'GET /auth/me': { body: ALICE } }
 const OVERVIEW = {
   available: true,
   groups: [
-    { kind: 'phrase', topic: 'greetings', total: 14, seen: 2, learned: 1, due: 0 },
-    { kind: 'phrase', topic: 'politeness', total: 8, seen: 0, learned: 0, due: 0 },
-    { kind: 'word', topic: 'food', total: 25, seen: 3, learned: 2, due: 1 },
-    { kind: 'word', topic: 'home', total: 20, seen: 0, learned: 0, due: 0 },
+    { kind: 'phrase', topic: 'greetings', total: 14, seen: 2, learned: 1, due: 0, to_review: 0 },
+    { kind: 'phrase', topic: 'politeness', total: 8, seen: 0, learned: 0, due: 0, to_review: 0 },
+    { kind: 'word', topic: 'food', total: 25, seen: 3, learned: 2, due: 1, to_review: 0 },
+    { kind: 'word', topic: 'home', total: 20, seen: 0, learned: 0, due: 0, to_review: 0 },
   ],
-  total: 67, learned: 3, due: 1,
+  total: 67, learned: 3, due: 1, to_review: 0,
 }
 
 let nextId = 1
@@ -75,6 +75,21 @@ describe('vocabulary page', () => {
     // Topics in a fixed, sensible order (home before food), not the server's order
     const topics = screen.getAllByRole('region').map(r => r.getAttribute('aria-label'))
     expect(topics.indexOf('Home')).toBeLessThan(topics.indexOf('Food & drink'))
+  })
+
+  it('flags the topics holding words you got wrong', async () => {
+    const groups = OVERVIEW.groups.map(g => (g.topic === 'food' ? { ...g, due: 3, to_review: 1 }
+      : g.topic === 'home' ? { ...g, seen: 2, due: 2, to_review: 2 } : g))
+    mockBackend({ ...ME, 'GET /vocab/spanish/overview': { body: { ...OVERVIEW, groups, due: 5, to_review: 3 } } })
+    renderAppAt('/practice/spanish/vocabulary')
+
+    const food = await screen.findByRole('region', { name: 'Food & drink' })
+    expect(within(food).getByText('1 word to review')).toBeInTheDocument()
+    expect(within(food).getByText('2 more due')).toBeInTheDocument()
+    const home = screen.getByRole('region', { name: 'Home' })
+    expect(within(home).getByText('2 words to review')).toBeInTheDocument()
+    expect(within(home).queryByText(/due/)).not.toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Everyday phrases' })).queryByText(/review|due/)).not.toBeInTheDocument()
   })
 
   it('flashcards: reveal, self-grade, and a summary at the end', async () => {
@@ -175,6 +190,37 @@ describe('vocabulary page', () => {
     expect(await screen.findByRole('heading', { name: 'Everyday phrases' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Greetings' })).toBeInTheDocument()
     expect(screen.getByText('thank you / thanks')).toBeInTheDocument()
+  })
+
+  it("a topic's words show their review step, explained on the page, and no level", async () => {
+    mockBackend({
+      ...ME,
+      'GET /vocab/spanish/overview': { body: OVERVIEW },
+      'GET /vocab/spanish/items': { body: [
+        word('pan', 'bread', { box: 0 }), word('queso', 'cheese', { box: 4 }), word('vino', 'wine'),
+      ] },
+    })
+    renderAppAt('/practice/spanish/vocabulary')
+
+    await userEvent.click(within(await screen.findByRole('region', { name: 'Food & drink' })).getByRole('button', { name: 'See words' }))
+    expect(await screen.findByText('Step 0 of 5')).toBeInTheDocument()
+    expect(screen.getByText('Step 4 of 5 · learned')).toBeInTheDocument()
+    expect(screen.getAllByText(/^Step \d of 5/)).toHaveLength(2)  // vino hasn't been practised
+    expect(screen.getByText(/show how well a word is sticking/)).toBeInTheDocument()
+    expect(screen.queryByText(/\bA1\b|\bbox\b/i)).not.toBeInTheDocument()
+  })
+
+  it('explains steps only once something has been practised', async () => {
+    mockBackend({
+      ...ME,
+      'GET /vocab/spanish/overview': { body: OVERVIEW },
+      'GET /vocab/spanish/items': { body: [word('pan', 'bread')] },
+    })
+    renderAppAt('/practice/spanish/vocabulary')
+
+    await userEvent.click(within(await screen.findByRole('region', { name: 'Food & drink' })).getByRole('button', { name: 'See words' }))
+    expect(await screen.findByText('el pan')).toBeInTheDocument()
+    expect(screen.queryByText(/show how well a word is sticking/)).not.toBeInTheDocument()
   })
 
   it('shows words learned on the progress page', async () => {
