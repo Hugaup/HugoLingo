@@ -104,6 +104,10 @@ fi
 say "Applying database migrations..."
 (cd backend && .venv/bin/alembic upgrade head)
 
+# Picks up edits to data/vocabulary/*.json (upsert, under a second; reviews are kept)
+say "Loading vocabulary..."
+(cd backend && .venv/bin/python scripts/seed_vocabulary.py)
+
 say "Starting backend on port $API_PORT..."
 (cd backend && exec .venv/bin/uvicorn app.main:app --reload --port "$API_PORT" 2>&1) | prefix "[api]" &
 API_PID=$!

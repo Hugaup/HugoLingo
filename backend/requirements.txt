@@ -7,4 +7,6 @@ alembic
 pydantic-settings
 httpx
 python-dotenv
-mlconjug3
+# Pinned: verb_conjugations is generated from this package's data files, so
+# another version could seed different verb tables. Re-seed if you bump it.
+mlconjug3==4.0.1
