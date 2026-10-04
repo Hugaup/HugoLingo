@@ -241,7 +241,8 @@ async def record(
 # ── Overview ─────────────────────────────────────────────────────────────────
 
 async def overview(db: AsyncSession, user_id: int, language: Language, now: datetime) -> dict:
-    """Per kind+topic: how many items, how many seen, learned and due for this user."""
+    """Per kind+topic: how many items, how many seen, learned and due for this user,
+    and how many to review (got wrong and not right since: "needs work" in My mistakes)."""
     rows = (await db.execute(
         select(
             VocabItem.kind, VocabItem.topic,
@@ -249,14 +250,16 @@ async def overview(db: AsyncSession, user_id: int, language: Language, now: date
             func.count(VocabReview.id),
             func.count(VocabReview.id).filter(VocabReview.box >= LEARNED_BOX),
             func.count(VocabReview.id).filter(VocabReview.due_at <= now),
+            func.count(VocabReview.id).filter(VocabReview.box == 0, VocabReview.wrong_count > 0),
         )
         .outerjoin(VocabReview, (VocabReview.item_id == VocabItem.id) & (VocabReview.user_id == user_id))
         .where(VocabItem.language == language, visible_to(user_id))
         .group_by(VocabItem.kind, VocabItem.topic)
     )).all()
     groups = [
-        {"kind": kind, "topic": topic, "total": total, "seen": seen, "learned": learned, "due": due}
-        for kind, topic, total, seen, learned, due in rows
+        {"kind": kind, "topic": topic, "total": total, "seen": seen, "learned": learned, "due": due,
+         "to_review": to_review}
+        for kind, topic, total, seen, learned, due, to_review in rows
     ]
     return {
         "available": bool(groups),
@@ -264,4 +267,5 @@ async def overview(db: AsyncSession, user_id: int, language: Language, now: date
         "total": sum(g["total"] for g in groups),
         "learned": sum(g["learned"] for g in groups),
         "due": sum(g["due"] for g in groups),
+        "to_review": sum(g["to_review"] for g in groups),
     }

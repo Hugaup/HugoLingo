@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { api } from '../../api'
 import SpeakButton from '../SpeakButton'
 import { allTranslations, byTopicOrder, topicLabel } from '../../utils/vocab'
-import { ui } from '../../theme'
+import { color, radius, ui } from '../../theme'
 
-const LEVEL = ['', 'A1', 'A2', 'B1', 'B2', 'C1']
+// Mirrors MAX_BOX / LEARNED_BOX in the backend (services/history.py, services/vocabulary.py)
+const LAST_STEP = 5
+const LEARNED_STEP = 3
 
 // Read-only list of a topic's words (or all everyday phrases), with how far
 // along the user is with each one.
@@ -29,6 +31,7 @@ export default function VocabBrowse({ language, kind, topic, onBack, onPractise 
     }
   }
   const grouped = Object.entries(groupBy(rows ?? [])).sort(([a], [b]) => byTopicOrder(a, b))
+  const practised = rows?.some(r => r.box !== null)
 
   return (
     <div>
@@ -39,6 +42,7 @@ export default function VocabBrowse({ language, kind, topic, onBack, onPractise 
       <h2 style={s.title}>{title}</h2>
       {error && <p style={s.error}>{error}</p>}
       {!rows && !error && <p style={s.muted}>Loading…</p>}
+      {practised && <StepsExplained />}
       {grouped.map(([group, items]) => (
         <section key={group} style={s.section}>
           {kind === 'phrase' && <h3 style={s.group}>{topicLabel(group)}</h3>}
@@ -51,8 +55,11 @@ export default function VocabBrowse({ language, kind, topic, onBack, onPractise 
                 </div>
                 <p style={s.example}>{r.example}</p>
                 <span style={s.meta}>
-                  {kind === 'word' && LEVEL[r.level]}
-                  {r.box !== null && <span style={s.box} title="Review box (0–5)"> · box {r.box}</span>}
+                  {r.box !== null && (
+                    <span style={r.box >= LEARNED_STEP ? s.learned : s.step}>
+                      Step {r.box} of {LAST_STEP}{r.box >= LEARNED_STEP && ' · learned'}
+                    </span>
+                  )}
                   {kind === 'personal' && (
                     <button style={s.remove} onClick={() => remove(r.id)} aria-label={`Remove ${r.text}`}>Remove</button>
                   )}
@@ -63,6 +70,18 @@ export default function VocabBrowse({ language, kind, topic, onBack, onPractise 
         </section>
       ))}
     </div>
+  )
+}
+
+// Always on screen (not a tooltip, which phones can't show): what "Step N of 5" means
+function StepsExplained() {
+  return (
+    <p style={s.explain}>
+      <strong>Steps</strong> show how well a word is sticking. Each time you get it right on its
+      review day it goes up a step and comes back later: step 1 tomorrow, step 2 in 3 days,
+      step 3 in a week, step 4 in 2 weeks, step 5 in a month. From step {LEARNED_STEP} it counts
+      as learned. A wrong answer sends it back to step 0, to practise again straight away.
+    </p>
   )
 }
 
@@ -84,7 +103,9 @@ const s = {
   translation: { color: '#4b5563' },
   example: { gridColumn: '1 / 2', margin: '0.15rem 0 0', fontSize: '0.82rem', color: '#6b7280' },
   meta: { gridColumn: '2', gridRow: '1', fontSize: '0.75rem', color: '#9ca3af', whiteSpace: 'nowrap' },
-  box: { color: '#4f46e5' },
+  step: { color: color.primary },
+  learned: { color: color.success, fontWeight: 600 },
+  explain: { margin: '0 0 1rem', padding: '0.6rem 0.8rem', background: color.surface, borderRadius: radius.sm, fontSize: '0.82rem', lineHeight: 1.5, color: color.body },
   remove: { marginLeft: '0.5rem', background: 'none', border: 'none', color: '#b91c1c', cursor: 'pointer', fontSize: '0.75rem', padding: 0, fontFamily: 'inherit' },
   muted: { color: '#6b7280' },
   error: { color: '#b91c1c' },

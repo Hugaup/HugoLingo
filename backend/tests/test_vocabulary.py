@@ -188,10 +188,26 @@ async def test_overview_tracks_seen_learned_and_due(logged_in, db, vocab):
     assert (data["learned"], data["due"]) == (1, 1)
 
 
+async def test_overview_counts_words_to_review_per_topic(logged_in, db, vocab):
+    alice, _ = await logged_in()
+    leche = await item(db, "leche")
+    await check(alice, (await item(db, "pan")).id, "type_to_target", "pan")  # right first time: nothing to review
+    await check(alice, leche.id, "type_to_target", "zzz")
+
+    data = (await alice.get("/vocab/spanish/overview")).json()
+    food = next(g for g in data["groups"] if g["kind"] == "word" and g["topic"] == "food")
+    assert (food["to_review"], data["to_review"]) == (1, 1)
+    assert all(g["to_review"] == 0 for g in data["groups"] if g is not food)
+
+    await check(alice, leche.id, "type_to_target", "leche")  # put right: off the list
+    data = (await alice.get("/vocab/spanish/overview")).json()
+    assert data["to_review"] == 0
+
+
 async def test_overview_for_a_language_without_vocabulary(logged_in, vocab):
     alice, _ = await logged_in()
     data = (await alice.get("/vocab/english/overview")).json()
-    assert data == {"available": False, "groups": [], "total": 0, "learned": 0, "due": 0}
+    assert data == {"available": False, "groups": [], "total": 0, "learned": 0, "due": 0, "to_review": 0}
 
 
 async def test_browse_items_shows_the_users_box(logged_in, db, vocab):

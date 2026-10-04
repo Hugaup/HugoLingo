@@ -5,7 +5,7 @@ import VocabSession from '../components/vocab/VocabSession'
 import VocabBrowse from '../components/vocab/VocabBrowse'
 import { canSpeak } from '../utils/speech'
 import { MODES, byTopicOrder, topicLabel } from '../utils/vocab'
-import { ui } from '../theme'
+import { color, radius, ui } from '../theme'
 
 const SESSION_LENGTH = 10
 
@@ -106,6 +106,7 @@ function Home({ overview, mode, setMode, start, browse }) {
           <h2 style={s.cardTitle}>Everyday phrases</h2>
           <p style={s.cardSub}>Hello, thank you, please, sorry, how much is it?…</p>
           <Progress learned={sum(phrases, 'learned')} total={sum(phrases, 'total')} />
+          <ReviewNote toReview={sum(phrases, 'to_review')} due={sum(phrases, 'due')} noun="phrase" />
         </div>
         <div style={s.cardActions}>
           <button style={s.primary} onClick={() => start({ kind: 'phrase' })}>Practise</button>
@@ -119,6 +120,7 @@ function Home({ overview, mode, setMode, start, browse }) {
             <h2 style={s.cardTitle}>My words</h2>
             <p style={s.cardSub}>Words you saved while reading</p>
             <Progress learned={mine.learned} total={mine.total} />
+            <ReviewNote toReview={mine.to_review} due={mine.due} />
           </div>
           <div style={s.cardActions}>
             <button style={s.primary} onClick={() => start({ kind: 'personal' })}>Practise</button>
@@ -133,7 +135,7 @@ function Home({ overview, mode, setMode, start, browse }) {
           <section key={g.topic} style={s.card} aria-label={topicLabel(g.topic)}>
             <h3 style={s.cardTitle}>{topicLabel(g.topic)}</h3>
             <Progress learned={g.learned} total={g.total} />
-            {g.due > 0 && <span style={s.due}>{g.due} due</span>}
+            <ReviewNote toReview={g.to_review} due={g.due} />
             <div style={s.cardActions}>
               <button style={s.primary} onClick={() => start({ kind: 'word', topic: g.topic })}>Practise</button>
               <button style={s.link} onClick={() => browse({ kind: 'word', topic: g.topic })}>See words</button>
@@ -142,6 +144,19 @@ function Home({ overview, mode, setMode, start, browse }) {
         ))}
       </div>
     </>
+  )
+}
+
+// Words got wrong and not right since come first in the topic's sessions, so
+// "Practise" brings them back; the rest of what's due is a plain count.
+function ReviewNote({ toReview = 0, due, noun = 'word' }) {
+  const others = due - toReview
+  if (!toReview && !others) return null
+  return (
+    <p style={s.reviewNote}>
+      {toReview > 0 && <span style={s.toReview}>{toReview} {noun}{toReview === 1 ? '' : 's'} to review</span>}
+      {others > 0 && <span style={s.due}>{toReview > 0 ? `${others} more due` : `${others} due`}</span>}
+    </p>
   )
 }
 
@@ -182,7 +197,9 @@ const s = {
   bar: { flex: 1, height: 6, borderRadius: 3, background: '#e0e7ff', overflow: 'hidden', minWidth: 80 },
   fill: { height: '100%', background: '#4f46e5', borderRadius: 3 },
   count: { fontSize: '0.75rem', color: '#6b7280', whiteSpace: 'nowrap' },
-  due: { fontSize: '0.75rem', color: '#4f46e5', fontWeight: 600 },
+  reviewNote: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', margin: '0.35rem 0 0' },
+  toReview: { fontSize: '0.75rem', fontWeight: 600, color: color.warning, background: color.warningSoft, borderRadius: radius.pill, padding: '0.1rem 0.5rem' },
+  due: { fontSize: '0.75rem', color: color.primary, fontWeight: 600 },
   primary: { ...ui.primary, padding: '0.45rem 0.95rem', fontSize: '0.88rem' },
   link: ui.link,
   muted: { color: '#6b7280' },

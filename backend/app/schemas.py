@@ -370,6 +370,7 @@ class VocabGroup(BaseModel):
     seen: int
     learned: int
     due: int
+    to_review: int  # got wrong, not right since
 
 
 class VocabOverview(BaseModel):
@@ -378,6 +379,7 @@ class VocabOverview(BaseModel):
     total: int
     learned: int
     due: int
+    to_review: int
 
 
 class VocabCheckRequest(BaseModel):
