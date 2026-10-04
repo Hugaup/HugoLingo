@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy import Integer, cast, func, select, tuple_, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Attempt, ConversationTurn, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem, VocabReview
+from app.models import Attempt, ConversationTurn, GrammarAttempt, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem, VocabReview
 from app.services.conjugation_utils import canonical_tense, variant_tense_names
 
 # Leitner boxes: a wrong answer sends an item back to box 0 (due straight away);
@@ -453,7 +453,7 @@ async def stats(
 ) -> dict:
     """Totals and daily activity (for `language`, or all), plus today's count and
     the streak (always across all languages), with days in the user's timezone.
-    Counts every answer: conjugation attempts, vocabulary attempts and conversation
+    Counts every answer: conjugation, vocabulary and grammar attempts and conversation
     messages alike. (A conversation's verb mistakes are also stored as attempts for
     the weak spots; they're left out here so the message isn't counted twice.)"""
     tz = resolve_timezone(tz)
@@ -466,6 +466,8 @@ async def stats(
         .where(VocabAttempt.user_id == user_id),
         select(ConversationTurn.created_at, ConversationTurn.is_correct, ConversationTurn.language)
         .where(ConversationTurn.user_id == user_id),
+        select(GrammarAttempt.created_at, GrammarAttempt.is_correct, GrammarAttempt.language)
+        .where(GrammarAttempt.user_id == user_id),
     ).subquery()
     local_day = func.date(func.timezone(tz, answers.c.created_at))
 

@@ -1,0 +1,25 @@
+{
+  "id": "posesivos", "title": "Possessive adjectives", "spanish": "Adjetivos posesivos", "category": "adjectives", "level": 1,
+  "rule": [
+    "Before the noun: mi(s), tu(s), su(s), nuestro/a(s), vuestro/a(s), su(s).",
+    "They agree with the thing owned, not the owner: mis libros (my books), nuestra casa (our house).",
+    "su / sus can mean his, her, its, your (usted/ustedes) or their.",
+    "After the noun or alone: mío, tuyo, suyo, nuestro… (un amigo mío, Este libro es mío)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Yo vivo con ___ padres.", "mis", ["mi", "tus", "sus"], "My + plural noun: mis padres."],
+      ["1-02", "¿Dónde está ___ coche, Pedro?", "tu", ["tus", "su", "mi"], "Talking to Pedro (tú): tu coche."],
+      ["1-03", "Nosotros vendemos ___ casa.", "nuestra", ["nuestro", "nuestras", "nuestros"], "casa is feminine singular: nuestra."],
+      ["1-04", "Ana y Luis visitan a ___ abuela.", "su", ["sus", "suya", "su de"], "Their + singular noun: su abuela."],
+      ["1-05", "Chicos, ¿son estas ___ mochilas?", "vuestras", ["vuestros", "vuestra", "vuestro"], "mochilas is feminine plural: vuestras."],
+      ["1-06", "Señor López, ¿es este ___ paraguas?", "su", ["tu", "sus", "suyo"], "With usted, your is su."],
+      ["1-07", "Tengo ___ libros en la mochila.", "mis", ["mi", "míos", "mío"], "Before a plural noun: mis."],
+      ["1-08", "Ese bolígrafo no es tuyo, es ___.", "mío", ["mi", "mía", "míos"], "Alone after ser, and bolígrafo is masculine: mío."],
+      ["1-09", "Nosotros queremos mucho a ___ hijos.", "nuestros", ["nuestras", "nuestro", "nuestra"], "hijos is masculine plural: nuestros."],
+      ["1-10", "Marta es una amiga ___.", "mía", ["mi", "mío", "mías"], "After the noun the long form is used, agreeing with amiga: mía."],
+      ["1-11", "María, ¿cuál es ___ número de teléfono?", "tu", ["tus", "su", "tuyo"], "Talking to María (tú), before the noun: tu."],
+      ["1-12", "Estas gafas no son mías, son ___.", "suyas", ["su", "sus", "suyos"], "Alone, agreeing with gafas (feminine plural): suyas."]
+    ]}
+  ]
+}

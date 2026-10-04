@@ -57,7 +57,7 @@ async def generate_conjugation(language: Language, difficulty: int) -> dict:
     return await _fetch_with_retry(messages)
 
 
-# Grammar exercises are made and checked in services/grammar.py (served via services/grammar_pool.py)
+# Grammar exercises are hand-written: services/grammar_topics.py (and services/grammar.py for find-the-mistake)
 
 
 async def generate_reading(language: Language, difficulty: int) -> dict:

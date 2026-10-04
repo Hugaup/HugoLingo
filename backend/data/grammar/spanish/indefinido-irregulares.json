@@ -1,0 +1,38 @@
+{
+  "id": "indefinido-irregulares", "title": "Irregular verbs in the preterite", "spanish": "Pretérito indefinido: verbos irregulares", "category": "conjugation", "level": 2,
+  "rule": [
+    "New stems with endings -e, -iste, -o, -imos, -isteis, -ieron (no accents): tener → tuve, estar → estuve, poder → pude, poner → puse, saber → supe, hacer → hice (hizo), querer → quise, venir → vine.",
+    "With -j-: decir → dije, traer → traje, conducir → conduje; ellos ends in -eron: dijeron, trajeron.",
+    "ser and ir share one form: fui, fuiste, fue, fuimos, fuisteis, fueron. dar: di, diste, dio. -ir stem changers in él/ellos: pidió, durmió."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Ayer ___ (tener, yo) un examen difícil.", "tuve", ["tení", "tuvé", "tuvo"], "tener → tuv-: tuve (no accent)."],
+      ["1-02", "El verano pasado ___ (ir, nosotros) a Grecia.", "fuimos", ["íbamos", "fuemos", "vamos"], "ir: fuimos."],
+      ["1-03", "¿Qué ___ (hacer, tú) el fin de semana?", "hiciste", ["haciste", "hiceste", "hizo"], "hacer → hic-: hiciste."],
+      ["1-04", "Mi hermano ___ (hacer) la cena.", "hizo", ["hico", "hació", "hice"], "hacer in él: hizo (z, not c)."],
+      ["1-05", "___ (estar, yo) en Roma tres días.", "Estuve", ["Estaba de", "Esté", "Estuvo"], "estar → estuv-: estuve."],
+      ["1-06", "Ellos ___ (decir) que no venían.", "dijeron", ["dijieron", "decieron", "dijo"], "-j- stems: ellos -eron, not -ieron: dijeron."],
+      ["1-07", "¿Por qué no ___ (venir, tú) a la fiesta?", "viniste", ["veniste", "vinistes", "vino"], "venir → vin-: viniste."],
+      ["1-08", "No ___ (poder, yo) dormir en toda la noche.", "pude", ["podí", "pudé", "pudo"], "poder → pud-: pude."],
+      ["1-09", "¿Dónde ___ (poner, tú) mis gafas?", "pusiste", ["poniste", "pusistes", "puso"], "poner → pus-: pusiste."],
+      ["1-10", "La fiesta ___ (ser) fantástica.", "fue", ["fué", "era de", "fui"], "ser: fue (no accent)."],
+      ["1-11", "Mis amigos me ___ (traer) un regalo.", "trajeron", ["trajieron", "traieron", "trajo"], "traer → traj-: ellos trajeron."],
+      ["1-12", "Le ___ (dar, yo) las llaves a Pedro.", "di", ["dí", "dé", "dio"], "dar: di (no accent)."]
+    ]},
+    {"questions": [
+      ["2-01", "Mi abuelo ___ (morir) en 2010.", "murió", ["morió", "muerió", "muró"], "-ir stem change in él: o → u: murió."],
+      ["2-02", "Los niños ___ (dormir) muy bien.", "durmieron", ["dormieron", "duermieron", "durmió"], "-ir stem change in ellos: durmieron."],
+      ["2-03", "El cliente ___ (pedir) otro café.", "pidió", ["pedió", "pido", "pidé"], "-ir stem change in él: pidió."],
+      ["2-04", "Cuando ___ (saber, yo) la noticia, te llamé.", "supe", ["sabí", "supé", "supo"], "saber → sup-: supe."],
+      ["2-05", "Ella no ___ (querer) venir con nosotros.", "quiso", ["querió", "quisó", "quise"], "querer → quis-: quiso."],
+      ["2-06", "¿Quién ___ (conducir) el coche?", "condujo", ["condució", "condujó", "conduje"], "conducir → conduj-: condujo."],
+      ["2-07", "Ayer ___ (haber) un accidente en la autopista.", "hubo", ["habió", "hubió", "había de"], "haber (there was, one event): hubo."],
+      ["2-08", "Nosotros ___ (estar) muy contentos en la boda.", "estuvimos", ["estábamos de", "estuvemos", "estuvieron"], "estar → estuv-: estuvimos."],
+      ["2-09", "Mis padres ___ (venir) a verme el domingo.", "vinieron", ["venieron", "vinieran", "vino"], "venir → vin-: vinieron."],
+      ["2-10", "¿___ (ir, vosotros) al concierto?", "Fuisteis", ["Fuísteis", "Fueron", "Ibais de"], "ir: fuisteis (no accent)."],
+      ["2-11", "Ella ___ (traducir) el libro al inglés.", "tradujo", ["tradució", "tradujó", "traduje"], "traducir → traduj-: tradujo."],
+      ["2-12", "Yo no ___ (decir) nada.", "dije", ["decí", "dijé", "dijo"], "decir → dij-: dije."]
+    ]}
+  ]
+}

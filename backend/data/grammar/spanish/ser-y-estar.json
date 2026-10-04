@@ -1,0 +1,52 @@
+{
+  "id": "ser-y-estar", "title": "Ser or estar", "spanish": "Ser y estar", "category": "verbs", "level": 1,
+  "rule": [
+    "ser: who or what something is — identity, origin, profession, nationality, material, character, time and dates, and where an event takes place (La fiesta es en mi casa).",
+    "estar: where someone or something is (Madrid está en España), temporary states and moods (Estoy cansado), and estar + gerund (Estoy comiendo).",
+    "With bien/mal always estar: Estoy bien, Está mal. Also estar de vacaciones, de viaje, de pie."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mis compañeros de clase ___ muy simpáticos.", "son", ["están", "es", "estamos"], "Character: ser."],
+      ["1-02", "Hoy ___ muy cansada; he trabajado mucho.", "estoy", ["soy", "es", "está"], "A temporary state: estar."],
+      ["1-03", "Nosotros ___ de Argentina.", "somos", ["estamos", "son", "están"], "Origin: ser de."],
+      ["1-04", "¿Dónde ___ las llaves?", "están", ["son", "es", "está"], "Where something is: estar."],
+      ["1-05", "Mi madre ___ enfermera.", "es", ["está", "son", "ser"], "Profession: ser."],
+      ["1-06", "La sopa ___ fría. Voy a calentarla.", "está", ["es", "son", "están"], "A temporary state of the soup: estar."],
+      ["1-07", "___ las ocho de la mañana.", "Son", ["Están", "Es", "Está"], "Time: ser (son las ocho)."],
+      ["1-08", "Madrid ___ en el centro de España.", "está", ["es", "son", "ser"], "Location of a place: estar."],
+      ["1-09", "Esta mesa ___ de madera.", "es", ["está", "son", "están"], "Material: ser de."],
+      ["1-10", "¿Cómo ___ tus padres? —Muy bien, gracias.", "están", ["son", "es", "está"], "How someone is doing: estar."],
+      ["1-11", "Los niños ___ jugando en el jardín.", "están", ["son", "es", "estamos"], "estar + gerund: están jugando."],
+      ["1-12", "Hoy ___ lunes.", "es", ["está", "son", "están"], "Days of the week: ser."]
+    ]},
+    {"questions": [
+      ["2-01", "La fiesta ___ en casa de Marta.", "es", ["está", "son", "estar"], "Where an event takes place: ser."],
+      ["2-02", "Mi hermano ___ de vacaciones en Italia.", "está", ["es", "son", "están"], "estar de vacaciones: a temporary situation."],
+      ["2-03", "Este coche ___ muy caro.", "es", ["está", "son", "estoy"], "A characteristic: ser."],
+      ["2-04", "Ana ___ muy guapa hoy con ese vestido.", "está", ["es", "son", "estás"], "How someone looks today (not always): estar."],
+      ["2-05", "Juan ___ alto y moreno.", "es", ["está", "son", "estás"], "Physical description: ser."],
+      ["2-06", "¿Qué hora ___?", "es", ["está", "son", "estás"], "Asking the time: ¿qué hora es?"],
+      ["2-07", "El concierto ___ en el estadio.", "es", ["está", "son", "están"], "Where an event takes place: ser."],
+      ["2-08", "Estas manzanas ___ verdes; todavía no se pueden comer.", "están", ["son", "es", "está"], "Not ripe yet (a state): estar verde."],
+      ["2-09", "Mi novia ___ italiana.", "es", ["está", "son", "estás"], "Nationality: ser."],
+      ["2-10", "La puerta ___ abierta.", "está", ["es", "son", "están"], "The result of an action (a state): estar abierta."],
+      ["2-11", "Hoy ___ 5 de mayo.", "es", ["está", "son", "estás"], "The date with ser: hoy es 5 de mayo."],
+      ["2-12", "Ese libro ___ de mi profesor.", "es", ["está", "son", "estoy"], "Possession: ser de."]
+    ]},
+    {"questions": [
+      ["3-01", "Mi abuelo ___ muy contento con su nueva casa.", "está", ["es", "son", "estás"], "A mood: estar contento."],
+      ["3-02", "¿___ preparado para el examen?", "Estás", ["Eres", "Es", "Son"], "Being ready: estar preparado."],
+      ["3-03", "El problema ___ que no tenemos tiempo.", "es", ["está", "son", "están"], "Identifying what something is: ser."],
+      ["3-04", "Las tiendas ___ cerradas los domingos.", "están", ["son", "es", "está"], "A state (closed): estar cerradas."],
+      ["3-05", "Mi hermana ___ estudiando medicina.", "está", ["es", "son", "están"], "estar + gerund."],
+      ["3-06", "Este ejercicio ___ fácil.", "es", ["está", "son", "estoy"], "A characteristic: ser."],
+      ["3-07", "Ya ___ tarde; vámonos.", "es", ["está", "son", "estamos"], "Time expressions: es tarde."],
+      ["3-08", "Los platos ___ sucios. ¿Quién los lava?", "están", ["son", "es", "está"], "A state: estar sucio."],
+      ["3-09", "Mi padre ___ de viaje esta semana.", "está", ["es", "son", "están"], "estar de viaje: a temporary situation."],
+      ["3-10", "Esa chica ___ mi prima.", "es", ["está", "son", "estás"], "Identity: ser."],
+      ["3-11", "La reunión ___ a las diez.", "es", ["está", "son", "están"], "When an event takes place: ser."],
+      ["3-12", "No puedo salir; ___ enfermo.", "estoy", ["soy", "es", "está"], "Being ill: estar enfermo."]
+    ]}
+  ]
+}

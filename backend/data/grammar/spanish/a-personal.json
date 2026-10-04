@@ -1,0 +1,24 @@
+{
+  "id": "a-personal", "title": "Personal a", "spanish": "La a personal", "category": "prepositions", "level": 2,
+  "rule": [
+    "A person (or a pet you treat as one) as the direct object takes a: Veo a mi hermano. Quiero a mi perro.",
+    "No a for things or for unspecified people: Veo la televisión. Busco un médico (any doctor).",
+    "No a after tener and hay: Tengo dos hermanos. Hay muchas personas."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Ayer vi ___ en el supermercado.", "a tu hermana", ["tu hermana", "en tu hermana", "de tu hermana"], "A person as direct object takes a: vi a tu hermana."],
+      ["1-02", "Esta noche veo ___ en casa.", "una película", ["a una película", "en una película", "de una película"], "A thing as direct object: no a."],
+      ["1-03", "Tengo ___ y una hermana.", "dos hermanos", ["a dos hermanos", "de dos hermanos", "con dos hermanos de"], "tener never takes the personal a."],
+      ["1-04", "Llamo ___ todos los domingos.", "a mis padres", ["mis padres", "en mis padres", "por mis padres a"], "A person as direct object: llamo a mis padres."],
+      ["1-05", "En el viaje conocí ___ de Perú.", "a un chico", ["un chico", "de un chico", "en un chico"], "A specific person as direct object: conocí a un chico."],
+      ["1-06", "Busco ___ en el centro.", "un piso", ["a un piso", "de un piso", "en un piso a"], "A thing as direct object: no a."],
+      ["1-07", "Quiero mucho ___.", "a mi abuela", ["mi abuela", "de mi abuela", "en mi abuela"], "A person as direct object: quiero a mi abuela."],
+      ["1-08", "Hay ___ en la calle.", "mucha gente", ["a mucha gente", "de mucha gente", "a muchas gentes"], "hay never takes the personal a."],
+      ["1-09", "¿Has visto ___ en el jardín?", "a alguien", ["alguien", "de alguien", "en alguien"], "alguien as direct object takes a."],
+      ["1-10", "Escucho ___ por la mañana.", "la radio", ["a la radio", "de la radio", "en la radio a"], "A thing as direct object: no a."],
+      ["1-11", "El profesor ayuda ___ con los deberes.", "a los alumnos", ["los alumnos", "de los alumnos", "por los alumnos a"], "People as direct object: ayuda a los alumnos."],
+      ["1-12", "Necesitamos ___ urgentemente: hay agua por todas partes.", "un fontanero", ["a un fontanero de", "de un fontanero", "en un fontanero"], "An unspecified person (any plumber): no a."]
+    ]}
+  ]
+}

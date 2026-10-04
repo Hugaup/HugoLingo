@@ -1,0 +1,38 @@
+{
+  "id": "gustar", "title": "Gustar and similar verbs", "spanish": "Gustar", "category": "verbs", "level": 1,
+  "rule": [
+    "gustar agrees with the thing liked: me gusta el café, me gustan los perros, me gusta bailar.",
+    "The person is an indirect object: me, te, le, nos, os, les — with a mí, a ti, a él… for emphasis or contrast (A mí me gusta, ¿y a ti?).",
+    "encantar, interesar, doler, molestar and parecer work the same way: Me duelen los pies."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Me ___ el chocolate.", "gusta", ["gustan", "gusto", "gustas"], "One thing liked: gusta."],
+      ["1-02", "Me ___ los perros.", "gustan", ["gusta", "gusto", "gustamos"], "Several things liked: gustan."],
+      ["1-03", "A mi hermano ___ gusta el fútbol.", "le", ["lo", "se", "les"], "For him: le gusta."],
+      ["1-04", "¿Te ___ bailar?", "gusta", ["gustan", "gustas", "gusto"], "An infinitive counts as singular: gusta."],
+      ["1-05", "A nosotros ___ gusta viajar.", "nos", ["les", "os", "se"], "For us: nos gusta."],
+      ["1-06", "A mis padres ___ gustan las películas antiguas.", "les", ["le", "los", "se"], "For them: les gustan."],
+      ["1-07", "A mí no me gusta el té. ¿Y a ___?", "ti", ["tú", "te", "tu"], "After a: ti (¿y a ti?)."],
+      ["1-08", "¿Os ___ las vacaciones en la playa?", "gustan", ["gusta", "gustáis", "gustamos"], "Several things liked: gustan."],
+      ["1-09", "Me ___ mucho tus zapatos.", "encantan", ["encanta", "encanto", "encantas"], "encantar agrees with zapatos: encantan."],
+      ["1-10", "A Laura ___ interesa la historia.", "le", ["la", "lo", "se"], "For her: le interesa."],
+      ["1-11", "Me ___ la cabeza.", "duele", ["duelen", "dolo", "duelo"], "One thing hurts: duele."],
+      ["1-12", "Me ___ los pies después de correr.", "duelen", ["duele", "duelo", "dolemos"], "Several things hurt: duelen."]
+    ]},
+    {"questions": [
+      ["2-01", "¿Qué te ___ mi nuevo corte de pelo?", "parece", ["parecen", "pareces", "parezco"], "parecer agrees with corte: parece."],
+      ["2-02", "A ellos no ___ molesta el ruido.", "les", ["los", "le", "se"], "For them: les molesta."],
+      ["2-03", "A mi abuela le ___ las flores.", "encantan", ["encanta", "encantas", "encanto"], "encantar agrees with flores: encantan."],
+      ["2-04", "Nos ___ cocinar los domingos.", "gusta", ["gustan", "gustamos", "gusto"], "An infinitive counts as singular: gusta."],
+      ["2-05", "¿A ustedes ___ gusta la música clásica?", "les", ["le", "los", "se"], "For ustedes: les."],
+      ["2-06", "Me ___ mucho los idiomas.", "interesan", ["interesa", "interesas", "intereso"], "Several things: interesan."],
+      ["2-07", "A ti ___ gusta mucho leer, ¿verdad?", "te", ["ti", "tu", "le"], "For you: te gusta (a ti is extra emphasis)."],
+      ["2-08", "No me ___ nada las arañas.", "gustan", ["gusta", "gusto", "gustas"], "Several things: gustan."],
+      ["2-09", "A Pedro le ___ la espalda.", "duele", ["duelen", "duelo", "dolió a"], "One thing hurts: duele."],
+      ["2-10", "¿Os ___ bien si quedamos a las seis?", "parece", ["parecen", "parecéis", "parecemos"], "What is judged is the idea: parece."],
+      ["2-11", "A mí me ___ el verano.", "encanta", ["encantan", "encanto", "encantas"], "One thing: encanta."],
+      ["2-12", "A mis amigos y a mí nos ___ los conciertos.", "gustan", ["gusta", "gustamos", "gustáis"], "Several things: gustan."]
+    ]}
+  ]
+}

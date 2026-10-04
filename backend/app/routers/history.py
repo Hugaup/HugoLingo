@@ -16,7 +16,7 @@ from app.schemas import (
     StatsResponse,
     WeakSpotsResponse,
 )
-from app.services import history
+from app.services import grammar_topics, history
 from app.services.conjugation_utils import canonical_tense, expected_forms
 from app.services.explain import explain_mistake
 from app.services.grading import grade
@@ -43,7 +43,17 @@ async def weak_spots(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await history.weak_spots(db, user.id, language, limit, datetime.now(timezone.utc))
+    now = datetime.now(timezone.utc)
+    verbs = await history.weak_spots(db, user.id, language, limit, now)
+    topics = await grammar_topics.weak_topics(db, user.id, language, limit, now)
+    upcoming = [t for t in (verbs["next_check_up_at"], topics["next_check_up_at"]) if t]
+    return {
+        **verbs,
+        "topics": topics["items"],
+        "counts": {k: verbs["counts"][k] + topics["counts"][k] for k in verbs["counts"]},
+        "grammar_due_count": topics["due_count"],
+        "next_check_up_at": min(upcoming, default=None),
+    }
 
 
 @router.get("/mistakes/{language}", response_model=MistakeHistoryResponse)
@@ -52,7 +62,13 @@ async def mistakes(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await history.mistake_history(db, user.id, language, datetime.now(timezone.utc))
+    now = datetime.now(timezone.utc)
+    data = await history.mistake_history(db, user.id, language, now)
+    topics = await grammar_topics.mistake_history(db, user.id, language, now)
+    counts = dict(data["counts"])
+    for g in topics:
+        counts[g["status"]] += 1
+    return {**data, "topics": topics, "counts": counts}
 
 
 @router.get("/drill/{language}", response_model=list[DrillPrompt])

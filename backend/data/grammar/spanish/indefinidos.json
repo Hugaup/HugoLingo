@@ -1,0 +1,24 @@
+{
+  "id": "indefinidos", "title": "Something, nothing, someone, no one", "spanish": "Indefinidos: algo, nada, alguien, nadie", "category": "pronouns", "level": 2,
+  "rule": [
+    "algo (something) / nada (nothing); alguien (someone) / nadie (no one); algún, alguna… (some) / ningún, ninguna (no, none); siempre / nunca.",
+    "After the verb, a negative word needs no before the verb: No veo nada. Before the verb, no no: Nadie viene.",
+    "ninguno/ninguna is almost always singular: No tengo ningún libro."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "¿Quieres ___ de beber?", "algo", ["nada", "alguien", "nadie"], "Offering something: algo."],
+      ["1-02", "No hay ___ en la nevera. Está vacía.", "nada", ["algo", "nadie", "ninguno"], "No + verb + nada: nothing."],
+      ["1-03", "¿Hay ___ en casa? —No, no hay nadie.", "alguien", ["algo", "nadie", "algún"], "Asking about a person: alguien."],
+      ["1-04", "___ me llama nunca.", "Nadie", ["Alguien", "Nada", "Ninguno de"], "No one, before the verb: Nadie me llama."],
+      ["1-05", "No tengo ___ hermano.", "ningún", ["ninguno", "algún", "ninguna"], "Before a masculine singular noun: ningún."],
+      ["1-06", "¿Tienes ___ pregunta?", "alguna", ["algún", "ninguna", "alguien"], "pregunta is feminine: alguna."],
+      ["1-07", "No he leído ___ libro de este autor.", "ningún", ["algún", "ninguno", "nadie"], "Before a masculine singular noun: ningún."],
+      ["1-08", "Mi abuelo ___ come carne. Es vegetariano.", "nunca", ["siempre", "algo", "nada"], "Never: nunca (before the verb, no no)."],
+      ["1-09", "No quiero ___, gracias.", "nada", ["algo", "nadie", "ningún"], "No + verb + nada."],
+      ["1-10", "¿Alguien sabe la respuesta? —No, ___ la sabe.", "nadie", ["alguien", "nada", "ninguna"], "No one knows: nadie."],
+      ["1-11", "—¿Tienes amigas en Roma? —No, no tengo ___.", "ninguna", ["ningunas", "ningún", "nadie"], "With no noun after it, agreeing with amigas: ninguna."],
+      ["1-12", "Oigo ___ en la puerta. ¿Quién será?", "a alguien", ["alguien a", "a nadie", "algo a"], "A person as the object takes a: oigo a alguien."]
+    ]}
+  ]
+}

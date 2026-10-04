@@ -1,0 +1,24 @@
+{
+  "id": "demostrativos", "title": "Demonstratives", "spanish": "Demostrativos", "category": "adjectives", "level": 1,
+  "rule": [
+    "este/esta/estos/estas: here, near me. ese/esa/esos/esas: there, near you. aquel/aquella/aquellos/aquellas: over there, far from both.",
+    "They agree with the noun: este libro, esta mesa, estos libros, estas mesas.",
+    "esto, eso and aquello (neuter) refer to something unnamed: ¿Qué es esto?"
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "___ libro que tengo en la mano es muy bueno.", "Este", ["Esta", "Estos", "Esto"], "Near me, masculine singular: este libro."],
+      ["1-02", "¿Te gusta ___ falda que llevas?", "esa", ["esta", "ese", "aquellas"], "Near you, feminine singular: esa falda."],
+      ["1-03", "¿Ves ___ montañas al fondo?", "aquellas", ["aquellos", "aquella", "esas"], "Far away, feminine plural: aquellas montañas."],
+      ["1-04", "¿Qué es ___? No lo conozco.", "esto", ["este", "esta", "estos"], "Something unnamed takes the neuter: esto."],
+      ["1-05", "___ zapatos que llevo son nuevos.", "Estos", ["Estas", "Este", "Esto"], "Near me, masculine plural: estos zapatos."],
+      ["1-06", "Dame ___ bolígrafo que tienes ahí.", "ese", ["esa", "este", "esos"], "Near you, masculine singular: ese bolígrafo."],
+      ["1-07", "___ casa de allí, al final de la calle, es de mi tía.", "Aquella", ["Aquel", "Esta", "Aquellas"], "Far away, feminine singular: aquella casa."],
+      ["1-08", "___ semana estoy muy ocupado.", "Esta", ["Este", "Estas", "Esto"], "The current week: esta semana."],
+      ["1-09", "En ___ época no había móviles.", "aquella", ["esta", "aquel", "esa de"], "A time long ago: aquella época."],
+      ["1-10", "No entiendo ___ que dices.", "eso", ["ese", "esa", "esos"], "Something unnamed (what you say) takes the neuter: eso."],
+      ["1-11", "¿De quién son ___ llaves que tienes?", "esas", ["esos", "estas", "aquel"], "Near you, feminine plural: esas llaves."],
+      ["1-12", "___ chico de allí lejos es mi primo.", "Aquel", ["Aquella", "Este", "Aquellos"], "Far away, masculine singular: aquel chico."]
+    ]}
+  ]
+}

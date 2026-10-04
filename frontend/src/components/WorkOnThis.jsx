@@ -6,9 +6,9 @@ import { tenseWithMood } from '../utils/conjugationUtils'
 import { checkUpLabel } from '../utils/reviewStatus'
 import { color, ui } from '../theme'
 
-// Compact "Work on this" panel: the verb+tenses that need work (worst first),
-// then the ones getting there with their next check-up, and one click into
-// the review drill when something is due.
+// Compact "Work on this" panel: the verb+tenses and grammar topics that need
+// work (worst first), then the ones getting there with their next check-up;
+// one click into the verb drill when something is due, or a topic's review sheet.
 export default function WorkOnThis({ language, limit = 4, onShowHistory = null }) {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -23,18 +23,31 @@ export default function WorkOnThis({ language, limit = 4, onShowHistory = null }
 
   if (!data) return null
 
-  const { items, counts, due_count: due, next_check_up_at: nextCheckUp } = data
+  const { counts, due_count: due, grammar_due_count: grammarDue = 0, next_check_up_at: nextCheckUp } = data
   if (!counts.needs_work && !counts.getting_there && !counts.fixed && !due) {
     return <p style={s.empty}>Mistakes you make will show up here so you can work on them.</p>
   }
 
   const showHistory = onShowHistory ?? (() => navigate(`/progress?view=mistakes&language=${language}`))
 
+  // Verbs and grammar topics together: everything that needs work first
+  const verbs = data.items.map(i => ({
+    key: `${i.verb_infinitive}|${i.mood}|${i.tense}`, status: i.status, due_at: i.due_at, mistakes: i.mistakes,
+    name: i.verb_infinitive, detail: tenseWithMood(language, i.mood, i.tense),
+  }))
+  const topics = (data.topics ?? []).map(t => ({
+    key: `topic|${t.topic}`, status: t.status, due_at: t.due_at, mistakes: t.mistakes, is_due: t.is_due,
+    name: t.title, detail: 'grammar', topic: t.topic,
+  }))
+  const items = ['needs_work', 'getting_there']
+    .flatMap(status => [...verbs, ...topics].filter(i => i.status === status))
+    .slice(0, limit)
+
   return (
     <section style={s.panel} aria-labelledby="work-on-this">
       <div style={s.header}>
         <h2 id="work-on-this" style={s.title}>Work on this</h2>
-        {due > 0 && <span style={s.due}>{due} due for review</span>}
+        {due + grammarDue > 0 && <span style={s.due}>{due + grammarDue} due for review</span>}
       </div>
 
       {items.length > 0 ? (
@@ -42,13 +55,22 @@ export default function WorkOnThis({ language, limit = 4, onShowHistory = null }
           {items.map(i => {
             const later = i.status === 'getting_there'
             return (
-              <li key={`${i.verb_infinitive}|${i.mood}|${i.tense}`} style={s.item}>
-                <span style={later ? { ...s.verb, ...s.dim } : s.verb}>{i.verb_infinitive}</span>
-                <span style={later ? { ...s.detail, ...s.dim } : s.detail}>{tenseWithMood(language, i.mood, i.tense)}</span>
+              <li key={i.key} style={s.item}>
+                <span style={later ? { ...s.verb, ...s.dim } : s.verb}>{i.name}</span>
+                <span style={later ? { ...s.detail, ...s.dim } : s.detail}>{i.detail}</span>
                 <span style={s.state}>
                   {later
                     ? <>{checkUpLabel(i.due_at)} <StatusBadge status={i.status} /></>
                     : <>{i.mistakes} {i.mistakes === 1 ? 'mistake' : 'mistakes'}</>}
+                  {i.topic && (!later || i.is_due) && (
+                    <button
+                      style={s.rowLink}
+                      aria-label={`Review ${i.name}`}
+                      onClick={() => navigate(`/practice/${language}/grammar/${i.topic}/review`)}
+                    >
+                      Review
+                    </button>
+                  )}
                 </span>
               </li>
             )
@@ -63,7 +85,7 @@ export default function WorkOnThis({ language, limit = 4, onShowHistory = null }
           <button style={s.button} onClick={() => navigate(`/practice/${language}/review`)}>
             Practise these →
           </button>
-        ) : nextCheckUp && (
+        ) : grammarDue === 0 && nextCheckUp && (
           <span style={s.caughtUp}>All caught up — next {checkUpLabel(nextCheckUp)}.</span>
         )}
         <span style={s.more}>
@@ -93,5 +115,6 @@ const s = {
   more: { display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginLeft: 'auto', fontSize: '0.85rem' },
   fixed: { color: color.success, fontWeight: 600 },
   link: ui.link,
+  rowLink: { ...ui.link, marginLeft: '0.6rem', fontSize: '0.8rem', fontWeight: 600 },
   button: { ...ui.primary, padding: '0.5rem 1rem', fontSize: '0.9rem' },
 }

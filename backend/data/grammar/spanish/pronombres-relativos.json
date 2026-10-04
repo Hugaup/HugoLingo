@@ -1,0 +1,24 @@
+{
+  "id": "pronombres-relativos", "title": "Relative pronouns", "spanish": "Pronombres relativos", "category": "pronouns", "level": 3,
+  "rule": [
+    "que is the usual relative for people and things: El libro que leo. La chica que vive aquí.",
+    "After a preposition: el/la/los/las que or el cual… (La casa en la que vivo); quien(es) for people (El chico con quien hablé).",
+    "lo que = what/the thing that (Lo que dices es verdad). donde for places. cuyo/a/os/as = whose, agreeing with what is owned (El hombre cuya casa…)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "El libro ___ estoy leyendo es muy bueno.", "que", ["quien", "lo que", "cuyo"], "A thing, with no preposition: que."],
+      ["1-02", "No entiendo ___ dices.", "lo que", ["que", "el que", "cual"], "What you say (no noun): lo que."],
+      ["1-03", "La casa en ___ vivo es muy antigua.", "la que", ["que la", "lo que", "quien"], "After a preposition, for casa: en la que."],
+      ["1-04", "El chico con ___ hablé es mi vecino.", "quien", ["que", "cual", "lo que"], "After a preposition, for a person: con quien."],
+      ["1-05", "Es el pueblo ___ nació mi madre.", "donde", ["que", "cuyo", "quien"], "A place: donde."],
+      ["1-06", "La escritora ___ libros leemos es chilena.", "cuyos", ["cuya", "que sus", "cuyo"], "Whose, agreeing with libros: cuyos."],
+      ["1-07", "Las personas ___ trabajan aquí son muy amables.", "que", ["quien", "las cuales que", "cuyas"], "People, with no preposition: que."],
+      ["1-08", "___ más me gusta de Madrid es la gente.", "Lo que", ["Que", "El que", "Cual"], "What I like most (no noun): lo que."],
+      ["1-09", "Es una amiga ___ conozco desde niña.", "a la que", ["que la", "cuya", "lo que"], "With a person as object, que or a la que; here a la que."],
+      ["1-10", "Ese es el hombre ___ coche me compré.", "cuyo", ["cuya", "que su", "de quien su"], "Whose, agreeing with coche: cuyo."],
+      ["1-11", "Los amigos con ___ viajé eran muy divertidos.", "los que", ["que", "lo que", "cuyos"], "After a preposition, for amigos: con los que."],
+      ["1-12", "Haz ___ quieras.", "lo que", ["que", "cual", "el que lo"], "Whatever you want (no noun): lo que."]
+    ]}
+  ]
+}

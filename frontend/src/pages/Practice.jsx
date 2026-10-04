@@ -34,7 +34,8 @@ const TYPE_CARDS = [
     id: 'grammar',
     icon: '✏️',
     title: 'Grammar',
-    desc: 'Spot and fix errors in sentences to build your grammatical instincts.',
+    desc: 'Topics from articles to the subjunctive, each with the rule and sheets of quick questions.',
+    path: 'grammar',
   },
   {
     id: 'reading',

@@ -188,14 +188,26 @@ class WeakItem(BaseModel):
     last_mistake_at: datetime | None
 
 
+class WeakTopic(BaseModel):
+    topic: str
+    title: str
+    status: ReviewStatus
+    due_at: datetime
+    is_due: bool
+    mistakes: int
+
+
 class WeakSpotsResponse(BaseModel):
-    items: list[WeakItem]
-    counts: StatusCounts
-    due_count: int
+    items: list[WeakItem]          # verb + tenses
+    topics: list[WeakTopic]        # grammar topics
+    counts: StatusCounts           # both together
+    due_count: int                 # verb + tenses due (the review drill)
+    grammar_due_count: int         # grammar topics due
     next_check_up_at: datetime | None
 
 
-class VerbMistake(BaseModel):
+class VerbMistakeAnswer(BaseModel):
+    """One wrong answer to a verb + tense, for "My mistakes"."""
     person: str | None
     user_answer: str
     expected: str
@@ -213,7 +225,7 @@ class VerbMistakeGroup(BaseModel):
     is_due: bool
     last_seen_at: datetime
     total_mistakes: int
-    mistakes: list[VerbMistake]
+    mistakes: list[VerbMistakeAnswer]
 
 
 class WordMistake(BaseModel):
@@ -235,8 +247,28 @@ class WordMistakeGroup(BaseModel):
     mistakes: list[WordMistake]
 
 
+class TopicMistake(BaseModel):
+    question: str
+    user_answer: str
+    expected: str
+    is_almost: bool
+    created_at: datetime
+
+
+class TopicMistakeGroup(BaseModel):
+    topic: str
+    title: str
+    status: ReviewStatus
+    due_at: datetime
+    is_due: bool
+    last_seen_at: datetime
+    total_mistakes: int
+    mistakes: list[TopicMistake]
+
+
 class MistakeHistoryResponse(BaseModel):
     verbs: list[VerbMistakeGroup]
+    topics: list[TopicMistakeGroup]
     words: list[WordMistakeGroup]
     counts: StatusCounts
 
@@ -430,3 +462,78 @@ class ConversationCheckResponse(BaseModel):
     corrected: str | None
     explanation: str | None
     verb_mistakes: list[VerbMistake]
+
+
+# ── Grammar ───────────────────────────────────────────────────────────────────
+
+class GrammarCategory(BaseModel):
+    id: str
+    title: str
+
+
+class GrammarSheetProgress(BaseModel):
+    number: int
+    title: str | None
+    questions: int
+    answered: int   # questions answered at least once
+    correct: int    # questions whose latest answer was right
+
+
+class GrammarTopicSummary(BaseModel):
+    id: str
+    title: str
+    spanish: str
+    category: str
+    level: int | None
+    sheets: list[GrammarSheetProgress]
+    questions: int
+    answered: int
+    correct: int
+    status: ReviewStatus | None
+    due_at: datetime | None
+    is_due: bool
+
+
+class GrammarOverview(BaseModel):
+    categories: list[GrammarCategory]
+    topics: list[GrammarTopicSummary]
+    questions: int
+    correct: int
+
+
+class GrammarTopicDetail(GrammarTopicSummary):
+    rule: list[str]
+
+
+class GrammarQuestion(BaseModel):
+    id: str
+    kind: Literal["choice", "correct"]
+    text: str
+    options: list[str]
+
+
+class GrammarSheetOut(BaseModel):
+    topic: str
+    topic_title: str
+    number: int | None   # None: a review sheet
+    title: str | None
+    sheet_count: int     # how many sheets the topic has (for "next exercise")
+    questions: list[GrammarQuestion]
+
+
+class GrammarAnswerRequest(BaseModel):
+    language: Language
+    topic: str = Field(max_length=64)
+    question_id: str = Field(max_length=32)
+    answer: str = Field(max_length=512)
+
+
+class GrammarAnswerResponse(BaseModel):
+    result: Literal["correct", "almost", "wrong"]
+    is_correct: bool
+    answer: str          # the right option, or the corrected sentence
+    sentence: str        # the whole sentence as it should read
+    explanation: str
+    fix: GrammarFix | None = None  # "find the mistake": the change, for display
+    status: ReviewStatus | None = None  # where the topic stands after this answer
+    due_at: datetime | None = None

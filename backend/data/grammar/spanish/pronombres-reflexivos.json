@@ -1,0 +1,24 @@
+{
+  "id": "pronombres-reflexivos", "title": "Reflexive verbs", "spanish": "Verbos reflexivos", "category": "pronouns", "level": 1,
+  "rule": [
+    "Reflexive verbs carry me, te, se, nos, os, se: me levanto, te duchas, se acuesta.",
+    "The pronoun goes before a conjugated verb (Me ducho) or joins an infinitive, gerund or affirmative command (Voy a ducharme, Estoy duchándome, ¡Dúchate!).",
+    "Many daily-routine verbs are reflexive: levantarse, ducharse, vestirse, acostarse, llamarse."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Yo ___ levanto a las siete.", "me", ["te", "se", "nos"], "yo → me levanto."],
+      ["1-02", "¿A qué hora ___ acuestas?", "te", ["me", "se", "os"], "tú → te acuestas."],
+      ["1-03", "Mi hermano ___ ducha por la mañana.", "se", ["te", "me", "le"], "él → se ducha."],
+      ["1-04", "Nosotros ___ vestimos rápido.", "nos", ["se", "os", "me"], "nosotros → nos vestimos."],
+      ["1-05", "¿Cómo ___ llamáis?", "os", ["se", "nos", "te"], "vosotros → os llamáis."],
+      ["1-06", "Mis padres ___ despiertan muy temprano.", "se", ["les", "los", "nos"], "ellos → se despiertan."],
+      ["1-07", "Voy a ___ antes de cenar.", "ducharme", ["me duchar", "duchar me", "duchame"], "With an infinitive the pronoun joins the end: ducharme."],
+      ["1-08", "Pedro está ___ en este momento.", "afeitándose", ["se afeitando", "afeitandose", "afeitarse"], "With a gerund the pronoun can join the end, with an accent: afeitándose."],
+      ["1-09", "¡___ ya, que llegamos tarde!", "Vístete", ["Te vistes", "Vistete", "Te viste"], "Affirmative command: the pronoun joins the end, with an accent: vístete."],
+      ["1-10", "Usted ___ llama Carmen, ¿verdad?", "se", ["te", "le", "me"], "usted takes se: se llama."],
+      ["1-11", "Los niños no quieren ___ temprano.", "acostarse", ["se acostar", "acostarlos", "acuestarse"], "With an infinitive the pronoun joins the end: acostarse."],
+      ["1-12", "Tú ___ peinas delante del espejo.", "te", ["se", "me", "tu"], "tú → te peinas."]
+    ]}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "tener", "title": "Tener", "spanish": "El verbo tener", "category": "verbs", "level": 1,
+  "rule": [
+    "Present: tengo, tienes, tiene, tenemos, tenéis, tienen.",
+    "Age: tener + años (Tengo 20 años). Feelings: tener hambre, sed, frío, calor, sueño, miedo, prisa, razón, suerte.",
+    "tener que + infinitive = to have to: Tengo que estudiar."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mi hermano ___ quince años.", "tiene", ["es", "está", "hay"], "Age is tener: tiene quince años."],
+      ["1-02", "Yo ___ dos gatos.", "tengo", ["tiene", "teno", "tienes"], "yo → tengo."],
+      ["1-03", "¿___ hambre? Hay pizza en la cocina.", "Tienes", ["Estás", "Eres", "Tenes"], "Being hungry: tener hambre."],
+      ["1-04", "Nosotros ___ que estudiar esta tarde.", "tenemos", ["tienemos", "tenimos", "tienen"], "nosotros → tenemos (no stem change)."],
+      ["1-05", "Abre la ventana, ___ mucho calor.", "tengo", ["estoy", "soy", "hago"], "Feeling hot: tener calor."],
+      ["1-06", "Mis primos ___ una casa en la playa.", "tienen", ["tenen", "tienes", "tenéis"], "ellos → tienen."],
+      ["1-07", "¿Vosotros ___ coche?", "tenéis", ["tienéis", "tienen", "tenés de"], "vosotros → tenéis."],
+      ["1-08", "Tienes ___: es mejor salir temprano.", "razón", ["la razón", "verdad de", "razones"], "Being right: tener razón."],
+      ["1-09", "El niño ___ miedo de la oscuridad.", "tiene", ["está", "es", "hace"], "Being afraid: tener miedo."],
+      ["1-10", "Hoy tengo ___ ir al médico.", "que", ["de", "a", "para"], "Having to: tener que + infinitive."],
+      ["1-11", "¿Cuántos años ___ tu abuela?", "tiene", ["es", "está", "tienen"], "Age: tener."],
+      ["1-12", "Me voy a la cama, ___ mucho sueño.", "tengo", ["estoy", "soy", "hago"], "Being sleepy: tener sueño."]
+    ]}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "estilo-indirecto", "title": "Reported speech", "spanish": "Estilo indirecto", "category": "tenses-moods", "level": 4,
+  "rule": [
+    "After a past verb (dijo que…), tenses move back: present → imperfect, preterite or perfect → pluperfect, future → conditional.",
+    "Commands become que + subjunctive: «Ven» → Me dijo que viniera (after a past verb) / Me dice que venga (after a present one).",
+    "Questions keep their question word, with an accent: «¿Dónde vives?» → Me preguntó dónde vivía. Yes/no questions use si."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "«Estoy cansado». → Dijo que ___ cansado.", "estaba", ["está de", "esté", "estuviera"], "Present → imperfect after a past verb."],
+      ["1-02", "«Iré mañana». → Dijo que ___ al día siguiente.", "iría", ["irá de", "iba de", "fuera"], "Future → conditional."],
+      ["1-03", "«He perdido las llaves». → Me contó que ___ las llaves.", "había perdido", ["ha perdido de", "haya perdido", "hubiera perdido"], "Perfect → pluperfect."],
+      ["1-04", "«Siéntate». → Me dijo que me ___.", "sentara", ["sentaré", "sentaría de", "sentado"], "A command after a past verb: imperfect subjunctive."],
+      ["1-05", "«¿Dónde vives?» → Me preguntó dónde ___.", "vivía", ["vivo de", "viviera", "viva"], "Present → imperfect; the question word stays."],
+      ["1-06", "«¿Tienes hambre?» → Me preguntó ___ tenía hambre.", "si", ["que", "qué", "sí"], "A yes/no question is reported with si."],
+      ["1-07", "«Compré pan». → Dijo que ___ pan.", "había comprado", ["compraba de", "ha comprado de", "hubiera comprado"], "Preterite → pluperfect."],
+      ["1-08", "«Cierra la ventana». → Mi madre me dice que ___ la ventana.", "cierre", ["cerrara", "cierro", "cerraré"], "A command after a present verb: present subjunctive."],
+      ["1-09", "«No puedo venir». → Ana dijo que no ___ venir.", "podía", ["puede de", "pudiera", "pueda"], "Present → imperfect."],
+      ["1-10", "«¿Qué quieres?» → Me preguntó ___ quería.", "qué", ["que", "lo cual", "el que"], "The question word stays, with an accent: qué."],
+      ["1-11", "«Llámame mañana». → Me pidió que lo ___ al día siguiente.", "llamara", ["llame de", "llamaba", "llamaré"], "A request after a past verb: imperfect subjunctive."],
+      ["1-12", "«Vivimos en Lima». → Dijeron que ___ en Lima.", "vivían", ["viven de", "vivieran", "vivamos"], "Present → imperfect."]
+    ]}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "adverbio-o-adjetivo", "title": "Adverb or adjective", "spanish": "Adverbio o adjetivo", "category": "adverbs", "level": 2,
+  "rule": [
+    "An adjective describes a noun and agrees with it: una chica tranquila.",
+    "An adverb describes a verb, adjective or adverb and never changes: habla tranquilamente.",
+    "Adverbs in -mente are made from the feminine form: lenta → lentamente, fácil → fácilmente. Two in a row: only the last takes -mente (clara y lentamente)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "El niño duerme ___.", "tranquilamente", ["tranquilo", "tranquila", "tranquilos"], "Describing how he sleeps: an adverb."],
+      ["1-02", "Es una persona muy ___.", "tranquila", ["tranquilamente", "tranquilo", "tranquilas"], "Describing persona (feminine): an adjective."],
+      ["1-03", "Habla ___, por favor; no te entiendo.", "despacio", ["despacia", "despacios", "lenta"], "Describing how to speak: the adverb despacio."],
+      ["1-04", "La tortuga es un animal ___.", "lento", ["lentamente", "lenta", "lentos"], "Describing animal (masculine): lento."],
+      ["1-05", "Resolví el problema ___.", "fácilmente", ["fácil mente", "fácila", "facilmente"], "Adverb from fácil, keeping its accent: fácilmente."],
+      ["1-06", "Ella conduce muy ___.", "bien", ["buena", "bueno", "buenamente"], "How she drives: the adverb bien."],
+      ["1-07", "___, no hay más entradas.", "Desgraciadamente", ["Desgraciada", "Desgraciado", "Desgraciadosmente"], "A comment on the whole sentence: an adverb."],
+      ["1-08", "Explicó la lección clara y ___.", "lentamente", ["lenta", "lentomente", "lentos"], "With two adverbs, only the last takes -mente."],
+      ["1-09", "Estos ejercicios son ___.", "rápidos", ["rápidamente", "rápido", "rápidas"], "Describing ejercicios (masculine plural): rápidos."],
+      ["1-10", "Corre muy ___ para llegar a tiempo.", "rápido", ["rápida", "rápidos", "rápidas"], "rápido can be an adverb too, and then it never changes."],
+      ["1-11", "Normalmente me levanto ___.", "temprano", ["temprana", "tempranos", "tempranamente de"], "When you get up: the adverb temprano."],
+      ["1-12", "La comida estaba ___ preparada.", "perfectamente", ["perfecta", "perfecto", "perfectas"], "Describing the adjective preparada: an adverb."]
+    ]}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "condicional", "title": "The conditional", "spanish": "Condicional simple", "category": "conjugation", "level": 3,
+  "rule": [
+    "Infinitive + -ía, -ías, -ía, -íamos, -íais, -ían: hablaría, comerías, viviría.",
+    "Same irregular stems as the future: tendría, vendría, pondría, saldría, podría, sabría, querría, haría, diría, habría.",
+    "Use it for polite requests (¿Podrías ayudarme?), advice (Yo que tú, iría) and wishes (Me gustaría viajar)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Me ___ (gustar) visitar Japón.", "gustaría", ["gustaría de", "gustara", "gustará"], "A wish: me gustaría."],
+      ["1-02", "¿___ (poder, tú) cerrar la ventana?", "Podrías", ["Poderías", "Pudieras de", "Podías de"], "Polite request; irregular stem podr-."],
+      ["1-03", "Yo que tú, no ___ (decir) nada.", "diría", ["deciría", "diré de", "dijera de"], "Advice; irregular stem dir-."],
+      ["1-04", "Con más dinero, ___ (comprar, nosotros) una casa.", "compraríamos", ["compraríamos de", "compraremos", "comprábamos"], "Hypothetical: compraríamos."],
+      ["1-05", "Ellos ___ (venir), pero están enfermos.", "vendrían", ["venirían", "vendrán de", "vinieran"], "Irregular stem: vendr-."],
+      ["1-06", "¿Qué ___ (hacer, tú) en mi lugar?", "harías", ["hacerías", "harás de", "hicieras"], "Irregular stem: har-."],
+      ["1-07", "En tu lugar, yo ___ (hablar) con el profesor.", "hablaría", ["hablaré", "hable", "hablase de"], "Advice (in your place): conditional."],
+      ["1-08", "___ (ser) mejor salir temprano.", "Sería", ["Será de", "Fuera de", "Era de"], "A suggestion: sería mejor."],
+      ["1-09", "Nosotros no ___ (saber) qué hacer.", "sabríamos", ["saberíamos", "sabremos de", "supiéramos"], "Irregular stem: sabr-."],
+      ["1-10", "¿Te ___ (importar) ayudarme?", "importaría", ["importará", "importara de", "importa de"], "Polite request: ¿te importaría…?"],
+      ["1-11", "Vosotros ___ (tener) más tiempo si no trabajarais tanto.", "tendríais", ["teneríais", "tendréis", "tuvierais"], "Irregular stem: tendr-."],
+      ["1-12", "Ella dijo que ___ (llamar) por la tarde.", "llamaría", ["llamará de", "llamara", "llamaba de"], "Future seen from the past: llamaría."]
+    ]}
+  ]
+}

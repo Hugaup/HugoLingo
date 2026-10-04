@@ -1,0 +1,38 @@
+{
+  "id": "presente-irregulares", "title": "Irregular verbs in the present", "spanish": "Presente: verbos irregulares", "category": "conjugation", "level": 1,
+  "rule": [
+    "Stem changes in every form but nosotros and vosotros: e → ie (querer: quiero), o → ue (poder: puedo), e → i (pedir: pido), u → ue (jugar: juego).",
+    "Irregular yo: hago, pongo, salgo, traigo, conozco, sé, doy, veo; and tengo, vengo, digo (which also change their stem).",
+    "Fully irregular: ser (soy, eres, es, somos, sois, son), ir (voy, vas, va, vamos, vais, van), estar (estoy, estás, está…)."
+  ],
+  "sheets": [
+    {"title": "Stem-changing verbs", "questions": [
+      ["1-01", "Yo ___ (querer) un café, por favor.", "quiero", ["quero", "quieres", "quiere"], "e → ie: quiero."],
+      ["1-02", "¿___ (poder, tú) ayudarme?", "Puedes", ["Podes", "Puede", "Pueden"], "o → ue: puedes."],
+      ["1-03", "Nosotros ___ (poder) venir mañana.", "podemos", ["puedemos", "pueden", "podéis"], "No stem change in nosotros: podemos."],
+      ["1-04", "El niño ___ (dormir) diez horas.", "duerme", ["dorme", "duermes", "durme"], "o → ue: duerme."],
+      ["1-05", "¿A qué hora ___ (empezar) la clase?", "empieza", ["empeza", "empiezan", "empiece"], "e → ie: empieza."],
+      ["1-06", "Yo siempre ___ (pedir) paella.", "pido", ["pedo", "pide", "pidio"], "e → i: pido."],
+      ["1-07", "Mis hijos ___ (jugar) al fútbol.", "juegan", ["jugan", "juega", "jueguen"], "u → ue: juegan."],
+      ["1-08", "¿Vosotros ___ (querer) venir?", "queréis", ["quieréis", "quieren", "querís"], "No stem change in vosotros: queréis."],
+      ["1-09", "La película ___ (costar) diez euros.", "cuesta", ["costa", "cuestan", "cueste"], "o → ue: cuesta."],
+      ["1-10", "Mi padre ___ (pensar) que tienes razón.", "piensa", ["pensa", "piensas", "piense"], "e → ie: piensa."],
+      ["1-11", "Tú ___ (repetir) siempre lo mismo.", "repites", ["repetes", "repite", "repitas"], "e → i: repites."],
+      ["1-12", "¿Cuándo ___ (volver) tus padres?", "vuelven", ["volven", "vuelve", "vuelvan"], "o → ue: vuelven."]
+    ]},
+    {"title": "Irregular yo and fully irregular verbs", "questions": [
+      ["2-01", "Yo ___ (hacer) los deberes después de cenar.", "hago", ["haco", "hace", "hizo"], "Irregular yo: hago."],
+      ["2-02", "Yo ___ (tener) dos hermanas.", "tengo", ["teno", "tiene", "tienes"], "Irregular yo: tengo."],
+      ["2-03", "¿De dónde ___ (ser) tú?", "eres", ["es", "sois", "estás"], "ser: tú eres."],
+      ["2-04", "Nosotros ___ (ir) al cine esta noche.", "vamos", ["imos", "vais", "van"], "ir: nosotros vamos."],
+      ["2-05", "Yo no ___ (saber) la respuesta.", "sé", ["sabo", "sabe", "se"], "Irregular yo: sé."],
+      ["2-06", "Yo ___ (salir) de casa a las ocho.", "salgo", ["salo", "sale", "salgó"], "Irregular yo: salgo."],
+      ["2-07", "¿___ (venir, tú) a la fiesta?", "Vienes", ["Venes", "Viene", "Vengas"], "e → ie: vienes."],
+      ["2-08", "Yo ___ (conocer) a tu hermano.", "conozco", ["conoco", "conoce", "conosco"], "Irregular yo: conozco."],
+      ["2-09", "Ellos ___ (decir) la verdad.", "dicen", ["decen", "dice", "digan"], "e → i: dicen."],
+      ["2-10", "Yo ___ (poner) la mesa.", "pongo", ["pono", "pone", "ponjo"], "Irregular yo: pongo."],
+      ["2-11", "Vosotros ___ (ser) muy simpáticos.", "sois", ["sos", "son", "estáis"], "ser: vosotros sois."],
+      ["2-12", "Yo ___ (ir) al gimnasio los lunes.", "voy", ["vo", "va", "iré de"], "ir: yo voy."]
+    ]}
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "imperativo", "title": "The imperative", "spanish": "Imperativo", "category": "tenses-moods", "level": 2,
+  "rule": [
+    "tú: like the él form of the present (habla, come, escribe). Irregular: ten, ven, pon, sal, haz, di, ve, sé.",
+    "usted / ustedes: present subjunctive (hable, coma / hablen, coman). vosotros: infinitive with -d (hablad, comed).",
+    "Negative: always present subjunctive (no hables, no comáis, no hable).",
+    "Pronouns join an affirmative command (dímelo, siéntate) and go before a negative one (no me lo digas)."
+  ],
+  "sheets": [
+    {"title": "Affirmative", "questions": [
+      ["1-01", "Pedro, ___ (cerrar) la puerta, por favor.", "cierra", ["cierre", "cerra", "cierras"], "tú: like the él present form: cierra."],
+      ["1-02", "Niños, ___ (venir) aquí ahora mismo.", "venid", ["venir", "vienen", "vengáis"], "vosotros: infinitive with -d: venid."],
+      ["1-03", "___ (tener, tú) cuidado con el perro.", "Ten", ["Tiene", "Tengas", "Tene"], "Irregular tú command: ten."],
+      ["1-04", "Señor Pérez, ___ (pasar), por favor.", "pase", ["pasa", "pases", "pasad"], "usted: present subjunctive: pase."],
+      ["1-05", "___ (hacer, tú) los deberes antes de cenar.", "Haz", ["Hace", "Hagas", "Hazte"], "Irregular tú command: haz."],
+      ["1-06", "Señores, ___ (sentarse), por favor.", "siéntense", ["siéntanse", "sentaos", "se sienten"], "ustedes: siéntense (pronoun at the end, with an accent)."],
+      ["1-07", "___ (decir, tú) la verdad.", "Di", ["Dice", "Digas", "Dí"], "Irregular tú command: di (no accent)."],
+      ["1-08", "___ (ir, tú) a comprar pan, por favor.", "Ve", ["Va", "Vayas", "Ves"], "Irregular tú command: ve."],
+      ["1-09", "Chicos, ___ (escuchar) con atención.", "escuchad", ["escuchar", "escucháis", "escuchen de"], "vosotros: -d: escuchad."],
+      ["1-10", "Ana, ___ (levantarse) ya, que es tarde.", "levántate", ["levanta te", "levantate", "levántase"], "tú + pronoun at the end, with an accent: levántate."],
+      ["1-11", "___ (poner, tú) la mesa, por favor.", "Pon", ["Pone", "Pongas", "Poné de"], "Irregular tú command: pon."],
+      ["1-12", "Señora, ___ (firmar) aquí.", "firme", ["firma", "firmes", "firmad"], "usted: present subjunctive: firme."]
+    ]},
+    {"title": "Negative and with pronouns", "questions": [
+      ["2-01", "No ___ (hablar, tú) tan alto.", "hables", ["habla", "hablas", "hable"], "Negative tú command: present subjunctive: no hables."],
+      ["2-02", "No ___ (comer, vosotros) tantos dulces.", "comáis", ["comed", "coméis", "coman de"], "Negative vosotros: present subjunctive: no comáis."],
+      ["2-03", "No ___ (tocar, usted) nada, por favor.", "toque", ["toca", "toques", "toqué"], "Negative usted: no toque (c → qu)."],
+      ["2-04", "El libro es mío. ___ ahora mismo.", "Dámelo", ["Me lo da", "Damelo", "Me lo das"], "Affirmative tú: pronouns joined, with an accent: dámelo."],
+      ["2-05", "No ___ digas a nadie.", "se lo", ["lo se", "le lo", "díselo"], "Negative: pronouns before the verb, le → se: no se lo digas."],
+      ["2-06", "No ___ (salir, tú) sin abrigo.", "salgas", ["sales", "sal", "salga"], "Negative tú: no salgas."],
+      ["2-07", "Si tienes sueño, ___.", "acuéstate", ["te acuesta", "acuestate", "acuéstete"], "Affirmative tú: acuéstate."],
+      ["2-08", "No ___ preocupes, todo va a salir bien.", "te", ["se", "tú", "le"], "Negative: pronoun before the verb: no te preocupes."],
+      ["2-09", "Las ventanas, no ___ abráis.", "las", ["les", "abráislas", "los"], "Negative: pronoun before the verb: no las abráis."],
+      ["2-10", "No ___ (ir, ustedes) por esa calle; está cortada.", "vayan", ["van", "id", "vayáis"], "Negative ustedes: no vayan."],
+      ["2-11", "¿La carta? ___ hoy, por favor.", "Escríbela", ["La escribe", "Escribela", "Escríbala tú"], "Affirmative tú: escríbela."],
+      ["2-12", "No ___ (hacer, tú) ruido; el bebé duerme.", "hagas", ["haz", "haces", "haga"], "Negative tú: no hagas."]
+    ]}
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "indefinido-regulares", "title": "Regular verbs in the preterite", "spanish": "Pretérito indefinido: verbos regulares", "category": "conjugation", "level": 2,
+  "rule": [
+    "-ar (hablar): hablé, hablaste, habló, hablamos, hablasteis, hablaron.",
+    "-er/-ir (comer, vivir): comí, comiste, comió, comimos, comisteis, comieron.",
+    "Spelling changes in yo: -car → -qué (busqué), -gar → -gué (llegué), -zar → -cé (empecé). leer, creer, oír: leyó, leyeron."
+  ],
+  "sheets": [
+    {"title": "-ar verbs", "questions": [
+      ["1-01", "Ayer ___ (hablar, yo) con mi jefe.", "hablé", ["hablo", "habló", "hablaste"], "yo, preterite: hablé (with an accent)."],
+      ["1-02", "¿___ (trabajar, tú) el sábado pasado?", "Trabajaste", ["Trabajastes", "Trabajó", "Trabajas"], "tú: -aste (no final s)."],
+      ["1-03", "La semana pasada mi hermana ___ (comprar) un coche nuevo.", "compró", ["compro", "compré", "compre"], "ella: -ó (with an accent)."],
+      ["1-04", "El año pasado ___ (viajar, nosotros) a Perú.", "viajamos", ["viajemos", "viajaron", "viajásteis"], "nosotros: -amos (same as the present)."],
+      ["1-05", "¿___ (cenar, vosotros) en casa anoche?", "Cenasteis", ["Cenásteis", "Cenaron", "Cenaste"], "vosotros: -asteis (no accent)."],
+      ["1-06", "Mis padres ___ (llegar) a las diez.", "llegaron", ["llegó", "llegaran", "llegamos"], "ellos: -aron."],
+      ["1-07", "Yo ___ (llegar) tarde al trabajo.", "llegué", ["llegé", "llego", "llegó"], "-gar → -gué in yo: llegué."],
+      ["1-08", "Yo ___ (buscar) las llaves por toda la casa.", "busqué", ["buscé", "busco", "buscó"], "-car → -qué in yo: busqué."],
+      ["1-09", "Yo ___ (empezar) a estudiar en septiembre.", "empecé", ["empezé", "empiecé", "empezó"], "-zar → -cé in yo: empecé."],
+      ["1-10", "Usted ___ (pagar) la cuenta, ¿verdad?", "pagó", ["pagué", "pago", "pagaste"], "usted: -ó."],
+      ["1-11", "Los niños ___ (jugar) en la calle toda la tarde.", "jugaron", ["juegaron", "jugó", "jugamos"], "ellos: -aron (no stem change in the preterite)."],
+      ["1-12", "Anoche ___ (cerrar, yo) la puerta con llave.", "cerré", ["cierré", "cerró", "cierro"], "No stem change in the preterite: cerré."]
+    ]},
+    {"title": "-er and -ir verbs", "questions": [
+      ["2-01", "Ayer ___ (comer, yo) en un restaurante japonés.", "comí", ["comé", "como", "comió"], "yo: -í."],
+      ["2-02", "¿___ (escribir, tú) a tu abuela ayer?", "Escribiste", ["Escribistes", "Escribió", "Escribas"], "tú: -iste."],
+      ["2-03", "Mi hijo ___ (nacer) en 2019.", "nació", ["nacé", "nace", "nacío"], "él: -ió."],
+      ["2-04", "Nosotros ___ (vivir) dos años en Chile.", "vivimos", ["vivemos", "vivieron", "vivisteis"], "nosotros: -imos."],
+      ["2-05", "¿Vosotros ___ (aprender) mucho en el curso?", "aprendisteis", ["aprendísteis", "aprendieron", "aprendiste"], "vosotros: -isteis."],
+      ["2-06", "Ellos ___ (decidir) cambiar de casa.", "decidieron", ["decidiron", "decidió", "decidimos"], "ellos: -ieron."],
+      ["2-07", "Mi abuela ___ (leer) el libro en dos días.", "leyó", ["leió", "lió", "leeó"], "leer: i → y between vowels: leyó."],
+      ["2-08", "Ellos no me ___ (creer).", "creyeron", ["creieron", "creeron", "creyó"], "creer: creyeron."],
+      ["2-09", "Yo ___ (abrir) la ventana porque hacía calor.", "abrí", ["abré", "abro", "abrió"], "yo: -í."],
+      ["2-10", "¿___ (oír, tú) ese ruido?", "Oíste", ["Oiste", "Oyiste", "Oyó"], "oír: oíste (with an accent)."],
+      ["2-11", "Ayer el tren ___ (salir) a las siete.", "salió", ["salé", "sale", "salío"], "él: -ió."],
+      ["2-12", "Anoche ustedes ___ (beber) demasiado vino.", "bebieron", ["bebiste", "bebió", "bebimos"], "ustedes: -ieron."]
+    ]}
+  ]
+}

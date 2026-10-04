@@ -191,3 +191,9 @@ doesn't depend on the model:
 **Done in run 2 (feature/sentence-quality):** moved the blanking to the server, tightened
 the validation with the failure patterns above, and re-ran this benchmark —
 see "Run 2" above.
+
+**Outcome (2026-10-04):** even with these checks the 7B model kept too few
+reliable grammar exercises at B1+, so grammar is now hand-written
+(`backend/data/grammar/spanish/`, organised like lingua.com) and the
+`--grammar` benchmark mode and `grammar_pool` were removed. The LLM is used for
+conversation, sentence completion and reading.

@@ -11,6 +11,9 @@ import Review from './pages/Review'
 import Progress from './pages/Progress'
 import Vocabulary from './pages/Vocabulary'
 import Conversation from './pages/Conversation'
+import Grammar from './pages/Grammar'
+import GrammarTopic from './pages/GrammarTopic'
+import GrammarSheet from './pages/GrammarSheet'
 import { isOffered } from './constants'
 
 // /practice/<a language the app doesn't offer (any more)> goes home
@@ -34,6 +37,9 @@ export default function App() {
               <Route path="review" element={<Review />} />
               <Route path="vocabulary" element={<Vocabulary />} />
               <Route path="conversation" element={<Conversation />} />
+              <Route path="grammar" element={<Grammar />} />
+              <Route path="grammar/:topic" element={<GrammarTopic />} />
+              <Route path="grammar/:topic/:sheet" element={<GrammarSheet />} />
             </Route>
             <Route path="/progress" element={<Progress />} />
             <Route path="/exercise" element={<Exercise />} />

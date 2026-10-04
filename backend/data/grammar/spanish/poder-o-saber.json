@@ -1,0 +1,24 @@
+{
+  "id": "poder-o-saber", "title": "Poder or saber", "spanish": "Poder o saber", "category": "verbs", "level": 2,
+  "rule": [
+    "saber + infinitive: a skill you have learned (Sé nadar, Sabe tocar el piano).",
+    "poder + infinitive: being able to in a given moment, or being allowed to (Hoy no puedo nadar: tengo fiebre. ¿Puedo pasar?).",
+    "Present: sé, sabes, sabe… / puedo, puedes, puede, podemos, podéis, pueden."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mi hija tiene cinco años y ya ___ leer.", "sabe", ["conoce", "sabes", "puede de"], "A learned skill: saber."],
+      ["1-02", "Hoy no ___ salir: tengo que estudiar.", "puedo", ["sé", "sabo", "conozco"], "Not able to at this moment: poder."],
+      ["1-03", "¿___ tocar la guitarra?", "Sabes", ["Puedes", "Conoces", "Sabe tú"], "A learned skill: saber."],
+      ["1-04", "¿___ usar tu teléfono un momento?", "Puedo", ["Sé", "Sabo", "Conozco"], "Asking permission: poder."],
+      ["1-05", "No ___ nadar; nunca aprendí.", "sé", ["conozco", "se", "sabo"], "A skill never learned: no sé (with an accent)."],
+      ["1-06", "Con la pierna rota no ___ jugar al fútbol.", "puede", ["sabe", "conoce", "puedes"], "Physically unable right now: poder."],
+      ["1-07", "Mis padres ___ hablar tres idiomas.", "saben", ["pueden de", "conocen", "sabe"], "A learned skill: saber."],
+      ["1-08", "Aquí no se ___ aparcar.", "puede", ["sabe", "conoce", "pueden de"], "Not allowed: no se puede."],
+      ["1-09", "¿___ conducir? Necesito a alguien que me lleve.", "Sabes", ["Puedes de", "Conoces", "Sabe tú"], "Having the skill of driving: saber."],
+      ["1-10", "Lo siento, no ___ ir a tu fiesta: estoy de viaje.", "puedo", ["sé", "sabo", "conozco"], "Not able to (circumstances): poder."],
+      ["1-11", "¿Alguien ___ cocinar paella?", "sabe", ["puede de", "conoce", "saben"], "A skill: saber."],
+      ["1-12", "Ya es tarde y los niños no ___ ver la tele.", "pueden", ["saben", "conocen", "puedan"], "Not allowed: poder."]
+    ]}
+  ]
+}

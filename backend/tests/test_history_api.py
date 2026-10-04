@@ -227,8 +227,8 @@ async def test_new_user_has_no_weak_spots(logged_in):
     alice, _ = await logged_in()
     data = (await alice.get("/history/weak-spots/spanish")).json()
     assert data == {
-        "items": [], "counts": {"needs_work": 0, "getting_there": 0, "fixed": 0},
-        "due_count": 0, "next_check_up_at": None,
+        "items": [], "topics": [], "counts": {"needs_work": 0, "getting_there": 0, "fixed": 0},
+        "due_count": 0, "grammar_due_count": 0, "next_check_up_at": None,
     }
 
 

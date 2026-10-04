@@ -123,6 +123,15 @@ export const api = {
 
   getMistakes: (language) => request('GET', `/history/mistakes/${language}`),
 
+  // Grammar topics and sheets
+  getGrammar: (language) => request('GET', `/grammar/${language}`),
+  getGrammarTopic: (language, topic) => request('GET', `/grammar/${language}/topics/${encodeURIComponent(topic)}`),
+  // sheet: a number, or 'review' for the topic's review sheet
+  getGrammarSheet: (language, topic, sheet) =>
+    request('GET', `/grammar/${language}/topics/${encodeURIComponent(topic)}/${sheet === 'review' ? 'review' : `sheets/${sheet}`}`),
+  answerGrammar: (language, topic, questionId, answer) =>
+    request('POST', '/grammar/answer', { language, topic, question_id: questionId, answer }),
+
   checkDrill: (language, prompt, answer) =>
     request('POST', '/history/drill/check', {
       language,

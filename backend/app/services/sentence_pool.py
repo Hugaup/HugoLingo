@@ -36,7 +36,7 @@ _recent_requests: dict[Language, deque[tuple[TenseFilter, ...]]] = defaultdict(l
 _live_requests = 0
 _running: set[Language] = set()
 _tasks: set[asyncio.Task] = set()
-# One background refill talks to the LLM at a time (shared with services/grammar_pool.py)
+# One background refill talks to the LLM at a time
 background_lock = asyncio.Lock()
 
 

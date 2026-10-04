@@ -1,0 +1,38 @@
+{
+  "id": "articulos-definidos", "title": "Definite articles", "spanish": "Artículos definidos", "category": "articles", "level": 1,
+  "rule": [
+    "el (masculine singular), la (feminine singular), los (masculine plural), las (feminine plural).",
+    "Feminine nouns starting with a stressed a- take el in the singular: el agua, el águila — but las aguas.",
+    "Use the article for things in general (Me gusta el café), with days (el lunes = on Monday) and with señor/señora when talking about someone (La señora Ruiz vive aquí)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "___ libro de Marta está en la mesa.", "El", ["La", "Los", "Las"], "libro is masculine singular: el libro."],
+      ["1-02", "___ casa de mis abuelos es muy grande.", "La", ["El", "Los", "Las"], "casa is feminine singular: la casa."],
+      ["1-03", "¿Dónde están ___ llaves del coche?", "las", ["los", "la", "el"], "llaves is feminine plural: las llaves."],
+      ["1-04", "___ niños juegan en el parque.", "Los", ["Las", "El", "La"], "niños is masculine plural: los niños."],
+      ["1-05", "Bebo ___ agua muy fría.", "el", ["la", "los", "las"], "agua is feminine but starts with a stressed a-: el agua."],
+      ["1-06", "___ problema es muy fácil.", "El", ["La", "Los", "Las"], "problema is masculine even though it ends in -a: el problema."],
+      ["1-07", "Me duele ___ mano derecha.", "la", ["el", "los", "las"], "mano is feminine even though it ends in -o: la mano."],
+      ["1-08", "___ ciudades del norte son muy bonitas.", "Las", ["Los", "La", "El"], "ciudades is feminine plural: las ciudades."],
+      ["1-09", "Abre ___ ventana, por favor.", "la", ["el", "las", "los"], "ventana is feminine singular: la ventana."],
+      ["1-10", "___ día está precioso hoy.", "El", ["La", "Los", "Las"], "día is masculine even though it ends in -a: el día."],
+      ["1-11", "Estudio ___ lección cinco.", "la", ["el", "los", "las"], "lección (-ción) is feminine: la lección."],
+      ["1-12", "___ coches rojos son de mi vecino.", "Los", ["Las", "El", "La"], "coches is masculine plural: los coches."]
+    ]},
+    {"questions": [
+      ["2-01", "Me gusta mucho ___ chocolate.", "el", ["la", "un", "los"], "Things in general take the article in Spanish: me gusta el chocolate."],
+      ["2-02", "___ lunes tengo clase de inglés.", "El", ["La", "En", "Los"], "On + a day of the week is el + day: el lunes."],
+      ["2-03", "Los sábados voy a ___ piscina.", "la", ["el", "las", "los"], "piscina is feminine singular: la piscina."],
+      ["2-04", "___ señor García es mi profesor.", "El", ["La", "Un", "Los"], "Talking about someone, señor takes the article: el señor García."],
+      ["2-05", "___ águila vuela muy alto.", "El", ["La", "Los", "Las"], "águila is feminine but starts with a stressed a-: el águila."],
+      ["2-06", "___ aguas de esta playa están limpias.", "Las", ["El", "La", "Los"], "In the plural the feminine article comes back: las aguas."],
+      ["2-07", "Dame ___ mapa, por favor.", "el", ["la", "los", "las"], "mapa is masculine: el mapa."],
+      ["2-08", "Tengo que lavar ___ ropa.", "la", ["el", "los", "las"], "ropa is feminine singular: la ropa."],
+      ["2-09", "___ radio de mi abuelo es muy antigua.", "La", ["El", "Los", "Las"], "radio (the device) is feminine: la radio."],
+      ["2-10", "Vivo en ___ calle Mayor.", "la", ["el", "los", "las"], "calle is feminine: la calle."],
+      ["2-11", "___ idiomas son útiles para viajar.", "Los", ["Las", "El", "La"], "idiomas is masculine plural: los idiomas."],
+      ["2-12", "No encuentro ___ gafas de sol.", "las", ["los", "la", "el"], "gafas is feminine plural: las gafas."]
+    ]}
+  ]
+}

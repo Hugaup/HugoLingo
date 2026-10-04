@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import StatusBadge from './StatusBadge'
 import { PERSON_LABELS, tenseWithMood } from '../utils/conjugationUtils'
+import { BLANK } from '../utils/grammar'
 import { STATUS_LABELS, checkUpLabel } from '../utils/reviewStatus'
 import { color, radius, ui } from '../theme'
 
 const FILTERS = ['all', 'needs_work', 'getting_there', 'fixed']
 
-// "My mistakes": everything ever got wrong in a language — verb+tenses and
-// words — with where each one stands and its latest wrong answers.
+// "My mistakes": everything ever got wrong in a language — verb+tenses, grammar
+// topics and words — with where each one stands and its latest wrong answers.
 export default function MyMistakes({ language }) {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
@@ -22,13 +23,15 @@ export default function MyMistakes({ language }) {
 
   if (error) return <p style={s.error}>{error}</p>
   if (!data) return <p style={s.muted}>Loading…</p>
-  if (!data.verbs.length && !data.words.length) {
+  const grammarGroups = data.topics ?? []
+  if (!data.verbs.length && !grammarGroups.length && !data.words.length) {
     return <p style={s.muted}>No mistakes yet. Anything you get wrong will be kept here.</p>
   }
 
-  const total = data.verbs.length + data.words.length
+  const total = data.verbs.length + grammarGroups.length + data.words.length
   const shown = list => list.filter(g => filter === 'all' || g.status === filter)
   const verbs = shown(data.verbs)
+  const topics = shown(grammarGroups)
   const words = shown(data.words)
 
   return (
@@ -46,7 +49,7 @@ export default function MyMistakes({ language }) {
         ))}
       </div>
 
-      {!verbs.length && !words.length && <p style={s.muted}>Nothing here.</p>}
+      {!verbs.length && !topics.length && !words.length && <p style={s.muted}>Nothing here.</p>}
 
       {verbs.length > 0 && (
         <section style={s.section} aria-labelledby="mistakes-verbs">
@@ -66,6 +69,23 @@ export default function MyMistakes({ language }) {
                 onPractise={() => navigate(`/practice/${language}/review?${new URLSearchParams({
                   verb: g.verb_infinitive, mood: g.mood, tense: g.tense,
                 })}`)}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {topics.length > 0 && (
+        <section style={s.section} aria-labelledby="mistakes-grammar">
+          <h2 id="mistakes-grammar" style={s.sectionTitle}>Grammar</h2>
+          <ul style={s.list}>
+            {topics.map(g => (
+              <Group
+                key={g.topic}
+                title={<strong>{g.title}</strong>}
+                group={g}
+                renderMistake={m => <GrammarMistake mistake={m} />}
+                onPractise={() => navigate(`/practice/${language}/grammar/${g.topic}/review`)}
               />
             ))}
           </ul>
@@ -128,6 +148,17 @@ function Group({ title, group, renderMistake, onPractise }) {
       )}
     </li>
   )
+}
+
+// The sentence with the wrong option struck through and the right one after it
+// (find-the-mistake answers are whole sentences: wrong → right)
+function GrammarMistake({ mistake }) {
+  const { question, user_answer: given, expected } = mistake
+  if (!question.includes(BLANK)) {
+    return <><del style={s.wrong}>{given}</del> → <strong>{expected}</strong></>
+  }
+  const [before, after] = question.split(BLANK)
+  return <>{before}<del style={s.wrong}>{given}</del> <strong>{expected}</strong>{after}</>
 }
 
 function formatDay(iso) {

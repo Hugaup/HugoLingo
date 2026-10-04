@@ -1,0 +1,39 @@
+{
+  "id": "comparativos", "title": "Comparatives and superlatives", "spanish": "Comparativos y superlativos", "category": "adjectives", "level": 2,
+  "rule": [
+    "más / menos + adjective + que: Ana es más alta que yo. tan + adjective + como: Soy tan alto como tú.",
+    "tanto/a/os/as + noun + como: Tengo tantos libros como tú. Verb + tanto como: Trabajo tanto como tú.",
+    "Irregular: mejor (better), peor (worse), mayor (older), menor (younger) — never más bueno for better.",
+    "Superlative: el/la/los/las más + adjective + de: Es el más alto de la clase. -ísimo means very: guapísimo."
+  ],
+  "sheets": [
+    {"title": "más, menos, tan, tanto", "questions": [
+      ["1-01", "Madrid es más grande ___ Sevilla.", "que", ["como", "de", "tan"], "más … que."],
+      ["1-02", "Mi hermano es tan alto ___ mi padre.", "como", ["que", "de", "tanto"], "tan … como."],
+      ["1-03", "Tengo ___ libros como tú.", "tantos", ["tan", "tantas", "tanto"], "tanto agrees with the noun: tantos libros."],
+      ["1-04", "Hoy hace ___ calor como ayer.", "tanto", ["tan", "tanta", "tantos"], "calor is masculine singular: tanto calor."],
+      ["1-05", "Este coche es ___ caro que el otro.", "menos", ["tan", "tanto", "como"], "menos … que."],
+      ["1-06", "Ella trabaja ___ como su jefe.", "tanto", ["tan", "tanta", "más"], "After a verb: tanto como."],
+      ["1-07", "No hay ___ gente como el año pasado.", "tanta", ["tanto", "tan", "tantas"], "gente is feminine singular: tanta gente."],
+      ["1-08", "¿Es el tren ___ rápido como el avión? No, el avión es más rápido.", "tan", ["tanto", "más", "como"], "tan + adjective + como."],
+      ["1-09", "Mi casa tiene ___ habitaciones que la tuya.", "más", ["tan", "tantas", "como"], "más + noun + que."],
+      ["1-10", "Leo menos ___ antes.", "que", ["como", "de", "tan"], "menos … que."],
+      ["1-11", "Somos ___ simpáticos como ellos.", "tan", ["tantos", "tanto", "más"], "tan + adjective + como."],
+      ["1-12", "Hay más ___ veinte personas en la sala.", "de", ["que", "como", "tan"], "With a number, más de: más de veinte."]
+    ]},
+    {"title": "mejor, peor, mayor, menor, superlatives", "questions": [
+      ["2-01", "Esta película es ___ que la otra. Me ha gustado más.", "mejor", ["más buena", "más bien", "buenísima"], "The comparative of bueno is mejor."],
+      ["2-02", "Mi hermana tiene 20 años y yo 15: ella es ___ que yo.", "mayor", ["menor", "mejor", "más joven"], "Older (of people) is mayor."],
+      ["2-03", "Tu nota es ___ que la mía: tú tienes un 4 y yo un 6.", "peor", ["más mala", "mejor", "más mal"], "The comparative of malo is peor."],
+      ["2-04", "Pablo es el ___ de los tres hermanos: tiene solo 8 años.", "menor", ["mayor", "peor", "menos"], "The youngest is el menor."],
+      ["2-05", "Es el edificio más alto ___ la ciudad.", "de", ["que", "en", "como"], "Superlative + de: el más alto de la ciudad."],
+      ["2-06", "La comida estaba ___: ¡deliciosa!", "riquísima", ["muy riquísima", "más riquísima", "riquísimo"], "-ísimo means very and agrees with comida: riquísima."],
+      ["2-07", "Ana canta ___ que yo.", "mejor", ["más bien", "más buena", "más mejor"], "Better (adverb) is also mejor: canta mejor."],
+      ["2-08", "Es la ___ película del año: nadie quiere verla.", "peor", ["peores", "mejor", "más peor"], "The worst is la peor."],
+      ["2-09", "Ellos son los estudiantes ___ trabajadores de la clase.", "más", ["mejor", "tan", "muy"], "Superlative: los más trabajadores de la clase."],
+      ["2-10", "Este examen es ___: lo aprueba todo el mundo.", "facilísimo", ["muy facilísimo", "más facilísimo", "facilísima"], "-ísimo means very and agrees with examen: facilísimo."],
+      ["2-11", "Mi abuelo es la persona ___ de la familia.", "mayor", ["más mayor", "mejor de", "más vieja que"], "The oldest is la mayor (not más mayor)."],
+      ["2-12", "Hoy me siento ___ que ayer; ya no me duele la cabeza.", "mejor", ["más bien", "más bueno", "bueno"], "Feeling better is sentirse mejor."]
+    ]}
+  ]
+}

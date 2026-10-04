@@ -1,0 +1,25 @@
+{
+  "id": "objeto-indirecto", "title": "Indirect object pronouns", "spanish": "Pronombres de objeto indirecto", "category": "pronouns", "level": 2,
+  "rule": [
+    "me, te, le, nos, os, les: to/for whom something is done. Le doy un regalo a mi madre.",
+    "le/les is used for both masculine and feminine: le escribo a Juan, le escribo a Ana.",
+    "The pronoun is usually kept even when the person is named: Les compré flores a mis abuelas.",
+    "Verbs like gustar, doler, parecer always take one: Me duele la cabeza."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "___ doy un regalo a mi madre.", "Le", ["La", "Lo", "Les"], "To my mother (one person): le."],
+      ["1-02", "___ escribo una carta a mis abuelos.", "Les", ["Le", "Los", "Las"], "To my grandparents (several people): les."],
+      ["1-03", "¿___ has dicho la verdad a Juan?", "Le", ["Lo", "La", "Les"], "To Juan: le (indirect object)."],
+      ["1-04", "A mí, mi madre ___ lee un cuento cada noche.", "me", ["mi", "le", "te"], "To me: me."],
+      ["1-05", "¿___ presto mi bici, Ana?", "Te", ["Le", "La", "Tu"], "To you (tú): te."],
+      ["1-06", "A nosotros, el profesor ___ explica la lección.", "nos", ["les", "os", "se"], "To us: nos."],
+      ["1-07", "A mis hermanas ___ encanta bailar.", "les", ["las", "le", "los"], "With encantar, to them: les."],
+      ["1-08", "Chicos, ___ traigo un regalo.", "os", ["les", "nos", "los"], "To you all (vosotros): os."],
+      ["1-09", "A Pedro ___ duele la espalda.", "le", ["lo", "se", "les"], "With doler, to Pedro: le."],
+      ["1-10", "Voy a ___ un mensaje a Laura.", "mandarle", ["mandarla", "le mandar", "mandarles"], "To Laura (one person), joined to the infinitive: mandarle."],
+      ["1-11", "¿Qué ___ parece la idea, señor Gómez?", "le", ["lo", "te", "les"], "With parecer, to usted: le."],
+      ["1-12", "___ pregunté la hora a un policía.", "Le", ["Lo", "Les", "La"], "To a police officer (one person): le."]
+    ]}
+  ]
+}

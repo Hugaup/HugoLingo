@@ -1,0 +1,24 @@
+{
+  "id": "plural-de-los-sustantivos", "title": "Plural of nouns", "spanish": "El plural de los sustantivos", "category": "nouns", "level": 1,
+  "rule": [
+    "Ending in a vowel: add -s (casa → casas). Ending in a consonant: add -es (ciudad → ciudades).",
+    "-z becomes -ces: lápiz → lápices, vez → veces.",
+    "Written accents can come or go: canción → canciones, joven → jóvenes. Nouns in unstressed -s don't change: el lunes → los lunes."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Tengo dos ___ en el estuche.", "lápices", ["lápizes", "lápizs", "lápiz"], "-z becomes -ces in the plural: lápices."],
+      ["1-02", "Visitamos tres ___ en Italia.", "ciudades", ["ciudads", "ciudad", "ciudadas"], "A final consonant takes -es: ciudades."],
+      ["1-03", "Me sé muchas ___ de los Beatles.", "canciones", ["cancións", "canciónes", "cancion"], "canción → canciones (the accent goes)."],
+      ["1-04", "Los ___ de hoy usan mucho el móvil.", "jóvenes", ["jovenes", "jóvens", "joven"], "joven → jóvenes (an accent appears to keep the stress)."],
+      ["1-05", "Voy al gimnasio todos los ___.", "lunes", ["luneses", "lunés", "lunesas"], "Nouns ending in unstressed -s don't change: los lunes."],
+      ["1-06", "He estado en Madrid tres ___.", "veces", ["vezes", "vez", "vezs"], "vez → veces."],
+      ["1-07", "Compramos dos ___ nuevos.", "sofás", ["sofaes", "sofá", "sofases"], "A stressed final vowel usually just adds -s: sofás."],
+      ["1-08", "En la mesa hay cuatro ___.", "panes", ["pans", "pan", "panses"], "A final consonant takes -es: panes."],
+      ["1-09", "Mis ___ viven en Sevilla.", "padres", ["padrees", "padre", "padrás"], "A final vowel takes -s: padres."],
+      ["1-10", "Los ___ están en la nevera.", "tomates", ["tomatees", "tomate", "tomats"], "A final vowel takes -s: tomates."],
+      ["1-11", "Necesito dos ___ para el viaje.", "paraguas", ["paraguases", "paragua", "paraguaes"], "paraguas doesn't change in the plural."],
+      ["1-12", "Hay muchos ___ en este jardín.", "árboles", ["arboles", "árbols", "árbol"], "árbol → árboles."]
+    ]}
+  ]
+}

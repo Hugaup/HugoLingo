@@ -1,0 +1,38 @@
+{
+  "id": "pronombres-interrogativos", "title": "Question words", "spanish": "Pronombres interrogativos", "category": "pronouns", "level": 1,
+  "rule": [
+    "qué (what), quién/quiénes (who), dónde (where), adónde (where to), cuándo (when), cómo (how), cuánto/a/os/as (how much, how many), por qué (why), cuál/cuáles (which).",
+    "Question words always carry an accent, also in indirect questions: No sé dónde vive.",
+    "qué + noun or for definitions (¿Qué libro? ¿Qué es esto?); cuál for a choice with ser or alone (¿Cuál es tu número? ¿Cuál prefieres?)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "¿___ te llamas?", "Cómo", ["Qué", "Cuál", "Quién"], "Asking someone's name: ¿Cómo te llamas?"],
+      ["1-02", "¿___ vives? —En Barcelona.", "Dónde", ["Cuándo", "Cómo", "Qué"], "The answer is a place: dónde."],
+      ["1-03", "¿___ es tu cumpleaños? —El 3 de mayo.", "Cuándo", ["Dónde", "Cuál", "Qué"], "The answer is a date: cuándo."],
+      ["1-04", "¿___ años tienes?", "Cuántos", ["Cuántas", "Cuánto", "Qué"], "años is masculine plural: cuántos."],
+      ["1-05", "¿___ es ese chico? —Es mi primo.", "Quién", ["Qué", "Cuál", "Cómo"], "Asking about a person: quién."],
+      ["1-06", "¿___ estudias español? —Porque me gusta.", "Por qué", ["Porque", "Para qué", "Qué"], "Asking why: por qué (two words, with an accent)."],
+      ["1-07", "¿___ hora es?", "Qué", ["Cuál", "Cuánta", "Cómo"], "Asking the time: ¿Qué hora es?"],
+      ["1-08", "¿___ cuesta este libro?", "Cuánto", ["Cuántos", "Cuál", "Cómo"], "Asking a price: cuánto."],
+      ["1-09", "¿___ personas vienen a la cena?", "Cuántas", ["Cuántos", "Cuánta", "Cuáles"], "personas is feminine plural: cuántas."],
+      ["1-10", "¿___ vas tan rápido? —Al banco.", "Adónde", ["Dónde", "De dónde", "Cuándo"], "Where to (with a verb of movement): adónde."],
+      ["1-11", "¿De ___ eres? —De México.", "dónde", ["qué", "cuál", "quién"], "Origin: ¿de dónde eres?"],
+      ["1-12", "¿___ son esos señores? —Son mis vecinos.", "Quiénes", ["Quién", "Cuáles", "Qué"], "Asking about several people: quiénes."]
+    ]},
+    {"title": "qué or cuál", "questions": [
+      ["2-01", "¿___ es tu número de teléfono?", "Cuál", ["Qué", "Cuánto", "Cómo"], "With ser for a specific piece of information: ¿cuál es…?"],
+      ["2-02", "¿___ libro estás leyendo?", "Qué", ["Quién", "Cuáles", "Cómo"], "Before a noun: qué libro."],
+      ["2-03", "Tengo dos camisas. ¿___ de las dos prefieres?", "Cuál", ["Qué", "Quién", "Cómo"], "Choosing one of a group: cuál de…"],
+      ["2-04", "¿___ es un ornitorrinco? —Es un animal de Australia.", "Qué", ["Cuál", "Quién", "Cómo"], "Asking for a definition: ¿qué es…?"],
+      ["2-05", "¿___ son tus colores favoritos?", "Cuáles", ["Cuál", "Qué", "Cuántos"], "With ser for several items: cuáles son."],
+      ["2-06", "¿___ quieres hacer esta tarde?", "Qué", ["Cuál", "Cuáles", "Cómo"], "Asking what (an action): qué."],
+      ["2-07", "No sé ___ autobús tengo que coger.", "qué", ["que", "quien", "cuánto"], "Before a noun: qué, with an accent in an indirect question."],
+      ["2-08", "¿___ de estas mochilas es la tuya?", "Cuál", ["Qué", "Quién", "Cuáles"], "Choosing one of a group: cuál de…"],
+      ["2-09", "¿___ es la capital de Perú?", "Cuál", ["Qué", "Dónde", "Cómo"], "A specific piece of information with ser: cuál."],
+      ["2-10", "¿___ música te gusta?", "Qué", ["Cómo", "Cuáles", "Cuánto"], "Before a noun: qué música."],
+      ["2-11", "Dime ___ piensas.", "qué", ["que", "cuál", "cuáles"], "An indirect question about what: qué (with an accent)."],
+      ["2-12", "¿___ es la diferencia entre ser y estar?", "Cuál", ["Qué", "Cuáles", "Cómo"], "With ser for a specific piece of information: cuál."]
+    ]}
+  ]
+}

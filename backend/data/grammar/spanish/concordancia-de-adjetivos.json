@@ -1,0 +1,38 @@
+{
+  "id": "concordancia-de-adjetivos", "title": "Adjective endings", "spanish": "Terminación de los adjetivos", "category": "adjectives", "level": 1,
+  "rule": [
+    "Adjectives agree with their noun in gender and number: un chico alto, una chica alta, unos chicos altos, unas chicas altas.",
+    "Adjectives in -e or a consonant have one form for both genders: un libro interesante, una película interesante; un examen fácil, una pregunta fácil.",
+    "Nationalities in a consonant add -a for the feminine: un coche alemán, una ciudad alemana. A mixed group takes the masculine plural."
+  ],
+  "sheets": [
+    {"title": "-o / -a", "questions": [
+      ["1-01", "Mi hermana es muy ___.", "alta", ["alto", "altos", "altas"], "hermana is feminine singular: alta."],
+      ["1-02", "Tus zapatos son muy ___.", "bonitos", ["bonito", "bonita", "bonitas"], "zapatos is masculine plural: bonitos."],
+      ["1-03", "Las manzanas están ___.", "maduras", ["maduro", "madura", "maduros"], "manzanas is feminine plural: maduras."],
+      ["1-04", "El café está ___.", "frío", ["fría", "fríos", "frías"], "café is masculine singular: frío."],
+      ["1-05", "Tengo dos gatos ___.", "negros", ["negro", "negra", "negras"], "gatos is masculine plural: negros."],
+      ["1-06", "La sopa está muy ___.", "rica", ["rico", "ricos", "ricas"], "sopa is feminine singular: rica."],
+      ["1-07", "Mis abuelos son muy ___.", "simpáticos", ["simpático", "simpática", "simpáticas"], "abuelos is masculine plural: simpáticos."],
+      ["1-08", "Compré una camisa ___.", "blanca", ["blanco", "blancos", "blancas"], "camisa is feminine singular: blanca."],
+      ["1-09", "Juan y María son ___.", "altos", ["altas", "alto", "alta"], "A mixed group takes the masculine plural: altos."],
+      ["1-10", "Estas casas son ___.", "antiguas", ["antiguos", "antigua", "antiguo"], "casas is feminine plural: antiguas."],
+      ["1-11", "El problema es muy ___.", "complicado", ["complicada", "complicados", "complicadas"], "problema is masculine: complicado."],
+      ["1-12", "Tengo las manos ___.", "sucias", ["sucios", "sucia", "sucio"], "manos is feminine plural: sucias."]
+    ]},
+    {"title": "-e, consonants and nationalities", "questions": [
+      ["2-01", "Es una película muy ___.", "interesante", ["interesanta", "interesantes", "interesanto"], "Adjectives in -e don't change for gender: interesante."],
+      ["2-02", "Los ejercicios son ___.", "fáciles", ["fácil", "fácils", "fácilas"], "fácil is plural here: fáciles."],
+      ["2-03", "Mi profesora es ___.", "alemana", ["alemán", "alemanes", "alemanas"], "Nationalities in a consonant add -a: alemana."],
+      ["2-04", "Tiene los ojos ___.", "azules", ["azul", "azulas", "azulos"], "ojos is plural: azules."],
+      ["2-05", "Mis vecinas son ___.", "francesas", ["francés", "franceses", "francesa"], "vecinas is feminine plural: francesas."],
+      ["2-06", "Es un hombre muy ___.", "inteligente", ["inteligenta", "inteligentes", "inteligento"], "inteligente has one singular form: inteligente."],
+      ["2-07", "Las preguntas son muy ___.", "difíciles", ["difícil", "difícilas", "difícils"], "preguntas is plural: difíciles."],
+      ["2-08", "Tengo un coche ___.", "verde", ["verda", "verdes", "verdo"], "verde has one singular form for both genders."],
+      ["2-09", "Mis amigos son ___.", "españoles", ["españolas", "español", "española"], "amigos is masculine plural: españoles."],
+      ["2-10", "La ciudad es muy ___.", "grande", ["granda", "grandes", "grando"], "grande has one singular form for both genders."],
+      ["2-11", "Ana es muy ___.", "trabajadora", ["trabajador", "trabajadores", "trabajadoras"], "Adjectives in -or add -a for the feminine: trabajadora."],
+      ["2-12", "Son unas chicas muy ___.", "alegres", ["alegre", "alegras", "alegros"], "chicas is plural: alegres."]
+    ]}
+  ]
+}

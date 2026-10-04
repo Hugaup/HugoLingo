@@ -161,32 +161,6 @@ class SentencePoolItem(Base):
     )
 
 
-class GrammarPoolItem(Base):
-    """A pre-made, already-checked grammar-correction exercise waiting to be served.
-
-    Filled in the background by services/grammar_pool.py; each row is deleted
-    when it's handed to a user.
-    """
-    __tablename__ = "grammar_pool"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
-    level: Mapped[int] = mapped_column(Integer, nullable=False)  # 1-5, A1-C1
-    sentence_with_error: Mapped[str] = mapped_column(String(512), nullable=False)
-    corrected_sentence: Mapped[str] = mapped_column(String(512), nullable=False)
-    error_type: Mapped[str] = mapped_column(String(32), nullable=False)  # a services/grammar.ERROR_LABELS key
-    explanation: Mapped[str] = mapped_column(String(500), nullable=False)
-    source: Mapped[str] = mapped_column(String(16), nullable=False)  # "rule" | "model" | "bank": who made the mistake
-    model: Mapped[str] = mapped_column(String(64), nullable=False)
-    # services/grammar.GRAMMAR_PROMPT_VERSION it was made with; older ones are never served
-    prompt_version: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
-
-    __table_args__ = (
-        Index("ix_grammar_pool_language_level", "language", "level"),
-    )
-
-
 class VocabItem(Base):
     """A word or everyday phrase to learn, seeded from data/vocabulary/{language}.json."""
     __tablename__ = "vocab_items"
@@ -290,6 +264,53 @@ class VocabAttempt(Base):
 
     __table_args__ = (
         Index("ix_vocab_attempts_user_created", "user_id", "created_at"),
+    )
+
+
+class GrammarAttempt(Base):
+    """One answer to one grammar question (services/grammar_topics.py).
+
+    `topic` + `question_id` point into the hand-written data in data/grammar/;
+    the latest answer to each question is what sheet progress is computed from.
+    """
+    __tablename__ = "grammar_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    topic: Mapped[str] = mapped_column(String(64), nullable=False)
+    question_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    user_answer: Mapped[str] = mapped_column(String(512), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_almost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_grammar_attempts_user_language_topic", "user_id", "language", "topic"),
+        Index("ix_grammar_attempts_user_created", "user_id", "created_at"),
+    )
+
+
+class GrammarReview(Base):
+    """Spaced-repetition (Leitner box) state for one grammar topic, per user.
+
+    Only created by a mistake: a topic you've never got wrong has nothing to work on.
+    """
+    __tablename__ = "grammar_reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    topic: Mapped[str] = mapped_column(String(64), nullable=False)
+    box: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    correct_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wrong_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "language", "topic", name="uq_grammar_review"),
+        Index("ix_grammar_reviews_user_language_due", "user_id", "language", "due_at"),
     )
 
 
