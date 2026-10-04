@@ -226,7 +226,7 @@ async def test_a_verb_mistake_feeds_weak_spots_and_review(logged_in, fake_llm, d
     [review] = (await db.execute(select(ReviewItem))).scalars().all()
     assert (review.verb_infinitive, review.box) == ("tener", 0)
     weak = (await alice.get("/history/weak-spots/spanish")).json()
-    assert weak["verbs"][0]["verb_infinitive"] == "tener"
+    assert (weak["items"][0]["verb_infinitive"], weak["items"][0]["status"]) == ("tener", "needs_work")
 
     # One message, one answer in the stats (its verb attempt isn't counted again)
     stats = (await alice.get("/history/stats?language=spanish&days=7")).json()

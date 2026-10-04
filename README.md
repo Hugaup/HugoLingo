@@ -119,8 +119,9 @@ Also contains `IRREGULAR_VERBS` sets per language used for "irregular" mode.
 #### `app/routers/history.py`
 Answer history, weak spots and review (logic in `app/services/history.py`):
 - `POST /history/attempts` — record answers graded in the browser (verb table only).
-- `GET /history/weak-spots/{language}` — weakest verbs, tenses and verb+tense pairs (recency-weighted error rate, mistakes fade with a 14-day half-life) plus how many review items are due.
-- `GET /history/drill/{language}?count=` — prompts for the review drill: due items first, then weak spots; persons you got wrong come first.
+- `GET /history/weak-spots/{language}?limit=` — "Work on this": verb+tenses you got wrong that *need work* (worst first) or are *getting there* (right since, waiting for the 1-day and 3-day check-ups), counts per status (incl. *fixed*), how many review items are due and when the next check-up is.
+- `GET /history/mistakes/{language}` — every verb+tense and word ever got wrong, with its status and latest wrong answers.
+- `GET /history/drill/{language}?count=[&verb=&mood=&tense=]` — prompts for the review drill: what's due (needs work, then check-ups), or every person of one verb+tense; persons you got wrong come first.
 - `POST /history/drill/check` — grades a drill answer against `verb_conjugations` (compound tenses, both subjunctive spellings) as `correct`/`almost`/`wrong`, records it, and returns a one-line explanation plus the whole tense for mistakes.
 - `GET /history/stats?language=&tz=&days=` — totals, accuracy, per-day activity, today's count and streak, in the user's timezone.
 - `GET /history/grid/{language}` — accuracy per verb × tense for the most-practised verbs.
@@ -259,10 +260,10 @@ Single module for all backend calls. All paths prefixed with `/api`; the session
 ### Pages
 
 #### `src/pages/Review.jsx` (`/practice/:language/review`)
-Weak-spot drill: one verb + tense + person at a time, graded by the server, keyboard-only flow (Enter to check, Enter for next), summary of mistakes at the end.
+Review drill: one verb + tense + person at a time, graded by the server, keyboard-only flow (Enter to check, Enter for next). Serves what's due, or one verb + tense with `?verb=&mood=&tense=` (from "My mistakes"). The summary says where each verb + tense now stands (needs work / getting there + next check-up / fixed).
 
 #### `src/pages/Progress.jsx` (`/progress`)
-Per-language stats: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`).
+Per-language stats, in two tabs (`?language=&view=mistakes`). Overview: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`). My mistakes (`components/MyMistakes.jsx`): the whole history of mistakes, filterable by status, with a "Practise" button per verb + tense.
 
 #### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
 Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap, Listening), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
@@ -280,7 +281,7 @@ Pronunciation with the browser's built-in speech synthesis (free, offline, no ba
 Compact feedback after a mistake (one line, all forms behind a toggle) and the end-of-session recap (score, mistakes with accent slips marked, "Review these now") shared by the drill, sentence completion and the classic exercise flow.
 
 #### `src/components/WorkOnThis.jsx`
-Compact panel (on `Practice` and `Progress`) listing the user's weakest verb + tenses with a "Practise these" button into the drill.
+Compact panel (on `Practice` and `Progress`) listing what needs work, then what's getting there with its next check-up, the number fixed, a "Practise these" button when something is due, and a link to "My mistakes".
 
 #### `src/pages/Dashboard.jsx` (`/`)
 First visit: pick the language you're learning (saved as `target_language`). After that: today's answers against the daily goal and the streak, a "Continue practising" button, how many words and verb tenses are due (each a shortcut), tiles for Vocabulary / Conversation / Conjugation / Review, the "Work on this" panel, and a flag switcher to change language.

@@ -1,34 +1,48 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import CharPicker from '../components/conjugation/CharPicker'
 import MistakeExplanation from '../components/MistakeExplanation'
 import SessionSummary from '../components/SessionSummary'
 import SpeakButton from '../components/SpeakButton'
+import StatusBadge from '../components/StatusBadge'
 import { PERSON_LABELS, tenseWithMood } from '../utils/conjugationUtils'
-import { ui } from '../theme'
+import { checkUpLabel } from '../utils/reviewStatus'
+import { color, ui } from '../theme'
 
 const DRILL_LENGTH = 10
 
-// Focused review: due spaced-repetition items and weak spots, one prompt at a
-// time, graded server-side against verb_conjugations.
+// Focused review: what's due (things that need work, then check-ups), one
+// prompt at a time, graded server-side against verb_conjugations. With
+// ?verb=&mood=&tense= (from "My mistakes") it drills that one verb+tense.
 export default function Review() {
   const { language } = useParams()
+  const [params] = useSearchParams()
   const navigate = useNavigate()
   // Bumping the round remounts the drill, which fetches a fresh set of prompts
   const [round, setRound] = useState(0)
   const cap = str => str.charAt(0).toUpperCase() + str.slice(1)
 
+  const [verb, mood, tense] = ['verb', 'mood', 'tense'].map(k => params.get(k))
+  const only = verb && mood && tense ? { verb_infinitive: verb, mood, tense } : null
+
   return (
     <div style={s.page}>
-      <button style={s.back} onClick={() => navigate(`/practice/${language}`)}>← Practice</button>
+      {only
+        ? <button style={s.back} onClick={() => navigate(`/progress?view=mistakes&language=${language}`)}>← My mistakes</button>
+        : <button style={s.back} onClick={() => navigate(`/practice/${language}`)}>← Practice</button>}
       <h1 style={s.title}>Review — {cap(language)}</h1>
-      <Drill key={`${language}-${round}`} language={language} onRestart={() => setRound(r => r + 1)} />
+      <Drill
+        key={`${language}-${verb}-${mood}-${tense}-${round}`}
+        language={language}
+        only={only}
+        onRestart={() => setRound(r => r + 1)}
+      />
     </div>
   )
 }
 
-function Drill({ language, onRestart }) {
+function Drill({ language, only, onRestart }) {
   const navigate = useNavigate()
   const [prompts, setPrompts]   = useState(null)  // null while loading
   const [loadError, setLoadError] = useState(null)
@@ -42,10 +56,10 @@ function Drill({ language, onRestart }) {
   const nextRef  = useRef(null)
 
   useEffect(() => {
-    api.getDrill(language, DRILL_LENGTH)
+    api.getDrill(language, DRILL_LENGTH, only)
       .then(setPrompts)
       .catch(e => { setLoadError(e.message); setPrompts([]) })
-  }, [language])
+  }, [language]) // eslint-disable-line react-hooks/exhaustive-deps -- `only` is fixed for this mount (keyed)
 
   // Keyboard flow: type → Enter checks → Enter again goes to the next prompt
   useEffect(() => {
@@ -58,8 +72,8 @@ function Drill({ language, onRestart }) {
   if (!prompts.length) {
     return (
       <div style={s.card}>
-        <p style={s.emptyTitle}>Nothing to review yet</p>
-        <p style={s.muted}>Practise some conjugations first — anything you get wrong will come back here.</p>
+        <p style={s.emptyTitle}>Nothing to review right now</p>
+        <p style={s.muted}>Anything you get wrong comes back here, and so does each check-up once it's due.</p>
         <button style={s.primary} onClick={() => navigate(`/practice/${language}/conjugation`)}>Go to conjugation practice</button>
       </div>
     )
@@ -79,7 +93,9 @@ function Drill({ language, onRestart }) {
         onRestart={onRestart}
         restartLabel="Review again"
         showReviewLink={false}
-      />
+      >
+        <StatusRecap language={language} log={log} />
+      </SessionSummary>
     )
   }
 
@@ -150,6 +166,37 @@ function Drill({ language, onRestart }) {
   )
 }
 
+// Where each drilled verb+tense stands now: the status after its last answer
+// (needs work / getting there + next check-up / fixed). Things never got wrong
+// have no status and aren't listed.
+function StatusRecap({ language, log }) {
+  const latest = new Map()
+  for (const { prompt, result } of log) {
+    latest.set(`${prompt.verb_infinitive}|${prompt.mood}|${prompt.tense}`, { prompt, result })
+  }
+  const rows = [...latest.entries()].filter(([, { result }]) => result.status)
+  if (!rows.length) return null
+
+  return (
+    <section style={s.recap} aria-labelledby="where-you-stand">
+      <h2 id="where-you-stand" style={s.recapTitle}>Where you stand</h2>
+      <ul style={s.recapList}>
+        {rows.map(([key, { prompt, result }]) => (
+          <li key={key} style={s.recapItem}>
+            <span style={s.recapWhat}>
+              <strong>{prompt.verb_infinitive}</strong> · {tenseWithMood(language, prompt.mood, prompt.tense)}
+            </span>
+            <span style={s.recapState}>
+              {result.status === 'getting_there' && result.due_at && <span style={s.checkUp}>{checkUpLabel(result.due_at)}</span>}
+              <StatusBadge status={result.status} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 // Non-personal forms (gerund, infinitive…) are stored with person "—"
 function personLabel(language, person) {
   if (person === '—') return ''
@@ -173,6 +220,13 @@ const s = {
   primary: ui.primary,
   secondary: ui.secondary,
   feedbackRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' },
+  recap: { margin: '0.75rem 0 1rem' },
+  recapTitle: { fontSize: '0.95rem', fontWeight: 700, color: color.ink, margin: '0 0 0.35rem' },
+  recapList: { listStyle: 'none', padding: 0, margin: 0 },
+  recapItem: { display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.25rem 0.75rem', padding: '0.35rem 0', borderBottom: '1px solid #eceef1', fontSize: '0.9rem' },
+  recapWhat: { color: color.body, flex: '1 1 12rem', minWidth: 0 },
+  recapState: { display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginLeft: 'auto' },
+  checkUp: { color: color.muted, fontSize: '0.8rem' },
 }
 
 const FEEDBACK_STYLE = {

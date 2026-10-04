@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ALICE, calls, mockBackend, renderAppAt } from './helpers'
 
 const ME = { 'GET /auth/me': { body: ALICE } }
-const NO_WEAK = { 'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } } }
+const NO_WEAK = { 'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } } }
 const PASSAGE = 'Ayer tuve un día muy largo. Después corrí al parque con mi perro.'
 const READING = {
   'POST /exercises/generate': {

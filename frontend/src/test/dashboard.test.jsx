@@ -8,7 +8,7 @@ const stats = (today, streak = 0) => ({
   'GET /history/stats': { body: { total: 40, correct: 30, accuracy: 75, today_count: today, streak_days: streak, daily: [] } },
 })
 const DUE = {
-  'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 2 } },
+  'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 2, next_check_up_at: null } },
   'GET /vocab/spanish/overview': { body: { available: true, groups: [], total: 300, learned: 10, due: 5 } },
 }
 
@@ -48,7 +48,7 @@ describe('home dashboard', () => {
   it('says when the goal is reached and when nothing is due', async () => {
     mockBackend({
       'GET /auth/me': { body: SPANISH_ALICE }, ...stats(25),
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: { available: true, groups: [], total: 300, learned: 0, due: 0 } },
     })
     renderAppAt('/')
@@ -72,7 +72,7 @@ describe('home dashboard', () => {
       'GET /auth/me': { body: SPANISH_ALICE },
       'PATCH /auth/me': { body: { ...ALICE, target_language: 'french' } },
       ...stats(0), ...DUE,
-      'GET /history/weak-spots/french': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/french': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/french/overview': { body: { available: true, groups: [], total: 300, learned: 0, due: 0 } },
     })
     renderAppAt('/')

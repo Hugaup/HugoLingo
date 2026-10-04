@@ -1,10 +1,12 @@
-"""Answer history: recording attempts, spaced-review scheduling, weak-spot scoring.
+"""Answer history: recording attempts, spaced-review scheduling, weak spots.
 
 Every conjugation answer from any practice area goes through record_attempts(),
 which appends to `attempts` and updates the per-verb+tense Leitner box in
-`review_items`. Weak spots are computed on the fly from recent attempts with
-exponential decay, so old mistakes fade and fixed ones stop being flagged.
+`review_items`. Anything you've got wrong has a status read off its box —
+needs work → getting there → fixed — and "Work on this" lists the first two.
+Recent attempts, weighted by age, only decide the order within "needs work".
 """
+from collections import Counter
 import random
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -14,7 +16,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy import Integer, cast, func, select, tuple_, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Attempt, ConversationTurn, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem
+from app.models import Attempt, ConversationTurn, Language, ReviewItem, VerbConjugation, VocabAttempt, VocabItem, VocabReview
 from app.services.conjugation_utils import canonical_tense, variant_tense_names
 
 # Leitner boxes: a wrong answer sends an item back to box 0 (due straight away);
@@ -28,6 +30,14 @@ REVIEW_INTERVALS = [
     timedelta(days=30),
 ]
 MAX_BOX = len(REVIEW_INTERVALS) - 1
+# A box only moves up when its check-up is due: getting a form right again a
+# minute after seeing the answer proves nothing. "Due" starts this long before
+# due_at, so a check-up "tomorrow" is open all of tomorrow, not just after the
+# exact time of today's answer.
+DUE_SLACK = timedelta(hours=8)
+# Something you got wrong is fixed once it has passed the 1-day and the 3-day
+# check-ups (box 1 → 2 → 3); before that it's "getting there".
+FIXED_BOX = 3
 
 # An answer's weight halves every HALF_LIFE_DAYS, so last week's mistakes count
 # for much more than last quarter's. Beyond HISTORY_WINDOW the weight is < 0.3%.
@@ -55,9 +65,28 @@ class AttemptIn:
 
 # ── Pure helpers ─────────────────────────────────────────────────────────────
 
-def next_review(box: int, correct: bool, now: datetime) -> tuple[int, datetime]:
-    new_box = min(box + 1, MAX_BOX) if correct else 0
+def is_due(due_at: datetime | None, now: datetime) -> bool:
+    return due_at is None or due_at <= now + DUE_SLACK
+
+
+def next_review(box: int, due_at: datetime | None, correct: bool, now: datetime) -> tuple[int, datetime]:
+    """Wrong → box 0, due now. Right → up a box, but only if it was due;
+    a right answer before the check-up leaves the schedule alone."""
+    if not correct:
+        return 0, now
+    if not is_due(due_at, now):
+        return box, due_at
+    new_box = min(box + 1, MAX_BOX)
     return new_box, now + REVIEW_INTERVALS[new_box]
+
+
+def review_status(box: int, wrong_count: int) -> str | None:
+    """needs_work | getting_there | fixed; None for something never got wrong."""
+    if not wrong_count:
+        return None
+    if box == 0:
+        return "needs_work"
+    return "getting_there" if box < FIXED_BOX else "fixed"
 
 
 def answer_weight(age: timedelta) -> float:
@@ -67,11 +96,12 @@ def answer_weight(age: timedelta) -> float:
 def score_groups(
     rows: Iterable[tuple[Hashable, bool, datetime]],
     now: datetime,
+    min_weakness: float = MIN_WEAKNESS,
 ) -> list[dict]:
     """Rank groups of answers by recency-weighted error rate.
 
     rows: (group key, is_correct, answered_at). Returns the groups scoring at
-    least MIN_WEAKNESS, weakest first, as dicts with key/attempts/mistakes/
+    least min_weakness, weakest first, as dicts with key/attempts/mistakes/
     weakness/last_mistake_at.
     """
     groups: dict[Hashable, dict] = {}
@@ -92,7 +122,7 @@ def score_groups(
     ranked = []
     for g in groups.values():
         weakness = g.pop("w_wrong") / (g.pop("w_total") + SMOOTHING)
-        if weakness >= MIN_WEAKNESS:
+        if weakness >= min_weakness:
             ranked.append({**g, "weakness": round(weakness, 3)})
     ranked.sort(key=lambda g: (-g["weakness"], -g["mistakes"]))
     return ranked
@@ -126,14 +156,18 @@ async def record_attempts(
     source: str,
     attempts: list[AttemptIn],
     now: datetime | None = None,
-) -> None:
-    """Store answers and update review boxes. Commits."""
+) -> dict[tuple[str, str, str], dict]:
+    """Store answers and update review boxes. Commits.
+
+    Returns each verb+tense's review state after the answers:
+    {(verb, mood, tense): {"status", "due_at"}}.
+    """
     if not attempts:
-        return
+        return {}
     now = now or datetime.now(timezone.utc)
 
     # A batch (e.g. a whole verb table) moves each verb+tense's box once:
-    # up if every answer for it was right, back to 0 if any was wrong.
+    # up if every answer for it was right (and it was due), back to 0 if any was wrong.
     outcomes: dict[tuple[str, str, str], bool] = {}
     for a in attempts:
         tense = canonical_tense(a.tense) if a.tense else None
@@ -147,6 +181,7 @@ async def record_attempts(
             key = (a.verb_infinitive, a.mood, tense)
             outcomes[key] = outcomes.get(key, True) and a.is_correct
 
+    states: dict[tuple[str, str, str], dict] = {}
     if outcomes:
         existing = {
             (r.verb_infinitive, r.mood, r.tense): r
@@ -167,54 +202,174 @@ async def record_attempts(
                     box=0, correct_count=0, wrong_count=0,
                 )
                 db.add(item)
-            item.box, item.due_at = next_review(item.box, correct, now)
+            item.box, item.due_at = next_review(item.box, item.due_at, correct, now)
             item.last_seen_at = now
             if correct:
                 item.correct_count += 1
             else:
                 item.wrong_count += 1
+            states[key] = {"status": review_status(item.box, item.wrong_count), "due_at": item.due_at}
 
     await db.commit()
+    return states
 
 
 # ── Queries ──────────────────────────────────────────────────────────────────
 
 async def weak_spots(db: AsyncSession, user_id: int, language: Language, limit: int, now: datetime) -> dict:
+    """What "Work on this" shows: verb+tenses that need work (worst first), then
+    the ones getting there (check-up due first), plus counts per status."""
+    mistaken = list((await db.execute(
+        select(ReviewItem).where(
+            ReviewItem.user_id == user_id, ReviewItem.language == language, ReviewItem.wrong_count > 0,
+        )
+    )).scalars())
+    statuses = {r.id: review_status(r.box, r.wrong_count) for r in mistaken}
+    mistakes = await mistake_counts(db, user_id, language)
+
     rows = (await db.execute(
         select(Attempt.verb_infinitive, Attempt.mood, Attempt.tense, Attempt.is_correct, Attempt.created_at)
         .where(
             Attempt.user_id == user_id,
             Attempt.language == language,
             Attempt.created_at >= now - HISTORY_WINDOW,
+            Attempt.mood.is_not(None),
+            Attempt.tense.is_not(None),
         )
     )).all()
+    weakness = {
+        g["key"]: g["weakness"]
+        for g in score_groups([((r.verb_infinitive, r.mood, r.tense), r.is_correct, r.created_at) for r in rows],
+                              now, min_weakness=0)
+    }
 
-    def as_items(groups: list[dict], fields: tuple[str, ...]) -> list[dict]:
-        return [
-            {**dict(zip(fields, g["key"])), **{k: v for k, v in g.items() if k != "key"}}
-            for g in groups[:limit]
-        ]
+    def key(r: ReviewItem) -> tuple[str, str, str]:
+        return (r.verb_infinitive, r.mood, r.tense)
 
-    tensed = [r for r in rows if r.mood and r.tense]
+    needs_work = sorted(
+        (r for r in mistaken if statuses[r.id] == "needs_work"),
+        key=lambda r: (-weakness.get(key(r), 0), -mistakes.get(key(r), (0, None))[0]),
+    )
+    getting_there = sorted((r for r in mistaken if statuses[r.id] == "getting_there"), key=lambda r: r.due_at)
+    upcoming = [r.due_at for r in getting_there if not is_due(r.due_at, now)]
+
     due_count = await db.scalar(
         select(func.count()).select_from(ReviewItem).where(
-            ReviewItem.user_id == user_id, ReviewItem.language == language, ReviewItem.due_at <= now,
+            ReviewItem.user_id == user_id, ReviewItem.language == language,
+            ReviewItem.due_at <= now + DUE_SLACK,
         )
     )
+    counts = Counter(statuses.values())
     return {
-        "verbs": as_items(
-            score_groups([((r.verb_infinitive,), r.is_correct, r.created_at) for r in rows], now),
-            ("verb_infinitive",),
-        ),
-        "tenses": as_items(
-            score_groups([((r.mood, r.tense), r.is_correct, r.created_at) for r in tensed], now),
-            ("mood", "tense"),
-        ),
-        "combos": as_items(
-            score_groups([((r.verb_infinitive, r.mood, r.tense), r.is_correct, r.created_at) for r in tensed], now),
-            ("verb_infinitive", "mood", "tense"),
-        ),
+        "items": [
+            {
+                "verb_infinitive": r.verb_infinitive, "mood": r.mood, "tense": r.tense,
+                "status": statuses[r.id], "due_at": r.due_at, "is_due": is_due(r.due_at, now),
+                "mistakes": mistakes.get(key(r), (0, None))[0],
+                "last_mistake_at": mistakes.get(key(r), (0, None))[1],
+            }
+            for r in (needs_work + getting_there)[:limit]
+        ],
+        "counts": {s: counts.get(s, 0) for s in ("needs_work", "getting_there", "fixed")},
         "due_count": due_count or 0,
+        "next_check_up_at": min(upcoming, default=None),
+    }
+
+
+async def mistake_counts(
+    db: AsyncSession, user_id: int, language: Language,
+) -> dict[tuple[str, str, str], tuple[int, datetime]]:
+    """(verb, mood, tense) → (wrong answers ever, the latest one's time)."""
+    rows = (await db.execute(
+        select(Attempt.verb_infinitive, Attempt.mood, Attempt.tense, func.count(), func.max(Attempt.created_at))
+        .where(
+            Attempt.user_id == user_id, Attempt.language == language,
+            Attempt.is_correct.is_(False), Attempt.mood.is_not(None), Attempt.tense.is_not(None),
+        )
+        .group_by(Attempt.verb_infinitive, Attempt.mood, Attempt.tense)
+    )).all()
+    return {(v, m, t): (n, last) for v, m, t, n, last in rows}
+
+
+STATUS_ORDER = {"needs_work": 0, "getting_there": 1, "fixed": 2}
+MISTAKES_SHOWN = 5
+
+
+async def mistake_history(db: AsyncSession, user_id: int, language: Language, now: datetime) -> dict:
+    """Everything you've ever got wrong in a language — verb+tenses and words —
+    with each one's status and its latest wrong answers."""
+    reviews = list((await db.execute(
+        select(ReviewItem).where(
+            ReviewItem.user_id == user_id, ReviewItem.language == language, ReviewItem.wrong_count > 0,
+        )
+    )).scalars())
+    wrong = (await db.execute(
+        select(Attempt).where(
+            Attempt.user_id == user_id, Attempt.language == language,
+            Attempt.is_correct.is_(False), Attempt.mood.is_not(None), Attempt.tense.is_not(None),
+        ).order_by(Attempt.created_at.desc())
+    )).scalars()
+    by_combo: dict[tuple[str, str, str], list[Attempt]] = {}
+    for a in wrong:
+        by_combo.setdefault((a.verb_infinitive, a.mood, a.tense), []).append(a)
+
+    verbs = []
+    for r in reviews:
+        answers = by_combo.get((r.verb_infinitive, r.mood, r.tense), [])
+        verbs.append({
+            "verb_infinitive": r.verb_infinitive, "mood": r.mood, "tense": r.tense,
+            "status": review_status(r.box, r.wrong_count), "due_at": r.due_at, "is_due": is_due(r.due_at, now),
+            "last_seen_at": r.last_seen_at, "total_mistakes": len(answers),
+            "mistakes": [
+                {"person": a.person, "user_answer": a.user_answer, "expected": a.expected,
+                 "is_almost": a.is_almost, "source": a.source, "created_at": a.created_at}
+                for a in answers[:MISTAKES_SHOWN]
+            ],
+            "last_mistake_at": answers[0].created_at if answers else None,
+        })
+
+    word_reviews = (await db.execute(
+        select(VocabReview, VocabItem)
+        .join(VocabItem, VocabItem.id == VocabReview.item_id)
+        .where(VocabReview.user_id == user_id, VocabItem.language == language, VocabReview.wrong_count > 0)
+    )).all()
+    word_wrong: dict[int, list[VocabAttempt]] = {}
+    if word_reviews:
+        for a in (await db.execute(
+            select(VocabAttempt).where(
+                VocabAttempt.user_id == user_id, VocabAttempt.is_correct.is_(False),
+                VocabAttempt.item_id.in_([item.id for _, item in word_reviews]),
+            ).order_by(VocabAttempt.created_at.desc())
+        )).scalars():
+            word_wrong.setdefault(a.item_id, []).append(a)
+
+    words = []
+    for review, item in word_reviews:
+        answers = word_wrong.get(item.id, [])
+        words.append({
+            "item_id": item.id, "text": f"{item.article} {item.text}" if item.article else item.text,
+            "translation": item.translation,
+            "status": review_status(review.box, review.wrong_count), "due_at": review.due_at,
+            "is_due": is_due(review.due_at, now), "last_seen_at": review.last_seen_at,
+            "total_mistakes": len(answers),
+            "mistakes": [
+                {"user_answer": a.user_answer, "exercise": a.exercise, "is_almost": a.is_almost, "created_at": a.created_at}
+                for a in answers[:MISTAKES_SHOWN]
+            ],
+            "last_mistake_at": answers[0].created_at if answers else None,
+        })
+
+    def order(g: dict):
+        last = g["last_mistake_at"] or g["last_seen_at"]
+        return (STATUS_ORDER[g["status"]], -last.timestamp())
+
+    verbs.sort(key=order)
+    words.sort(key=order)
+    statuses = Counter(g["status"] for g in verbs + words)
+    return {
+        "verbs": verbs,
+        "words": words,
+        "counts": {s: statuses.get(s, 0) for s in STATUS_ORDER},
     }
 
 
@@ -225,25 +380,29 @@ async def drill_prompts(
     count: int,
     now: datetime,
     rng: random.Random | None = None,
+    only: tuple[str, str, str] | None = None,
 ) -> list[dict]:
-    """Prompts for a focused review: due review items first, then weak spots.
+    """Prompts for a focused review: whatever is due — things that need work,
+    then check-ups — or, with `only`, every person of that one verb+tense.
 
     Each verb+tense gets several persons when there are fewer items than
     `count`; persons the user recently got wrong come first.
     """
     rng = rng or random.Random()
 
-    due = (await db.execute(
-        select(ReviewItem.verb_infinitive, ReviewItem.mood, ReviewItem.tense)
-        .where(ReviewItem.user_id == user_id, ReviewItem.language == language, ReviewItem.due_at <= now)
-        .order_by(ReviewItem.box, ReviewItem.due_at)
-        .limit(count)
-    )).all()
-    combos: dict[tuple[str, str, str], str] = {tuple(r): "due" for r in due}
-    for item in (await weak_spots(db, user_id, language, count, now))["combos"]:
-        if len(combos) >= count:
-            break
-        combos.setdefault((item["verb_infinitive"], item["mood"], item["tense"]), "weak")
+    if only:
+        combos: dict[tuple[str, str, str], str] = {only: "practice"}
+    else:
+        due = (await db.execute(
+            select(ReviewItem.verb_infinitive, ReviewItem.mood, ReviewItem.tense, ReviewItem.box)
+            .where(
+                ReviewItem.user_id == user_id, ReviewItem.language == language,
+                ReviewItem.due_at <= now + DUE_SLACK,
+            )
+            .order_by(ReviewItem.box, ReviewItem.due_at)
+            .limit(count)
+        )).all()
+        combos = {(v, m, t): "needs_work" if box == 0 else "check_up" for v, m, t, box in due}
 
     queues: list[tuple[tuple[str, str, str], str, list[str]]] = []
     for (verb, mood, tense), reason in combos.items():

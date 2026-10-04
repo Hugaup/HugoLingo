@@ -1,15 +1,29 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import { LANGUAGES } from '../constants'
+import MyMistakes from '../components/MyMistakes'
 import WorkOnThis from '../components/WorkOnThis'
 import ActivityChart from '../components/charts/ActivityChart'
 import AccuracyGrid from '../components/charts/AccuracyGrid'
 import { ui } from '../theme'
 
+const VIEWS = [
+  { code: 'overview', label: 'Overview' },
+  { code: 'mistakes', label: 'My mistakes' },
+]
+
+// Language and view live in the URL (?language=&view=mistakes), so other pages
+// can link straight to "My mistakes".
 export default function Progress() {
   const { user } = useAuth()
-  const [language, setLanguage] = useState(user.target_language || LANGUAGES[0].code)
+  const [params, setParams] = useSearchParams()
+  const asked = params.get('language')
+  const language = LANGUAGES.some(l => l.code === asked) ? asked : (user.target_language || LANGUAGES[0].code)
+  const view = params.get('view') === 'mistakes' ? 'mistakes' : 'overview'
+  const go = (changes) => setParams({ language, view, ...changes }, { replace: true })
+  const setLanguage = code => go({ language: code })
 
   return (
     <div style={s.page}>
@@ -27,12 +41,28 @@ export default function Progress() {
           </button>
         ))}
       </div>
-      <ProgressBody key={language} language={language} dailyGoal={user.daily_goal} />
+      <div style={s.views} role="tablist" aria-label="View">
+        {VIEWS.map(v => (
+          <button
+            key={v.code}
+            role="tab"
+            aria-selected={v.code === view}
+            style={v.code === view ? { ...s.view, ...s.viewOn } : s.view}
+            onClick={() => go({ view: v.code })}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      {view === 'mistakes'
+        ? <MyMistakes key={language} language={language} />
+        : <ProgressBody key={language} language={language} dailyGoal={user.daily_goal}
+            onShowHistory={() => go({ view: 'mistakes' })} />}
     </div>
   )
 }
 
-function ProgressBody({ language, dailyGoal }) {
+function ProgressBody({ language, dailyGoal, onShowHistory }) {
   const [stats, setStats] = useState(null)
   const [grid, setGrid]   = useState(null)
   const [vocab, setVocab] = useState(null)
@@ -77,7 +107,7 @@ function ProgressBody({ language, dailyGoal }) {
         <ActivityChart daily={stats.daily} />
       </section>
 
-      <WorkOnThis language={language} limit={6} />
+      <WorkOnThis language={language} limit={6} onShowHistory={onShowHistory} />
 
       <section style={s.section}>
         <h2 style={s.sectionTitle}>Verbs × tenses</h2>
@@ -103,7 +133,10 @@ function Tile({ label, value, note, children }) {
 const s = {
   page: ui.page,
   title: { ...ui.h1, margin: '0.5rem 0 1rem' },
-  tabs: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
+  tabs: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' },
+  views: { display: 'flex', gap: '1.25rem', borderBottom: '1px solid #e5e7eb', marginBottom: '1.5rem' },
+  view: { background: 'none', borderWidth: '0 0 2px', borderStyle: 'solid', borderColor: 'transparent', padding: '0.4rem 0', marginBottom: -1, color: '#6b7280', cursor: 'pointer', fontSize: '0.95rem', fontFamily: 'inherit' },
+  viewOn: { borderColor: '#4f46e5', color: '#4f46e5', fontWeight: 600 },
   chip: ui.chip,
   chipActive: ui.chipOn,
   tiles: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' },

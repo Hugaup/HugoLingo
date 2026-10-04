@@ -58,7 +58,7 @@ describe('vocabulary page', () => {
   it('is reachable from the practice page and shows phrases and topics with progress', async () => {
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: OVERVIEW },
     })
     renderAppAt('/practice/spanish')
@@ -188,7 +188,7 @@ describe('vocabulary page', () => {
       'GET /auth/me': { body: { ...ALICE, target_language: 'spanish' } },
       'GET /history/stats': { body: { total: 0, correct: 0, accuracy: 0, today_count: 0, streak_days: 0, daily: [{ date: '2026-10-01', total: 0, correct: 0 }] } },
       'GET /history/grid/spanish': { body: { tenses: [], rows: [] } },
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: OVERVIEW },
     })
     renderAppAt('/progress')
