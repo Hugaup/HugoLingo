@@ -6,7 +6,8 @@ What you can practise:
 - **Conjugation** — look up any verb's full table, fill in tables, complete sentences, and a tense guide (indicativo / subjuntivo / imperativo, with the commonly confused pairs explained).
 - **Vocabulary** — ~250 common words in 11 topics and ~40 everyday phrases, with flashcards, multiple choice, typing, fill-the-gap and dictation, on a spaced-review schedule.
 - **Conversation** — role-play everyday situations (café, hotel, asking the way…) with the AI; each of your messages is checked and corrected.
-- **Grammar and reading** — find-the-mistake exercises and short reading passages where every word can be clicked for its meaning.
+- **Grammar** — organised like lingua.com: 50 topics by level (A1–B2) and category (articles, pronouns, *ser y estar*, *por o para*, the subjunctive…), each with the rule in a few lines and sheets of gap sentences with four options, marked as you click. ~860 hand-written questions, plus a "find the mistake" topic where you retype a sentence corrected. No AI involved.
+- **Reading** — short passages where every word can be clicked for its meaning.
 - **Review** — every mistake is kept. "Work on this" shows what needs work, it turns to "getting there" once you get it right, and to "fixed" after you pass the 1-day and 3-day check-ups; Progress → "My mistakes" has the whole history.
 
 Spanish is the only language offered for now. The code and data for French and English are still there (verb tables for both, French vocabulary), just hidden — see [Languages](#languages).
@@ -101,7 +102,7 @@ Pydantic request/response schemas for all endpoints, plus `SentenceExerciseItem`
 
 #### `app/routers/exercises.py`
 - `POST /exercises/generate` — calls `exercise_gen.py` to build a prompt, sends it to the LLM, persists the Exercise row, returns the exercise.
-- `POST /exercises/check` — grammar/reading answers are checked synchronously via `CHECKERS` dict; conjugation answers go through `check_conjugation` (async DB fallback). The `Progress` row is attributed to the logged-in user.
+- `POST /exercises/check` — reading answers (and grammar exercises made before the grammar section) are checked synchronously via `CHECKERS` dict; conjugation answers go through `check_conjugation` (async DB fallback). The `Progress` row is attributed to the logged-in user.
 
 #### `app/routers/auth.py`
 Cookie-session auth (httpOnly, SameSite=Lax; set `COOKIE_SECURE=true` when serving over HTTPS):
@@ -111,6 +112,15 @@ Cookie-session auth (httpOnly, SameSite=Lax; set `COOKIE_SECURE=true` when servi
 - `POST /auth/password` — change password; logs out every other session.
 
 Usernames keep their casing but are unique and matched case-insensitively.
+
+#### `app/routers/grammar.py`
+The grammar section (logic in `app/services/grammar_topics.py`, data in `backend/data/grammar/spanish/`):
+- `GET /grammar/{language}` — categories, every topic with its sheets' progress (answered / right, from the latest answer to each question), its review status, and the overall score.
+- `GET /grammar/{language}/topics/{topic}` — one topic, with its rule.
+- `GET /grammar/{language}/topics/{topic}/sheets/{n}` / `…/review` — a sheet's questions (never the answers); a review sheet puts the questions you last got wrong first.
+- `POST /grammar/answer` — grades one answer (an option, or a typed correction for "find the mistake"), records it, and returns the right answer, the rule behind it and where the topic now stands. A mistake puts the topic in "Work on this" with the same check-ups as verbs.
+
+New questions: add `[text, answer, [3 wrong options], why]` to a topic file and run `python scripts/format_grammar_topics.py spanish` to give them ids.
 
 #### `app/routers/progress.py`
 - `GET /progress` — the logged-in user's exercise history with correctness stats.
@@ -226,6 +236,9 @@ Creates `vocab_items`, `vocab_reviews`, `vocab_attempts` (raw SQL, reuses the `l
 #### `scripts/seed_vocabulary.py`
 Loads `backend/data/vocabulary/{language}.json` into `vocab_items` (upsert — re-run after editing the JSON). Words were chosen and ranked with the [FrequencyWords](https://github.com/hermitdave/FrequencyWords) subtitle frequency lists (CC BY-SA 4.0); translations, topics and examples are curated in the JSON.
 
+#### `alembic/versions/d1f3a5b7c9e0_grammar_topics.py`
+Creates `grammar_attempts` and `grammar_reviews` and drops `grammar_pool` (the old stock of AI-made grammar exercises).
+
 #### `alembic/versions/a7c9e1f3b5d6_add_personal_words.py`
 Adds `vocab_items.owner_id` (personal words) with partial unique indexes for shared vs personal items, and the `word_lookups` cache.
 
@@ -257,7 +270,10 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 /practice/:language/vocabulary → Vocabulary
 /practice/:language/conversation → Conversation  (AI role-play)
 /progress                  → Progress  (stats and charts)
-/exercise                  → Exercise  (grammar/reading answer screen)
+/practice/:language/grammar → Grammar  (score, topics to review, topics by level and category)
+/practice/:language/grammar/:topic → GrammarTopic  (the rule and the sheets)
+/practice/:language/grammar/:topic/:sheet → GrammarSheet  (a sheet, or "review")
+/exercise                  → Exercise  (reading answer screen)
 /settings                  → Settings  (learning prefs, change password, log out)
 ```
 
@@ -300,10 +316,10 @@ Today's answers against the daily goal and the streak, a "Continue practising" b
 Practice (your language) · Progress · Settings, with the current page highlighted. On phones (≤ 640 px) the username and Log out are hidden so it fits; Settings has a Log out button.
 
 #### `src/pages/Practice.jsx`
-Exercise-type picker for a given language (verb conjugation, grammar correction, reading comprehension). Calls `api.generateExercise()` then navigates to `/exercise` with the exercise in `location.state`.
+Practice-area picker for a given language. Conjugation, Vocabulary, Conversation and Grammar open their own pages; Reading calls `api.generateExercise()` then navigates to `/exercise` with the exercise in `location.state`.
 
 #### `src/pages/Exercise.jsx`
-Answer screen for grammar/reading exercises. Reads exercise from `useLocation().state`, submits via `api.checkAnswer()`, shows `FeedbackPanel`.
+Answer screen for reading exercises. Reads exercise from `useLocation().state`, submits via `api.checkAnswer()`, shows `FeedbackPanel`.
 
 #### `src/pages/Conjugation.jsx`
 Verb drill hub. Contains tabs/modes for: verb table lookup, sentence-completion exercises, tense guide, and chat panel.

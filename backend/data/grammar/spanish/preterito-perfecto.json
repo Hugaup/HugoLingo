@@ -1,0 +1,38 @@
+{
+  "id": "preterito-perfecto", "title": "The present perfect", "spanish": "Pretérito perfecto", "category": "conjugation", "level": 2,
+  "rule": [
+    "haber (he, has, ha, hemos, habéis, han) + participle: -ar → -ado (hablado), -er/-ir → -ido (comido, vivido).",
+    "Irregular participles: hecho, dicho, visto, escrito, puesto, vuelto, abierto, roto, muerto, cubierto, descubierto.",
+    "The participle never changes, and nothing goes between haber and it: Lo he visto (not he lo visto)."
+  ],
+  "sheets": [
+    {"title": "Forms", "questions": [
+      ["1-01", "Hoy ___ (comer, yo) muy poco.", "he comido", ["ha comido", "he comí", "he comer"], "haber (yo he) + participle."],
+      ["1-02", "¿___ (estar, tú) alguna vez en México?", "Has estado", ["Ha estado", "Has estada", "Has estar"], "tú has + participle."],
+      ["1-03", "Mi hermana ___ (escribir) un libro.", "ha escrito", ["ha escribido", "he escrito", "ha escrita"], "Irregular participle: escrito."],
+      ["1-04", "Todavía no ___ (hacer, nosotros) los deberes.", "hemos hecho", ["hemos hacido", "habemos hecho", "han hecho"], "Irregular participle: hecho; nosotros hemos."],
+      ["1-05", "¿Quién ___ (romper) el vaso?", "ha roto", ["ha rompido", "he roto", "ha rota"], "Irregular participle: roto."],
+      ["1-06", "Esta semana ___ (ver, yo) tres películas.", "he visto", ["he veído", "ha visto", "he vido"], "Irregular participle: visto."],
+      ["1-07", "¿Vosotros ___ (abrir) la ventana?", "habéis abierto", ["habéis abrido", "han abierto", "habíais abiertos"], "Irregular participle: abierto."],
+      ["1-08", "Mis padres ___ (volver) de su viaje.", "han vuelto", ["han volvido", "ha vuelto", "han vueltos"], "Irregular participle: vuelto."],
+      ["1-09", "¿Dónde ___ (poner, tú) mis llaves?", "has puesto", ["has ponido", "ha puesto", "has puesta"], "Irregular participle: puesto."],
+      ["1-10", "Nunca te ___ (decir, yo) una mentira.", "he dicho", ["he decido", "ha dicho", "he dicha"], "Irregular participle: dicho."],
+      ["1-11", "Ustedes ___ (trabajar) mucho este año.", "han trabajado", ["han trabajados", "habéis trabajado", "ha trabajado"], "ustedes han + participle (it never changes)."],
+      ["1-12", "La película ya ___ (empezar).", "ha empezado", ["ha empezada", "he empezado", "ha empiezado"], "The participle never agrees: ha empezado."]
+    ]},
+    {"title": "Word order and use", "questions": [
+      ["2-01", "¿Las llaves? No ___ visto.", "las he", ["he las", "las ha de", "he lo"], "Pronouns go before haber: las he visto."],
+      ["2-02", "Esta mañana ___ (levantarse, yo) temprano.", "me he levantado", ["he me levantado", "me ha levantado", "me he levantada de"], "Reflexive pronoun before haber."],
+      ["2-03", "Nosotros ___ terminado el proyecto.", "ya hemos", ["hemos ya", "ya habemos", "ya han"], "ya goes before haber, never between haber and the participle."],
+      ["2-04", "Este año ___ (viajar, yo) mucho.", "he viajado", ["viajé de", "he viajar", "he viajada"], "A time period that isn't over (este año): perfecto."],
+      ["2-05", "¿Alguna vez ___ (comer, tú) pulpo?", "has comido", ["comiste de", "has comer", "has comida"], "Experience (alguna vez): perfecto."],
+      ["2-06", "Hoy ___ (llover) mucho.", "ha llovido", ["ha llovida", "he llovido", "ha llueve"], "Today (not over): perfecto."],
+      ["2-07", "Todavía no ___ (llegar) el autobús.", "ha llegado", ["ha llegada", "han llegado", "ha llegar"], "todavía no + perfecto."],
+      ["2-08", "Mis amigos ___ (descubrir) un restaurante nuevo.", "han descubierto", ["han descubrido", "han descubiertos", "ha descubierto"], "Irregular participle: descubierto."],
+      ["2-09", "¿Qué ___ (pasar)? ¿Por qué lloras?", "ha pasado", ["ha pasada", "he pasado", "ha pasar"], "Something that just happened: ha pasado."],
+      ["2-10", "Nunca ___ (ver, nosotros) la nieve.", "hemos visto", ["hemos vido", "han visto", "hemos vistos"], "nunca + perfecto; participle visto."],
+      ["2-11", "El perro ___ (morir) esta mañana.", "ha muerto", ["ha morido", "ha muerta", "he muerto"], "Irregular participle: muerto."],
+      ["2-12", "¿Ya ___ (hablar, vosotras) con la profesora?", "habéis hablado", ["habéis habladas", "han hablado", "habíais hablada"], "vosotras habéis + participle (it never changes)."]
+    ]}
+  ]
+}

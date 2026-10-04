@@ -1,0 +1,24 @@
+{
+  "id": "bien-o-bueno", "title": "Bien or bueno", "spanish": "Bien o bueno", "category": "adjectives", "level": 2,
+  "rule": [
+    "bueno/buena/buenos/buenas is an adjective: it describes a noun (un buen libro, una comida buena).",
+    "bien is an adverb: it describes how something is done (cantas bien) and goes with estar for feeling fine (estoy bien).",
+    "bueno becomes buen before a masculine singular noun: un buen día."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Este restaurante es muy ___.", "bueno", ["bien", "buen", "buena"], "Describing a noun with ser: bueno."],
+      ["1-02", "Mi hermano canta muy ___.", "bien", ["bueno", "buen", "buena"], "How he sings is an adverb: bien."],
+      ["1-03", "Hoy hace ___ tiempo.", "buen", ["bien", "bueno", "buena"], "Before a masculine singular noun, bueno becomes buen."],
+      ["1-04", "—¿Cómo estás? —Estoy ___, gracias.", "bien", ["bueno", "buen", "buena"], "Feeling fine is estar bien."],
+      ["1-05", "Es una ___ idea.", "buena", ["bien", "buen", "bueno"], "idea is feminine: buena."],
+      ["1-06", "Hablas español muy ___.", "bien", ["bueno", "buena", "buen"], "How you speak is an adverb: bien."],
+      ["1-07", "Estos tomates son muy ___.", "buenos", ["bien", "buen", "buenas"], "tomates is masculine plural: buenos."],
+      ["1-08", "Mi abuela cocina muy ___.", "bien", ["buena", "bueno", "buen"], "How she cooks is an adverb: bien."],
+      ["1-09", "Juan es un ___ amigo.", "buen", ["bueno", "bien", "buena"], "Before a masculine singular noun: buen amigo."],
+      ["1-10", "El examen me salió ___.", "bien", ["bueno", "buen", "buena"], "How it went is an adverb: salir bien."],
+      ["1-11", "Tienes muy ___ notas este año.", "buenas", ["bien", "buenos", "buen"], "notas is feminine plural: buenas."],
+      ["1-12", "¡Qué ___ huele la comida!", "bien", ["bueno", "buena", "buen"], "How it smells is an adverb: huele bien."]
+    ]}
+  ]
+}

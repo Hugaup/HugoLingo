@@ -166,32 +166,31 @@ describe('sentence completion feedback', () => {
 })
 
 describe('classic exercise flow feedback', () => {
-  it('shows "almost" for accent slips and a summary after the last exercise', async () => {
+  it('starts the next exercise of a session with a fresh answer box', async () => {
+    let id = 0
     mockBackend({
       ...ME,
       'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
-      'POST /exercises/generate': {
-        body: { id: 7, type: 'grammar', language: 'spanish', difficulty: 2,
-          content: { sentence_with_error: 'El esta aqui.', corrected_sentence: 'Él está aquí.', explanation: 'Accents.' } },
+      'POST /exercises/generate': () => {
+        id += 1
+        return { body: { id, type: 'reading', language: 'spanish', difficulty: 2,
+          content: { passage: `Texto número ${id}.`, questions: [{ question: `Pregunta ${id}`, correct_answer: 'sí' }] } } }
       },
-      'POST /exercises/check': {
-        body: { is_correct: false, almost: true, explanation: 'Almost — just the accents. Accents.', correct_answer: 'Él está aquí.' },
-      },
+      'POST /exercises/check': { body: { is_correct: true, almost: false, explanation: 'Well done.', correct_answer: 'sí' } },
     })
     renderAppAt('/practice/spanish')
 
-    await userEvent.click(await screen.findByRole('button', { name: /Grammar/ }))
-    await userEvent.click(screen.getByRole('button', { name: '1', exact: true }))
+    await userEvent.click(await screen.findByRole('button', { name: /Reading/ }))
+    await userEvent.click(screen.getByRole('button', { name: '5', exact: true }))
     await userEvent.click(screen.getByRole('button', { name: 'Start →' }))
+    await userEvent.type(await screen.findByPlaceholderText('Type your answer...'), 'sí{Enter}')
+    expect(await screen.findByText('Correct!')).toBeInTheDocument()
 
-    await userEvent.type(await screen.findByPlaceholderText('Type the corrected sentence...'), 'El esta aqui.{Enter}')
-    expect(await screen.findByText('Almost — check the accents')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Finish' }))
-    const summary = await screen.findByRole('region', { name: 'Session summary' })
-    expect(within(summary).getByText('0 / 1 correct')).toBeInTheDocument()
-    expect(within(summary).getByText('accents')).toBeInTheDocument()
-    expect(within(summary).queryByRole('button', { name: 'Review these now →' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Next exercise →' }))
+    expect(await screen.findByText('Pregunta 2')).toBeInTheDocument()
+    expect(screen.queryByText('Correct!')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Type your answer...')).toHaveValue('')
+    expect(screen.getByText('2 / 5')).toBeInTheDocument()
   })
 })
 

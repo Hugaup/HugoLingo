@@ -1,0 +1,24 @@
+{
+  "id": "articulos-indefinidos", "title": "Indefinite articles", "spanish": "Artículos indefinidos", "category": "articles", "level": 1,
+  "rule": [
+    "un (masculine), una (feminine), unos (masculine plural), unas (feminine plural): a, an, some.",
+    "Feminine nouns starting with a stressed a- take un: un águila, un hacha.",
+    "No article with a profession after ser (Soy médico), and none with otro, cien or mil (otro café, mil euros)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Tengo ___ perro y dos gatos.", "un", ["una", "unos", "unas"], "perro is masculine singular: un perro."],
+      ["1-02", "Mi hermana vive en ___ casa pequeña.", "una", ["un", "unos", "unas"], "casa is feminine singular: una casa."],
+      ["1-03", "Hay ___ libros en la mochila.", "unos", ["unas", "un", "una"], "libros is masculine plural: unos libros."],
+      ["1-04", "Compré ___ flores para mi madre.", "unas", ["unos", "una", "un"], "flores is feminine plural: unas flores."],
+      ["1-05", "Necesito ___ hacha para cortar la leña.", "un", ["una", "unos", "unas"], "hacha is feminine but starts with a stressed a-: un hacha."],
+      ["1-06", "Mi padre es ___.", "médico", ["un médico", "el médico", "una médico"], "After ser, a profession takes no article: es médico."],
+      ["1-07", "¿Quieres ___ café?", "otro", ["un otro", "otra", "una otra"], "otro never takes un, and café is masculine: otro café."],
+      ["1-08", "Esto cuesta ___ euros.", "mil", ["un mil", "unos mil uno", "una mil"], "mil never takes un: mil euros."],
+      ["1-09", "Es ___ problema muy difícil.", "un", ["una", "unos", "unas"], "problema is masculine: un problema."],
+      ["1-10", "Vimos ___ película muy divertida.", "una", ["un", "unos", "unas"], "película is feminine singular: una película."],
+      ["1-11", "Hay ___ chicas en la puerta.", "unas", ["unos", "una", "un"], "chicas is feminine plural: unas chicas."],
+      ["1-12", "Busco ___ hotel cerca de la playa.", "un", ["una", "unos", "unas"], "hotel is masculine singular: un hotel."]
+    ]}
+  ]
+}

@@ -7,7 +7,14 @@ import SessionSummary from '../components/SessionSummary'
 import ClickableText from '../components/reading/ClickableText'
 import { ui } from '../theme'
 
+// "Next exercise" navigates to this same route, so React would keep the previous
+// exercise's answer and result; keying by exercise id starts each one fresh.
 export default function Exercise() {
+  const { state } = useLocation()
+  return <ExerciseRun key={state?.exercise?.id} />
+}
+
+function ExerciseRun() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const exercise = state?.exercise
@@ -142,15 +149,6 @@ function ExerciseBody({ type, content, language }) {
       </div>
     )
   }
-  if (type === 'grammar') {
-    return (
-      <div>
-        <p style={styles.instruct}>Find and correct the grammar error in this sentence:</p>
-        <p style={styles.prompt}>{content.sentence_with_error}</p>
-        <p style={styles.hint}>Type the full corrected sentence.</p>
-      </div>
-    )
-  }
   if (type === 'reading') {
     const q = content.questions?.[0]
     return (
@@ -166,14 +164,12 @@ function ExerciseBody({ type, content, language }) {
 
 function summaryLabel(type, content) {
   const text = type === 'conjugation' ? `${content.verb_infinitive} · ${content.tense}`
-    : type === 'grammar' ? content.sentence_with_error
     : content.questions?.[0]?.question ?? 'Reading'
   return text.length > 60 ? `${text.slice(0, 57)}…` : text
 }
 
 function inputPlaceholder(type) {
   if (type === 'conjugation') return 'Type the conjugated verb...'
-  if (type === 'grammar') return 'Type the corrected sentence...'
   return 'Type your answer...'
 }
 
@@ -185,7 +181,6 @@ const styles = {
   meta: { display: 'flex', gap: '0.5rem', marginBottom: '1rem', marginTop: 0 },
   badge: { background: '#e0e7ff', color: '#3730a3', padding: '0.2rem 0.75rem', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600, textTransform: 'capitalize' },
   card: ui.panel,
-  instruct: { color: '#555', marginBottom: '0.75rem', fontSize: '0.95rem' },
   prompt: { fontSize: '1.25rem', fontWeight: 500, lineHeight: 1.6, marginBottom: '0.5rem' },
   tip: { fontSize: '0.8rem', color: '#9ca3af', margin: '0 0 0.4rem' },
   passage: { fontSize: '1rem', lineHeight: 1.8, background: 'white', borderRadius: 8, padding: '1rem', marginBottom: '1rem', border: '1px solid #e5e7eb' },

@@ -1,0 +1,24 @@
+{
+  "id": "genero-de-los-sustantivos", "title": "Gender of nouns", "spanish": "El género de los sustantivos", "category": "nouns", "level": 1,
+  "rule": [
+    "Most nouns in -o are masculine (el libro) and most in -a are feminine (la mesa).",
+    "-ción, -sión, -dad, -tad, -tud are feminine: la canción, la ciudad, la juventud.",
+    "Common exceptions: el día, el mapa, el problema, el tema, el idioma, el sofá; la mano, la foto, la moto, la radio."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Hoy hace ___ día estupendo.", "un", ["una", "unos", "unas"], "día is masculine: un día."],
+      ["1-02", "Esta canción es muy ___.", "bonita", ["bonito", "bonitos", "bonitas"], "canción (-ción) is feminine: bonita."],
+      ["1-03", "Tenemos un problema muy ___.", "serio", ["seria", "serios", "serias"], "problema is masculine: serio."],
+      ["1-04", "La ciudad es muy ___.", "tranquila", ["tranquilo", "tranquilos", "tranquilas"], "ciudad (-dad) is feminine: tranquila."],
+      ["1-05", "Tengo la mano ___.", "fría", ["frío", "fríos", "frías"], "mano is feminine: la mano fría."],
+      ["1-06", "El mapa está ___ en la pared.", "colgado", ["colgada", "colgados", "colgadas"], "mapa is masculine: colgado."],
+      ["1-07", "Mi moto es ___.", "nueva", ["nuevo", "nuevos", "nuevas"], "moto (short for motocicleta) is feminine: nueva."],
+      ["1-08", "El idioma japonés es muy ___.", "bonito", ["bonita", "bonitos", "bonitas"], "idioma is masculine even though it ends in -a: bonito."],
+      ["1-09", "___ foto de la boda está en el salón.", "La", ["El", "Los", "Las"], "foto (short for fotografía) is feminine: la foto."],
+      ["1-10", "Este tema es muy ___.", "complicado", ["complicada", "complicados", "complicadas"], "tema is masculine even though it ends in -a: complicado."],
+      ["1-11", "La verdad es muy ___.", "dura", ["duro", "duros", "duras"], "verdad (-dad) is feminine: dura."],
+      ["1-12", "El sofá es muy ___.", "cómodo", ["cómoda", "cómodos", "cómodas"], "sofá is masculine: cómodo."]
+    ]}
+  ]
+}

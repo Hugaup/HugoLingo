@@ -1,0 +1,24 @@
+{
+  "id": "pronombres-personales", "title": "Personal pronouns", "spanish": "Pronombres personales", "category": "pronouns", "level": 1,
+  "rule": [
+    "Subject: yo, tú, él/ella/usted, nosotros/as, vosotros/as, ellos/ellas/ustedes. They're often left out: (Yo) hablo español.",
+    "After a preposition: mí, ti, él, ella, usted, nosotros… — para mí, sin ti, con ella.",
+    "con + mí/ti = conmigo, contigo. entre and según take yo and tú: entre tú y yo."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Este regalo es para ___.", "ti", ["tú", "te", "tu"], "After a preposition: ti (no accent)."],
+      ["1-02", "¿Quieres venir al cine ___?", "conmigo", ["con mí", "con yo", "con me"], "con + mí becomes conmigo."],
+      ["1-03", "Pienso mucho en ___.", "ti", ["tú", "te", "contigo"], "After a preposition: ti."],
+      ["1-04", "Entre ___ y yo no hay secretos.", "tú", ["ti", "te", "contigo"], "entre takes the subject form: entre tú y yo."],
+      ["1-05", "—¿Quién quiere café? —¡___!", "Yo", ["Mí", "Me", "Conmigo"], "Answering who: the subject form yo."],
+      ["1-06", "Hablé con ___ ayer; está muy bien.", "ella", ["la", "le", "sí"], "After a preposition: ella."],
+      ["1-07", "Voy de vacaciones ___ este verano.", "contigo", ["con ti", "con tú", "con te"], "con + ti becomes contigo."],
+      ["1-08", "A ___ me gusta el fútbol.", "mí", ["mi", "yo", "me"], "After a: mí (with an accent, unlike the possessive mi)."],
+      ["1-09", "___ somos de Valencia.", "Nosotros", ["Nos", "Nuestros", "Nuestro"], "Subject pronoun: nosotros."],
+      ["1-10", "Señora, ¿___ es la directora?", "usted", ["tú", "su", "ustedes"], "Speaking formally to one person: usted."],
+      ["1-11", "Según ___, la respuesta es correcta.", "tú", ["ti", "te", "contigo"], "según takes the subject form: según tú."],
+      ["1-12", "Ese paquete no es para nosotros; es para ___.", "ellos", ["les", "los", "sus"], "After a preposition: ellos."]
+    ]}
+  ]
+}

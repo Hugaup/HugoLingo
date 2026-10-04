@@ -1,0 +1,24 @@
+{
+  "id": "apocope", "title": "Shortened adjectives", "spanish": "Apócope: buen, gran, primer…", "category": "adjectives", "level": 2,
+  "rule": [
+    "Before a masculine singular noun: bueno → buen, malo → mal, primero → primer, tercero → tercer, alguno → algún, ninguno → ningún, uno → un.",
+    "grande → gran before any singular noun (un gran hombre, una gran mujer); gran before the noun means great, grande after it means big.",
+    "ciento → cien before a noun or mil: cien euros, cien mil personas."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Vivo en el ___ piso.", "primer", ["primero", "primera", "primo"], "Before a masculine singular noun: primer piso."],
+      ["1-02", "Llegó en ___ lugar.", "tercer", ["tercero", "tercera", "terce"], "Before a masculine singular noun: tercer lugar."],
+      ["1-03", "Cervantes fue un ___ escritor.", "gran", ["grande", "grano", "grandes"], "Before a singular noun, grande becomes gran (= great)."],
+      ["1-04", "Frida Kahlo fue una ___ artista.", "gran", ["grande", "granda", "grandes"], "gran is used before feminine nouns too."],
+      ["1-05", "No hay ___ problema.", "ningún", ["ninguno", "ninguna", "ningunos"], "Before a masculine singular noun: ningún."],
+      ["1-06", "¿Tienes ___ libro de español?", "algún", ["alguno", "alguna", "algunos"], "Before a masculine singular noun: algún."],
+      ["1-07", "Esto cuesta ___ euros.", "cien", ["ciento", "cientos", "cienta"], "Before a noun, ciento becomes cien."],
+      ["1-08", "Somos los ___ en llegar.", "primeros", ["primer", "primero", "primeras"], "Masculine plural: primeros (no shortening)."],
+      ["1-09", "Vivimos en una casa muy ___.", "grande", ["gran", "grandes", "granda"], "After the noun, grande stays grande (= big)."],
+      ["1-10", "—¿Tienes un bolígrafo? —No, no tengo ___.", "ninguno", ["ningún", "ninguna", "ningunos"], "With no noun after it, ninguno keeps its full form."],
+      ["1-11", "Es la ___ vez que vengo.", "primera", ["primer", "primero", "primeras"], "vez is feminine: primera (no shortening)."],
+      ["1-12", "Hoy es un ___ día para ir a la playa.", "buen", ["bueno", "bien", "buena"], "Before a masculine singular noun: buen."]
+    ]}
+  ]
+}

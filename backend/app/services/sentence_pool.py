@@ -36,7 +36,8 @@ _recent_requests: dict[Language, deque[tuple[TenseFilter, ...]]] = defaultdict(l
 _live_requests = 0
 _running: set[Language] = set()
 _tasks: set[asyncio.Task] = set()
-_ollama_lock = asyncio.Lock()  # one background refill talks to the LLM at a time
+# One background refill talks to the LLM at a time
+background_lock = asyncio.Lock()
 
 
 @contextmanager
@@ -48,6 +49,11 @@ def live_request() -> Iterator[None]:
         yield
     finally:
         _live_requests -= 1
+
+
+def user_waiting() -> bool:
+    """True while some user waits on a live LLM call (background work should hold off)."""
+    return _live_requests > 0
 
 
 def note_request(language: Language, tenses: list[TenseFilter]) -> None:
@@ -132,7 +138,7 @@ async def refill(
         ))
         await db.commit()
         while failures < MAX_FAILURES_IN_A_ROW and await pool_size(db, language) < target:
-            while wait_while_busy and _live_requests:
+            while wait_while_busy and user_waiting():
                 await asyncio.sleep(0.5)
             try:
                 item = await generate_one(db, language, _choose_tenses(language, rng), client, judge=judge)
@@ -162,7 +168,7 @@ def schedule_refill(language: Language) -> None:
 async def _run_refill(language: Language) -> None:
     _running.add(language)
     try:
-        async with _ollama_lock:
+        async with background_lock:
             added = await refill(language)
         if added:
             log.info("Sentence pool: added %d %s sentences", added, language.value)

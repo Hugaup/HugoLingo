@@ -1,0 +1,52 @@
+{
+  "id": "presente-regulares", "title": "Regular verbs in the present", "spanish": "Presente: verbos regulares", "category": "conjugation", "level": 1,
+  "rule": [
+    "-ar (hablar): hablo, hablas, habla, hablamos, habláis, hablan.",
+    "-er (comer): como, comes, come, comemos, coméis, comen.",
+    "-ir (vivir): vivo, vives, vive, vivimos, vivís, viven. -er and -ir differ only in nosotros and vosotros."
+  ],
+  "sheets": [
+    {"title": "-ar verbs", "questions": [
+      ["1-01", "Yo ___ (hablar) tres idiomas.", "hablo", ["habla", "hablas", "hablamos"], "yo → -o: hablo."],
+      ["1-02", "¿Tú ___ (trabajar) los sábados?", "trabajas", ["trabajes", "trabaja", "trabajáis"], "tú → -as: trabajas."],
+      ["1-03", "Mi madre ___ (cocinar) muy bien.", "cocina", ["cocinas", "cocine", "cocinan"], "él/ella → -a: cocina."],
+      ["1-04", "Nosotros ___ (estudiar) en la biblioteca.", "estudiamos", ["estudiemos", "estudiáis", "estudian"], "nosotros → -amos: estudiamos."],
+      ["1-05", "¿Vosotros ___ (escuchar) la radio?", "escucháis", ["escuchan", "escuchamos", "escuchas"], "vosotros → -áis: escucháis."],
+      ["1-06", "Mis amigos ___ (bailar) salsa.", "bailan", ["bailen", "baila", "bailamos"], "ellos → -an: bailan."],
+      ["1-07", "Usted ___ (llegar) muy temprano.", "llega", ["llegas", "llegue", "llegan"], "usted → like él: llega."],
+      ["1-08", "Ana y yo ___ (cantar) en un coro.", "cantamos", ["cantan", "cantáis", "canto"], "Ana y yo = nosotros: cantamos."],
+      ["1-09", "Los niños ___ (nadar) en la piscina.", "nadan", ["nada", "nadamos", "naden"], "ellos → -an: nadan."],
+      ["1-10", "Yo siempre ___ (comprar) pan por la mañana.", "compro", ["compra", "compre", "compras"], "yo → -o: compro."],
+      ["1-11", "¿Ustedes ___ (necesitar) ayuda?", "necesitan", ["necesita", "necesitáis", "necesiten"], "ustedes → like ellos: necesitan."],
+      ["1-12", "Tú ___ (tomar) café con leche, ¿verdad?", "tomas", ["toma", "tomes", "tomáis"], "tú → -as: tomas."]
+    ]},
+    {"title": "-er verbs", "questions": [
+      ["2-01", "Yo ___ (comer) a las dos.", "como", ["come", "comes", "comemos"], "yo → -o: como."],
+      ["2-02", "¿Tú ___ (beber) agua o vino?", "bebes", ["bebe", "bebas", "bebéis"], "tú → -es: bebes."],
+      ["2-03", "Mi padre ___ (leer) el periódico.", "lee", ["lees", "lea", "leen"], "él → -e: lee."],
+      ["2-04", "Nosotros ___ (aprender) español.", "aprendemos", ["aprendimos", "aprendéis", "aprenden"], "nosotros → -emos: aprendemos."],
+      ["2-05", "¿Vosotros ___ (correr) todos los días?", "corréis", ["corrís", "corren", "corremos"], "vosotros → -éis: corréis."],
+      ["2-06", "Mis hermanos ___ (vender) su coche.", "venden", ["vende", "vendan", "vendemos"], "ellos → -en: venden."],
+      ["2-07", "Usted ___ (deber) firmar aquí.", "debe", ["debes", "deba", "deben"], "usted → -e: debe."],
+      ["2-08", "Tú y yo ___ (comprender) el problema.", "comprendemos", ["comprenden", "comprendéis", "comprendimos"], "tú y yo = nosotros: comprendemos."],
+      ["2-09", "Ellos ___ (creer) que es verdad.", "creen", ["cree", "crean", "creemos"], "ellos → -en: creen."],
+      ["2-10", "Yo no ___ (responder) a esos mensajes.", "respondo", ["responde", "respondes", "responda"], "yo → -o: respondo."],
+      ["2-11", "Ustedes ___ (beber) demasiado café.", "beben", ["bebe", "bebéis", "beban"], "ustedes → -en: beben."],
+      ["2-12", "¿Tu hermana ___ (meter) el coche en el garaje?", "mete", ["metes", "meta", "meten"], "ella → -e: mete."]
+    ]},
+    {"title": "-ir verbs", "questions": [
+      ["3-01", "Yo ___ (vivir) en Valencia.", "vivo", ["vive", "vives", "vivimos"], "yo → -o: vivo."],
+      ["3-02", "¿Tú ___ (escribir) muchos correos?", "escribes", ["escribe", "escribas", "escribís"], "tú → -es: escribes."],
+      ["3-03", "Mi hermana ___ (abrir) la ventana.", "abre", ["abres", "abra", "abren"], "ella → -e: abre."],
+      ["3-04", "Nosotros ___ (vivir) cerca del mar.", "vivimos", ["vivemos", "vivís", "viven"], "-ir verbs: nosotros → -imos (not -emos)."],
+      ["3-05", "¿Vosotros ___ (recibir) muchas cartas?", "recibís", ["recibéis", "reciben", "recibimos"], "-ir verbs: vosotros → -ís (not -éis)."],
+      ["3-06", "Los alumnos ___ (subir) al tercer piso.", "suben", ["sube", "suban", "subimos"], "ellos → -en: suben."],
+      ["3-07", "Usted ___ (decidir), señora.", "decide", ["decides", "decida", "deciden"], "usted → -e: decide."],
+      ["3-08", "Mi novio y yo ___ (compartir) piso.", "compartimos", ["comparten", "compartís", "compartemos"], "nosotros → -imos: compartimos."],
+      ["3-09", "Ellas ___ (asistir) a clase todos los días.", "asisten", ["asiste", "asistan", "asistimos"], "ellas → -en: asisten."],
+      ["3-10", "Yo ___ (escribir) una novela.", "escribo", ["escribe", "escribes", "escriba"], "yo → -o: escribo."],
+      ["3-11", "¿Ustedes ___ (vivir) aquí?", "viven", ["vive", "vivís", "vivan"], "ustedes → -en: viven."],
+      ["3-12", "¿Tú ___ (abrir) la puerta, por favor?", "abres", ["abre", "abras", "abrís"], "tú → -es: abres."]
+    ]}
+  ]
+}

@@ -267,6 +267,53 @@ class VocabAttempt(Base):
     )
 
 
+class GrammarAttempt(Base):
+    """One answer to one grammar question (services/grammar_topics.py).
+
+    `topic` + `question_id` point into the hand-written data in data/grammar/;
+    the latest answer to each question is what sheet progress is computed from.
+    """
+    __tablename__ = "grammar_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    topic: Mapped[str] = mapped_column(String(64), nullable=False)
+    question_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    user_answer: Mapped[str] = mapped_column(String(512), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_almost: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    __table_args__ = (
+        Index("ix_grammar_attempts_user_language_topic", "user_id", "language", "topic"),
+        Index("ix_grammar_attempts_user_created", "user_id", "created_at"),
+    )
+
+
+class GrammarReview(Base):
+    """Spaced-repetition (Leitner box) state for one grammar topic, per user.
+
+    Only created by a mistake: a topic you've never got wrong has nothing to work on.
+    """
+    __tablename__ = "grammar_reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    language: Mapped[Language] = mapped_column(Enum(Language), nullable=False)
+    topic: Mapped[str] = mapped_column(String(64), nullable=False)
+    box: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    correct_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wrong_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "language", "topic", name="uq_grammar_review"),
+        Index("ix_grammar_reviews_user_language_due", "user_id", "language", "due_at"),
+    )
+
+
 class VerbConjugation(Base):
     __tablename__ = "verb_conjugations"
 

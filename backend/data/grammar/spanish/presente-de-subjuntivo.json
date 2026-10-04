@@ -1,0 +1,24 @@
+{
+  "id": "presente-de-subjuntivo", "title": "The present subjunctive", "spanish": "Presente de subjuntivo", "category": "tenses-moods", "level": 3,
+  "rule": [
+    "Take the yo form of the present, drop -o and swap the vowel: -ar → -e (hable), -er/-ir → -a (coma, viva).",
+    "So yo irregulars carry over: tengo → tenga, hago → haga, digo → diga, conozco → conozca. Stem changes stay: quiera, pueda, pida.",
+    "Fully irregular: ser → sea, ir → vaya, estar → esté, saber → sepa, haber → haya, dar → dé."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Quiero que tú ___ (hablar) con ella.", "hables", ["hablas", "hablarás", "hablaste"], "-ar → -e: hables."],
+      ["1-02", "Espero que ___ (comer, vosotros) bien.", "comáis", ["coméis", "comed", "comieseis de"], "-er → -a: comáis."],
+      ["1-03", "Es importante que ___ (tener, tú) paciencia.", "tengas", ["tienes", "tienas", "tendrás"], "From yo tengo: tengas."],
+      ["1-04", "Ojalá ___ (hacer) buen tiempo mañana.", "haga", ["hace", "hará", "hice"], "From yo hago: haga."],
+      ["1-05", "No creo que ___ (ser) verdad.", "sea", ["es", "esa", "será"], "ser is irregular: sea."],
+      ["1-06", "Te llamo cuando ___ (llegar, yo) a casa.", "llegue", ["llego", "llegué", "llegaré"], "-gar → -gue: llegue."],
+      ["1-07", "Quiero que ___ (ir, nosotros) juntos.", "vayamos", ["vamos", "iremos", "vayámos"], "ir is irregular: vayamos."],
+      ["1-08", "Es posible que ___ (estar, ellos) en casa.", "estén", ["están", "esten", "estarán"], "estar: estén (with an accent)."],
+      ["1-09", "Busco a alguien que ___ (saber) francés.", "sepa", ["sabe", "saba", "sabrá"], "saber is irregular: sepa."],
+      ["1-10", "Mis padres no quieren que ___ (salir, yo) tan tarde.", "salga", ["salgo", "sala", "saldré"], "From yo salgo: salga."],
+      ["1-11", "Ojalá ___ (poder, tú) venir.", "puedas", ["podas", "puedes", "podrás"], "The stem change stays: puedas."],
+      ["1-12", "Dile que me ___ (dar) su número.", "dé", ["de", "da", "dará"], "dar: dé (with an accent, unlike the preposition de)."]
+    ]}
+  ]
+}

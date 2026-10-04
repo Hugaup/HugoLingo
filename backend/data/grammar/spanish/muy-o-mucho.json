@@ -1,0 +1,39 @@
+{
+  "id": "muy-o-mucho", "title": "Muy or mucho", "spanish": "Muy y mucho", "category": "adverbs", "level": 1,
+  "rule": [
+    "muy goes before an adjective or adverb: muy alto, muy bien, muy tarde.",
+    "mucho goes after a verb (Trabajo mucho) and before más, menos, mejor, peor, mayor, menor (mucho mejor).",
+    "Before a noun mucho agrees with it: mucho dinero, mucha gente, muchos libros, muchas veces.",
+    "With tener + hambre, sed, calor, frío, miedo… use mucho/mucha: Tengo mucha hambre."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mi casa es ___ grande.", "muy", ["mucho", "mucha", "muchos"], "Before an adjective: muy."],
+      ["1-02", "Mi padre trabaja ___.", "mucho", ["muy", "mucha", "muchos"], "After a verb: mucho."],
+      ["1-03", "Hay ___ gente en la calle.", "mucha", ["muy", "mucho", "muchas"], "gente is feminine singular: mucha gente."],
+      ["1-04", "Hablas ___ bien español.", "muy", ["mucho", "mucha", "muchos"], "Before an adverb: muy bien."],
+      ["1-05", "Tengo ___ amigos en Madrid.", "muchos", ["muy", "mucho", "muchas"], "amigos is masculine plural: muchos."],
+      ["1-06", "Este libro es ___ mejor que el otro.", "mucho", ["muy", "mucha", "muchos"], "Before mejor: mucho mejor (never muy mejor)."],
+      ["1-07", "Tengo ___ hambre.", "mucha", ["muy", "mucho", "muchas"], "hambre is feminine: mucha hambre."],
+      ["1-08", "Llegamos ___ tarde a la fiesta.", "muy", ["mucho", "mucha", "muchos"], "Before an adverb: muy tarde."],
+      ["1-09", "He visitado Roma ___ veces.", "muchas", ["muchos", "muy", "mucho"], "veces is feminine plural: muchas veces."],
+      ["1-10", "Hoy hace ___ calor.", "mucho", ["muy", "mucha", "muchos"], "calor is masculine: mucho calor."],
+      ["1-11", "La película es ___ interesante.", "muy", ["mucho", "mucha", "muchas"], "Before an adjective: muy interesante."],
+      ["1-12", "Me gusta ___ el chocolate.", "mucho", ["muy", "mucha", "muchos"], "With a verb (gustar): mucho."]
+    ]},
+    {"questions": [
+      ["2-01", "Estoy ___ cansado.", "muy", ["mucho", "mucha", "muchos"], "Before an adjective: muy cansado."],
+      ["2-02", "No tengo ___ tiempo.", "mucho", ["muy", "mucha", "muchos"], "tiempo is masculine singular: mucho tiempo."],
+      ["2-03", "Mi hermana es ___ mayor que yo.", "mucho", ["muy", "mucha", "muchas"], "Before mayor: mucho mayor."],
+      ["2-04", "Ana estudia ___ para los exámenes.", "mucho", ["muy", "mucha", "muchas"], "After a verb: mucho."],
+      ["2-05", "Las montañas son ___ altas.", "muy", ["muchas", "mucho", "mucha"], "Before an adjective: muy (it never changes)."],
+      ["2-06", "Bebo ___ agua en verano.", "mucha", ["mucho", "muy", "muchas"], "agua is feminine (el agua fría): mucha agua."],
+      ["2-07", "Vivimos ___ cerca del colegio.", "muy", ["mucho", "mucha", "muchos"], "Before an adverb: muy cerca."],
+      ["2-08", "Tienes ___ suerte.", "mucha", ["muy", "mucho", "muchas"], "suerte is feminine: mucha suerte."],
+      ["2-09", "Ahora me siento ___ mejor.", "mucho", ["muy", "mucha", "más"], "Before mejor: mucho mejor."],
+      ["2-10", "Hay ___ coches en el centro.", "muchos", ["muy", "mucho", "muchas"], "coches is masculine plural: muchos."],
+      ["2-11", "Esta sopa está ___ caliente.", "muy", ["mucho", "mucha", "muchas"], "Before an adjective: muy caliente."],
+      ["2-12", "¿Llueve ___ en tu ciudad?", "mucho", ["muy", "mucha", "muchos"], "After a verb: mucho."]
+    ]}
+  ]
+}

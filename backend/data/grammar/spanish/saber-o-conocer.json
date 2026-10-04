@@ -1,0 +1,24 @@
+{
+  "id": "saber-o-conocer", "title": "Saber or conocer", "spanish": "Saber o conocer", "category": "verbs", "level": 2,
+  "rule": [
+    "saber: facts and information (Sé su número, No sé dónde vive) and skills (Sé nadar).",
+    "conocer: being familiar with people, places and things (Conozco a tu hermano, Conozco Madrid). A person takes a: conocer a alguien.",
+    "Present: sé, sabes, sabe… / conozco, conoces, conoce…"
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "¿___ a mi hermana?", "Conoces", ["Sabes", "Conoce", "Sabe"], "Being acquainted with a person: conocer."],
+      ["1-02", "No ___ dónde está la estación.", "sé", ["conozco", "se", "sabo"], "Information: saber (yo sé)."],
+      ["1-03", "Yo ___ muy bien Barcelona: viví allí tres años.", "conozco", ["sé", "conoce", "sabo"], "Being familiar with a place: conocer (yo conozco)."],
+      ["1-04", "¿___ a qué hora empieza la película?", "Sabes", ["Conoces", "Sabe tú", "Conoce"], "A fact: saber."],
+      ["1-05", "Mis padres ___ a los padres de mi novio.", "conocen", ["saben", "conocemos", "sabe"], "People: conocer."],
+      ["1-06", "¿Usted ___ cuál es el número de teléfono de Ana?", "sabe", ["conoce", "sabes", "conozca"], "A piece of information: saber."],
+      ["1-07", "No ___ este restaurante. ¿Es bueno?", "conozco", ["sé", "sabo", "conoce"], "Being familiar with a place: conocer."],
+      ["1-08", "¿___ si va a llover mañana?", "Sabes", ["Conoces", "Conoce", "Sé"], "Information: saber."],
+      ["1-09", "Quiero ___ Japón algún día.", "conocer", ["saber", "conocerlo", "sabe"], "Getting to know a place: conocer."],
+      ["1-10", "Ella ___ mucho de historia del arte.", "sabe", ["conoce de", "conoce", "saber"], "Knowledge of a subject: saber de."],
+      ["1-11", "¿___ la canción que suena en la radio?", "Conoces", ["Sabes de", "Sabe", "Conoce tú"], "Being familiar with something (a song): conocer."],
+      ["1-12", "Nosotros no ___ cuándo llega el tren.", "sabemos", ["conocemos", "sabimos", "sabéis"], "Information (when the train comes): saber."]
+    ]}
+  ]
+}

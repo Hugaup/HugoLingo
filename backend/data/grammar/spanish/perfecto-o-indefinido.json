@@ -1,0 +1,24 @@
+{
+  "id": "perfecto-o-indefinido", "title": "Present perfect or preterite", "spanish": "Pretérito perfecto o indefinido", "category": "tenses-moods", "level": 3,
+  "rule": [
+    "Perfecto (he hablado): a time that isn't over (hoy, esta semana, este año), experiences (alguna vez, nunca) and ya / todavía no.",
+    "Indefinido (hablé): a finished time (ayer, el lunes pasado, en 2010, hace dos años).",
+    "In much of Latin America and parts of Spain the indefinido is used for both; these exercises follow the usage of central Spain."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Hoy ___ (levantarse, yo) muy temprano.", "me he levantado", ["me levanté de", "me levantaba", "me levanto de"], "hoy (not over): perfecto."],
+      ["1-02", "Ayer ___ (ver, nosotros) una película muy buena.", "vimos", ["hemos visto", "veíamos", "vemos de"], "ayer (finished): indefinido."],
+      ["1-03", "Este año ___ (trabajar, yo) mucho.", "he trabajado", ["trabajé de", "trabajaba", "trabajo de"], "este año (not over): perfecto."],
+      ["1-04", "El verano pasado ___ (ir, ellos) a Cuba.", "fueron", ["han ido", "iban de", "van"], "el verano pasado (finished): indefinido."],
+      ["1-05", "¿Alguna vez ___ (estar, tú) en Japón?", "has estado", ["estuviste de", "estabas", "estás"], "Experience (alguna vez): perfecto."],
+      ["1-06", "En 2018 ___ (terminar, yo) la carrera.", "terminé", ["he terminado", "terminaba", "termino"], "A year in the past: indefinido."],
+      ["1-07", "Todavía no ___ (llamar) el técnico.", "ha llamado", ["llamó de", "llamaba", "llama de"], "todavía no: perfecto."],
+      ["1-08", "Hace dos años ___ (conocer, yo) a mi mujer.", "conocí", ["he conocido", "conocía", "conozco"], "hace + time (finished): indefinido."],
+      ["1-09", "Esta mañana ___ (desayunar, nosotros) churros.", "hemos desayunado", ["desayunamos de", "desayunábamos", "desayunemos"], "esta mañana (today): perfecto."],
+      ["1-10", "El lunes pasado ___ (tener, yo) un examen.", "tuve", ["he tenido", "tenía de", "tengo"], "el lunes pasado: indefinido."],
+      ["1-11", "Nunca ___ (comer, yo) sushi.", "he comido", ["comí de", "comía", "como de"], "nunca (experience up to now): perfecto."],
+      ["1-12", "Anoche ___ (llover) mucho.", "llovió", ["ha llovido", "llovía de", "llueve"], "anoche (finished): indefinido."]
+    ]}
+  ]
+}

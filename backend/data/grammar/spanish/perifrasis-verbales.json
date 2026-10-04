@@ -1,0 +1,24 @@
+{
+  "id": "perifrasis-verbales", "title": "Verbal phrases", "spanish": "Perífrasis verbales", "category": "verbs", "level": 2,
+  "rule": [
+    "ir a + infinitive: going to (Voy a estudiar). acabar de + infinitive: have just (Acabo de comer).",
+    "estar + gerund: be doing right now (Estoy leyendo). seguir + gerund: keep doing (Sigue lloviendo).",
+    "empezar a + infinitive: start to. dejar de + infinitive: stop. volver a + infinitive: do again."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mañana ___ visitar a mis abuelos.", "voy a", ["voy", "acabo de", "estoy"], "A plan: ir a + infinitive."],
+      ["1-02", "No tengo hambre: ___ comer.", "acabo de", ["voy a", "dejo de", "vuelvo a"], "Have just: acabar de + infinitive."],
+      ["1-03", "¡Silencio! El bebé está ___.", "durmiendo", ["dormiendo", "dormir", "dormido de"], "estar + gerund: durmiendo (o → u)."],
+      ["1-04", "Mi padre ___ fumar el año pasado.", "dejó de", ["dejó a", "volvió de", "acabó a"], "Stopping a habit: dejar de."],
+      ["1-05", "Después de la lluvia, ___ a salir el sol.", "volvió", ["dejó", "acabó", "siguió"], "Again: volver a + infinitive."],
+      ["1-06", "Todavía ___ lloviendo; coge el paraguas.", "sigue", ["empieza", "deja", "vuelve"], "Keep doing: seguir + gerund."],
+      ["1-07", "Los niños ___ a llorar cuando se fue la luz.", "empezaron", ["dejaron", "acabaron", "siguieron"], "Starting: empezar a."],
+      ["1-08", "¿Qué ___ hacer este fin de semana?", "vas a", ["vas", "acabas", "estás a"], "Plans: ir a + infinitive."],
+      ["1-09", "Ana está ___ un libro muy interesante.", "leyendo", ["leiendo", "leer", "leída"], "estar + gerund: leyendo (i → y)."],
+      ["1-10", "___ de llegar a casa; te llamo luego.", "Acabo", ["Voy", "Dejo", "Vuelvo"], "Have just: acabar de."],
+      ["1-11", "Si no entiendes, ___ a leerlo.", "vuelve", ["deja", "acaba", "sigue"], "Do again: volver a."],
+      ["1-12", "Estoy ___ español desde hace un año.", "aprendiendo", ["aprendando", "aprender", "aprendido"], "estar + gerund of an -er verb: -iendo."]
+    ]}
+  ]
+}

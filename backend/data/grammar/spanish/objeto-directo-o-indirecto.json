@@ -1,0 +1,39 @@
+{
+  "id": "objeto-directo-o-indirecto", "title": "Direct or indirect object", "spanish": "Objeto directo o indirecto", "category": "pronouns", "level": 3,
+  "rule": [
+    "Direct object (what/whom): lo, la, los, las. Indirect object (to/for whom): le, les.",
+    "Both together: indirect first, then direct — Te lo doy, Nos la enseña.",
+    "le/les becomes se before lo, la, los, las: Le doy el libro → Se lo doy (never le lo).",
+    "Joined to an infinitive, gerund or affirmative command in the same order: Dámelo, Voy a dárselo."
+  ],
+  "sheets": [
+    {"title": "lo, la or le", "questions": [
+      ["1-01", "Llamé a mi madre y ___ conté las noticias.", "le", ["la", "lo", "les"], "Told to my mother (indirect object): le."],
+      ["1-02", "Vi a tu hermana en el parque y ___ saludé.", "la", ["le", "lo", "las"], "Greeted your sister (direct object, feminine): la."],
+      ["1-03", "Compré un regalo para Pedro y ___ di ayer.", "se lo", ["le lo", "lo le", "se le"], "To Pedro (le → se) + the gift (lo): se lo."],
+      ["1-04", "¿Las cartas? Ya ___ he enviado.", "las", ["les", "los", "le"], "The letters (direct object): las."],
+      ["1-05", "Mis primos vienen hoy. ___ voy a buscar al aeropuerto.", "Los", ["Les", "Las", "Se"], "buscar a alguien takes a direct object: los."],
+      ["1-06", "A mis alumnos ___ explico la gramática.", "les", ["los", "las", "se"], "To my students (indirect object): les."],
+      ["1-07", "Ana me pidió el diccionario y ___ presté.", "se lo", ["le lo", "la lo", "se la"], "To Ana (le → se) + the dictionary (lo): se lo."],
+      ["1-08", "—¿Me das tu número? —Sí, ahora ___ doy.", "te lo", ["lo te", "te le", "se lo"], "To you (te) + the number (lo): te lo."],
+      ["1-09", "¿La foto? ___ enseño a mis amigos después.", "Se la", ["Les la", "Se lo", "La les"], "To my friends (les → se) + the photo (la): se la."],
+      ["1-10", "El camarero ___ trajo la cuenta a nosotros.", "nos", ["los", "les", "se"], "To us (indirect object): nos."],
+      ["1-11", "Juan quiere las llaves. ¿___ das tú?", "Se las", ["Le las", "Se los", "Les las"], "To Juan (le → se) + the keys (las): se las."],
+      ["1-12", "Esa canción es preciosa. ___ escucho todos los días.", "La", ["Le", "Lo", "Se"], "The song (direct object, feminine): la."]
+    ]},
+    {"title": "Two pronouns together", "questions": [
+      ["2-01", "El libro es de Marta. ___ devuelvo mañana.", "Se lo", ["Le lo", "Lo le", "Se le"], "To Marta (le → se) + the book (lo): se lo."],
+      ["2-02", "¿Me prestas tu coche? —Sí, ___ presto.", "te lo", ["lo te", "te le", "se lo"], "To you (te) + the car (lo): te lo."],
+      ["2-03", "Necesito la sal. ¿___ pasas, por favor?", "Me la", ["La me", "Me lo", "Se la"], "To me (me) + the salt (la): me la."],
+      ["2-04", "Los niños quieren un cuento. Voy a ___.", "contárselo", ["contarlelo", "contárlelo", "se lo contar"], "To them (les → se) + it (lo), joined to the infinitive: contárselo."],
+      ["2-05", "Esas fotos son nuestras. ¡___ ahora mismo!", "Dánoslas", ["Danoslas", "Nos las da", "Dáselas"], "Affirmative command: indirect + direct joined, with an accent: dánoslas."],
+      ["2-06", "Le pedí ayuda a mi vecino y ___ dio enseguida.", "me la", ["la me", "me le", "se la"], "To me (me) + help (la): me la."],
+      ["2-07", "¿Las entradas? Mi padre ___ regaló a nosotros.", "nos las", ["las nos", "nos les", "se las"], "To us (nos) + the tickets (las): nos las."],
+      ["2-08", "La verdad, ___ dije a mis padres ayer.", "se la", ["les la", "se lo", "la les"], "To my parents (les → se) + the truth (la): se la."],
+      ["2-09", "¿Tu bicicleta? No ___ voy a dejar a nadie.", "se la", ["le la", "la se", "se lo"], "To anyone (le → se) + the bike (la): se la."],
+      ["2-10", "¿Os gustó el regalo? ___ compramos en Italia.", "Os lo", ["Lo os", "Os le", "Se lo"], "For you all (os) + the gift (lo): os lo."],
+      ["2-11", "Estoy escribiendo la carta a Lucía. Estoy ___ ahora.", "escribiéndosela", ["escribiéndolela", "escribiendosela", "se la escribiendo a"], "To Lucía (le → se) + the letter (la), joined to the gerund: escribiéndosela."],
+      ["2-12", "—¿Le has dado los papeles al jefe? —Sí, ya ___ he dado.", "se los", ["le los", "se las", "los le"], "To the boss (le → se) + the papers (los): se los."]
+    ]}
+  ]
+}

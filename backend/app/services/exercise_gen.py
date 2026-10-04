@@ -57,32 +57,7 @@ async def generate_conjugation(language: Language, difficulty: int) -> dict:
     return await _fetch_with_retry(messages)
 
 
-async def generate_grammar(language: Language, difficulty: int) -> dict:
-    lang = LANGUAGE_NAMES[language]
-    level = DIFFICULTY_LABELS.get(difficulty, "B1")
-
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a language teacher. Always respond with valid JSON only, no extra text.",
-        },
-        {
-            "role": "user",
-            "content": (
-                f"Create a {lang} grammar correction exercise at level {level}. "
-                "Write a sentence that contains exactly one grammar error (agreement, gender, preposition, article, etc). "
-                "Return a JSON object with exactly these keys: "
-                '"sentence_with_error" (the sentence containing the error), '
-                '"corrected_sentence" (the fully corrected sentence), '
-                '"error_type" (short label, e.g. "gender agreement"), '
-                '"wrong_word" (the incorrect word or phrase), '
-                '"correct_word" (the correct replacement), '
-                '"explanation" (1-2 sentences explaining the rule).'
-            ),
-        },
-    ]
-
-    return await _fetch_with_retry(messages)
+# Grammar exercises are hand-written: services/grammar_topics.py (and services/grammar.py for find-the-mistake)
 
 
 async def generate_reading(language: Language, difficulty: int) -> dict:
@@ -123,7 +98,6 @@ async def _fetch_with_retry(messages: list[dict], retries: int = 2) -> dict:
 
 GENERATORS = {
     ExerciseType.conjugation: generate_conjugation,
-    ExerciseType.grammar: generate_grammar,
     ExerciseType.reading: generate_reading,
 }
 
@@ -166,16 +140,6 @@ async def check_conjugation(
     return False, f"The correct answer is '{content['correct_answer']}'. " + explanation
 
 
-def check_grammar(content: dict, user_answer: str) -> tuple[bool, str]:
-    correct = content.get("corrected_sentence", "").strip().lower()
-    given = user_answer.strip().lower()
-    is_correct = correct == given
-    explanation = content.get("explanation", "")
-    if not is_correct:
-        explanation = f"The corrected sentence is: '{content['corrected_sentence']}'. " + explanation
-    return is_correct, explanation
-
-
 def check_reading(content: dict, user_answer: str, question_index: int = 0) -> tuple[bool, str]:
     questions = content.get("questions", [])
     if not questions:
@@ -192,6 +156,5 @@ def check_reading(content: dict, user_answer: str, question_index: int = 0) -> t
 
 
 CHECKERS = {
-    ExerciseType.grammar: check_grammar,
     ExerciseType.reading: check_reading,
 }

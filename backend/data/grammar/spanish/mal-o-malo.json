@@ -1,0 +1,24 @@
+{
+  "id": "mal-o-malo", "title": "Mal or malo", "spanish": "Mal o malo", "category": "adjectives", "level": 2,
+  "rule": [
+    "malo/mala/malos/malas is an adjective: it describes a noun (una película mala).",
+    "mal is an adverb: how something is done (duermo mal) and estar mal (to feel bad, to be wrong).",
+    "malo becomes mal before a masculine singular noun: un mal día."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Hoy tengo un ___ día.", "mal", ["malo", "mala", "malos"], "Before a masculine singular noun, malo becomes mal."],
+      ["1-02", "Esta película es muy ___.", "mala", ["mal", "malo", "malas"], "película is feminine: mala."],
+      ["1-03", "Anoche dormí muy ___.", "mal", ["malo", "mala", "malos"], "How you slept is an adverb: mal."],
+      ["1-04", "Comer muchos dulces es ___ para los dientes.", "malo", ["mal", "mala", "malos"], "ser + adjective: es malo para los dientes."],
+      ["1-05", "La radio se oye muy ___; hay interferencias.", "mal", ["malo", "mala", "malas"], "How it sounds is an adverb: se oye mal."],
+      ["1-06", "No son ___ personas, solo están cansadas.", "malas", ["mal", "malos", "mala"], "personas is feminine plural: malas."],
+      ["1-07", "Tu respuesta está ___. Inténtalo otra vez.", "mal", ["mala", "malo", "malas"], "Being wrong is estar mal."],
+      ["1-08", "Fue una ___ decisión.", "mala", ["mal", "malo", "malas"], "decisión is feminine: mala."],
+      ["1-09", "Mi vecino es un ___ conductor.", "mal", ["malo", "mala", "males"], "Before a masculine singular noun: mal conductor."],
+      ["1-10", "Estos zapatos son de ___ calidad.", "mala", ["mal", "malo", "malos"], "calidad is feminine: mala calidad."],
+      ["1-11", "Escribe muy ___ porque tiene prisa.", "mal", ["malo", "mala", "malos"], "How he writes is an adverb: mal."],
+      ["1-12", "Los resultados han sido ___.", "malos", ["mal", "malas", "malo"], "resultados is masculine plural: malos."]
+    ]}
+  ]
+}

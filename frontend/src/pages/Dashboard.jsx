@@ -63,6 +63,7 @@ const SHORTCUTS = [
   { path: 'vocabulary', icon: '📚', title: 'Vocabulary', desc: 'Words and everyday phrases' },
   { path: 'conversation', icon: '💬', title: 'Conversation', desc: 'Role-play with the AI' },
   { path: 'conjugation', icon: '🔤', title: 'Conjugation', desc: 'Verb tables and sentences' },
+  { path: 'grammar', icon: '✏️', title: 'Grammar', desc: 'Topics, rules and exercises' },
   { path: 'review', icon: '🔁', title: 'Review', desc: 'Your weak spots' },
 ]
 
@@ -70,11 +71,13 @@ function Today({ user, language, firstVisit, onSwitch, error }) {
   const navigate = useNavigate()
   const meta = LANGUAGES.find(l => l.code === language) ?? { label: language, flag: '' }
   const [stats, setStats] = useState(null)
-  const [due, setDue] = useState({ verbs: 0, words: 0 })
+  const [due, setDue] = useState({ verbs: 0, words: 0, grammar: 0 })
 
   useEffect(() => {
     api.getStats(null, 7).then(setStats).catch(() => {})
-    api.getWeakSpots(language, 1).then(w => setDue(d => ({ ...d, verbs: w.due_count }))).catch(() => {})
+    api.getWeakSpots(language, 1)
+      .then(w => setDue(d => ({ ...d, verbs: w.due_count, grammar: w.grammar_due_count ?? 0 })))
+      .catch(() => {})
     api.getVocabOverview(language).then(v => setDue(d => ({ ...d, words: v.available ? v.due : 0 }))).catch(() => {})
   }, [language])
 
@@ -134,7 +137,12 @@ function Today({ user, language, firstVisit, onSwitch, error }) {
                 {due.verbs} verb {due.verbs === 1 ? 'tense' : 'tenses'} to review
               </button>
             )}
-            {due.words === 0 && due.verbs === 0 && <span style={s.dueNone}>Nothing due — learn something new</span>}
+            {due.grammar > 0 && (
+              <button style={s.due} onClick={() => go('grammar')}>
+                {due.grammar} grammar {due.grammar === 1 ? 'topic' : 'topics'} to review
+              </button>
+            )}
+            {due.words === 0 && due.verbs === 0 && due.grammar === 0 && <span style={s.dueNone}>Nothing due — learn something new</span>}
           </div>
         </section>
       </div>

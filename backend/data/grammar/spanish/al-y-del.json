@@ -1,0 +1,24 @@
+{
+  "id": "al-y-del", "title": "Al and del", "spanish": "Contracciones: al y del", "category": "articles", "level": 1,
+  "rule": [
+    "a + el = al: Voy al cine.   de + el = del: Vengo del trabajo.",
+    "Only with the article el: a la, a los, de la, de los don't contract.",
+    "No contraction with the pronoun él or with El in a name: de él, a El Salvador."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mañana vamos ___ cine.", "al", ["a el", "a la", "del"], "a + el always becomes al."],
+      ["1-02", "Vengo ___ supermercado.", "del", ["de el", "de la", "al"], "de + el always becomes del."],
+      ["1-03", "Este es el coche ___ profesor.", "del", ["de el", "al", "de la"], "de + el profesor: del profesor."],
+      ["1-04", "Voy ___ playa con mis amigos.", "a la", ["al", "a el", "de la"], "playa is feminine, so no contraction: a la playa."],
+      ["1-05", "Las llaves ___ casa están aquí.", "de la", ["del", "de el", "a la"], "casa is feminine: de la casa."],
+      ["1-06", "Llamé ___ médico ayer.", "al", ["a el", "del", "a la"], "a + el médico: al médico."],
+      ["1-07", "El regalo es ___, no de ella.", "de él", ["del", "de el", "al"], "With the pronoun él there is no contraction: de él."],
+      ["1-08", "Mis primos viajan ___ Salvador este verano.", "a El", ["al", "a el", "del"], "El in a country's name doesn't contract: a El Salvador."],
+      ["1-09", "Salimos ___ colegio a las cinco.", "del", ["de el", "al", "de la"], "de + el colegio: del colegio."],
+      ["1-10", "Les di los libros ___ niños.", "a los", ["al", "a les", "de los"], "Plural los doesn't contract: a los niños."],
+      ["1-11", "Hablamos ___ película durante horas.", "de la", ["del", "de el", "a la"], "película is feminine: de la película."],
+      ["1-12", "Subimos ___ tercer piso en ascensor.", "al", ["a el", "del", "a la"], "a + el tercer piso: al tercer piso."]
+    ]}
+  ]
+}

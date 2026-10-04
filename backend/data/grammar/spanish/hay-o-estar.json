@@ -1,0 +1,24 @@
+{
+  "id": "hay-o-estar", "title": "Hay or estar", "spanish": "Hay o estar", "category": "verbs", "level": 1,
+  "rule": [
+    "hay (there is / there are) introduces something new, with un/una, numbers, mucho… or no article: Hay un banco aquí. Hay tres sillas.",
+    "estar says where something known is, with el/la, mi, este… or a name: El banco está aquí. Mis gafas están en la mesa.",
+    "hay never changes for plural: Hay dos coches (never han)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "___ un supermercado cerca de mi casa.", "Hay", ["Está", "Están", "Es"], "Something new with un: hay."],
+      ["1-02", "El supermercado ___ al lado del banco.", "está", ["hay", "es", "están"], "Where a known thing is: estar."],
+      ["1-03", "En mi clase ___ veinte alumnos.", "hay", ["están", "son", "está"], "A number of things: hay."],
+      ["1-04", "¿Dónde ___ mis zapatos?", "están", ["hay", "son", "está"], "Where known things are: están."],
+      ["1-05", "¿___ una farmacia por aquí?", "Hay", ["Está", "Es", "Están"], "Asking if something exists: hay."],
+      ["1-06", "Tus amigos ___ en la cafetería.", "están", ["hay", "son", "es"], "Where known people are: están."],
+      ["1-07", "No ___ leche en la nevera.", "hay", ["está", "es", "están"], "Something new, no article: hay."],
+      ["1-08", "La leche ___ en la nevera.", "está", ["hay", "es", "están"], "Where a known thing is: está."],
+      ["1-09", "___ muchos turistas en verano.", "Hay", ["Están", "Son", "Han"], "hay doesn't change for plural."],
+      ["1-10", "Madrid ___ en España.", "está", ["hay", "es", "son"], "Where a named place is: está."],
+      ["1-11", "En la mesa ___ unas llaves. ¿Son tuyas?", "hay", ["están", "es", "son"], "Something new with unas: hay."],
+      ["1-12", "Las llaves ___ en la mesa.", "están", ["hay", "son", "está"], "Where known things are: están."]
+    ]}
+  ]
+}

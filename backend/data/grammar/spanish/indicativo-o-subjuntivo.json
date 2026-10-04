@@ -1,0 +1,38 @@
+{
+  "id": "indicativo-o-subjuntivo", "title": "Indicative or subjunctive", "spanish": "Indicativo o subjuntivo", "category": "tenses-moods", "level": 3,
+  "rule": [
+    "Subjunctive after wishes, requests and feelings about another person's action: Quiero que vengas. Me alegro de que estés aquí.",
+    "Subjunctive after doubt and denial (No creo que…, Dudo que…); indicative after belief and certainty (Creo que…, Es verdad que…).",
+    "cuando + future meaning takes the subjunctive (Cuando llegues, llámame); for habits or the past, the indicative (Cuando llego, ceno). para que always takes the subjunctive."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Creo que Juan ___ (tener) razón.", "tiene", ["tenga", "tuviera", "tengas"], "Belief (creo que): indicative."],
+      ["1-02", "No creo que Juan ___ (tener) razón.", "tenga", ["tiene", "tendrá", "tuvo"], "Doubt (no creo que): subjunctive."],
+      ["1-03", "Quiero que ___ (venir, tú) a mi fiesta.", "vengas", ["vienes", "vendrás", "venir"], "A wish about another person: subjunctive."],
+      ["1-04", "Sé que ___ (estar, tú) cansado.", "estás", ["estés", "estuvieras", "estar"], "Certainty (sé que): indicative."],
+      ["1-05", "Cuando ___ (llegar, tú) a Madrid, llámame.", "llegues", ["llegas", "llegarás", "llegaste"], "cuando + a future event: subjunctive."],
+      ["1-06", "Cuando ___ (llegar, yo) a casa, siempre ceno.", "llego", ["llegue", "llegaré", "llegara"], "cuando + a habit: indicative."],
+      ["1-07", "Me alegro de que ___ (estar, vosotros) aquí.", "estéis", ["estáis", "estaréis", "estar"], "A feeling about others: subjunctive."],
+      ["1-08", "Es verdad que ___ (hacer) mucho frío.", "hace", ["haga", "hiciera", "hacer"], "Stating a fact (es verdad que): indicative."],
+      ["1-09", "Te lo explico para que lo ___ (entender, tú).", "entiendas", ["entiendes", "entenderás", "entender"], "para que always takes the subjunctive."],
+      ["1-10", "Dudo que ___ (llover) mañana.", "llueva", ["llueve", "lloverá", "llovía"], "Doubt (dudo que): subjunctive."],
+      ["1-11", "Mi madre me pide que ___ (ordenar, yo) mi habitación.", "ordene", ["ordeno", "ordenaré", "ordenar"], "A request to another person: subjunctive."],
+      ["1-12", "Es obvio que ___ (ser, ellos) hermanos.", "son", ["sean", "fueran", "ser"], "Certainty (es obvio que): indicative."]
+    ]},
+    {"questions": [
+      ["2-01", "Ojalá ___ (aprobar, yo) el examen.", "apruebe", ["apruebo", "aprobaré", "aprobé"], "ojalá: subjunctive."],
+      ["2-02", "Es necesario que ___ (dormir, tú) más.", "duermas", ["duermes", "dormirás", "dormir de"], "Impersonal necessity about someone: subjunctive."],
+      ["2-03", "Pienso que ___ (ser) una buena idea.", "es", ["sea", "fuera", "ser"], "Belief (pienso que): indicative."],
+      ["2-04", "No pienso que ___ (ser) una buena idea.", "sea", ["es", "será", "fue"], "Negated belief: subjunctive."],
+      ["2-05", "Tengo un amigo que ___ (hablar) cinco idiomas.", "habla", ["hable", "hablara", "hablar"], "A person who exists: indicative."],
+      ["2-06", "Busco un piso que ___ (tener) terraza.", "tenga", ["tiene", "tendrá", "tuvo"], "Something you're looking for, not known to exist: subjunctive."],
+      ["2-07", "Me molesta que la gente ___ (gritar).", "grite", ["grita", "gritará", "gritar"], "A feeling about others: subjunctive."],
+      ["2-08", "Está claro que no ___ (querer, él) venir.", "quiere", ["quiera", "quisiera", "querer"], "Certainty (está claro que): indicative."],
+      ["2-09", "Llámame en cuanto ___ (saber, tú) algo.", "sepas", ["sabes", "sabrás", "supiste"], "en cuanto + a future event: subjunctive."],
+      ["2-10", "Es probable que ___ (llegar, nosotros) tarde.", "lleguemos", ["llegamos", "llegaremos", "llegáramos de"], "Probability (es probable que): subjunctive."],
+      ["2-11", "Aunque ___ (llover) ahora mismo, vamos a salir.", "llueve", ["llueva de", "lloverá", "llovía"], "aunque + a known fact (it is raining): indicative."],
+      ["2-12", "Te espero hasta que ___ (terminar, tú).", "termines", ["terminas", "terminarás", "terminaste"], "hasta que + a future event: subjunctive."]
+    ]}
+  ]
+}

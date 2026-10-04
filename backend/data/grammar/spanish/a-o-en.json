@@ -1,0 +1,24 @@
+{
+  "id": "a-o-en", "title": "A or en", "spanish": "A o en", "category": "prepositions", "level": 1,
+  "rule": [
+    "a for movement towards a place (Voy a Madrid, Llego a casa) and for times (a las tres).",
+    "en for where something is or happens (Estoy en Madrid, Vivo en una casa) and for months, years, seasons and means of transport (en mayo, en 2020, en verano, en tren).",
+    "Exceptions to learn: a pie, a caballo; ir de vacaciones; entrar en (Spain) / entrar a (Latin America)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mañana voy ___ Barcelona.", "a", ["en", "de", "por"], "Movement towards a place: a."],
+      ["1-02", "Mis abuelos viven ___ un pueblo pequeño.", "en", ["a", "de", "por"], "Where someone is: en."],
+      ["1-03", "La clase empieza ___ las nueve.", "a", ["en", "de", "por"], "Clock times: a las nueve."],
+      ["1-04", "Siempre voy al trabajo ___ autobús.", "en", ["a", "de", "por"], "Means of transport: en autobús."],
+      ["1-05", "Nací ___ 1995.", "en", ["a", "de", "por"], "Years: en 1995."],
+      ["1-06", "¿Vamos ___ pie o en coche?", "a", ["en", "de", "por"], "On foot is a pie."],
+      ["1-07", "Estoy ___ casa toda la tarde.", "en", ["a", "de", "por"], "Where you are: en casa."],
+      ["1-08", "Llegamos ___ casa muy tarde.", "a", ["en", "de", "por"], "llegar a: arriving somewhere."],
+      ["1-09", "Mi cumpleaños es ___ agosto.", "en", ["a", "de", "por"], "Months: en agosto."],
+      ["1-10", "¿Vienes ___ la playa con nosotros?", "a", ["en", "de", "por"], "Movement towards a place: venir a."],
+      ["1-11", "El libro está ___ la mesa.", "en", ["a", "de", "por"], "Where something is: en la mesa."],
+      ["1-12", "___ verano hace mucho calor.", "En", ["A", "De", "Por"], "Seasons: en verano."]
+    ]}
+  ]
+}

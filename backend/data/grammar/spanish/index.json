@@ -1,0 +1,26 @@
+{
+  "about": "Spanish grammar topics, organised like lingua.com/spanish/grammar: categories → topics → sheets of gap sentences with four options. All sentences are original. Each other file in this folder is one topic; questions are [id, text with one ___, answer, [three wrong options], why]. Never change or reuse a question id once it exists — answers are stored against it. tests/test_grammar_topics.py checks every file.",
+  "categories": [
+    {"id": "articles", "title": "Articles"},
+    {"id": "nouns", "title": "Nouns"},
+    {"id": "adjectives", "title": "Adjectives"},
+    {"id": "adverbs", "title": "Adverbs"},
+    {"id": "pronouns", "title": "Pronouns"},
+    {"id": "prepositions", "title": "Prepositions"},
+    {"id": "verbs", "title": "Verbs"},
+    {"id": "conjugation", "title": "Conjugation"},
+    {"id": "tenses-moods", "title": "Tenses & Moods"},
+    {"id": "mixed", "title": "Mixed practice"}
+  ],
+  "order": [
+    "articulos-definidos", "articulos-indefinidos", "al-y-del",
+    "genero-de-los-sustantivos", "plural-de-los-sustantivos",
+    "concordancia-de-adjetivos", "posesivos", "demostrativos", "bien-o-bueno", "mal-o-malo", "apocope", "comparativos",
+    "muy-o-mucho", "adverbio-o-adjetivo",
+    "pronombres-personales", "pronombres-interrogativos", "pronombres-reflexivos", "objeto-directo", "objeto-indirecto", "indefinidos", "objeto-directo-o-indirecto", "pronombres-relativos",
+    "a-o-en", "a-personal", "por-o-para",
+    "ser-y-estar", "hay-o-estar", "gustar", "tener", "verbos-modales", "poder-o-saber", "saber-o-conocer", "perifrasis-verbales", "ser-o-estar-con-adjetivos",
+    "presente-regulares", "presente-irregulares", "indefinido-regulares", "indefinido-irregulares", "imperfecto", "preterito-perfecto", "futuro", "condicional",
+    "imperativo", "indefinido-o-imperfecto", "perfecto-o-indefinido", "presente-de-subjuntivo", "indicativo-o-subjuntivo", "imperfecto-de-subjuntivo", "oraciones-condicionales", "estilo-indirecto"
+  ]
+}

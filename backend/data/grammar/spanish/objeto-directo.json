@@ -1,0 +1,39 @@
+{
+  "id": "objeto-directo", "title": "Direct object pronouns", "spanish": "Pronombres de objeto directo", "category": "pronouns", "level": 2,
+  "rule": [
+    "me, te, lo/la, nos, os, los/las replace the direct object: ¿Ves el coche? — Sí, lo veo.",
+    "lo/la/los/las agree with the noun they replace: las llaves → las; los libros → los.",
+    "Before a conjugated verb (Lo compro), or joined to an infinitive, gerund or affirmative command (Voy a comprarlo, Cómpralo).",
+    "lo also replaces a whole idea: —¿Sabes que se casa? —Sí, lo sé."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "—¿Tienes el libro? —Sí, ___ tengo.", "lo", ["la", "le", "los"], "el libro is masculine singular: lo."],
+      ["1-02", "—¿Compras la fruta? —Sí, ___ compro.", "la", ["lo", "le", "las"], "la fruta is feminine singular: la."],
+      ["1-03", "—¿Dónde están mis gafas? —No ___ veo.", "las", ["los", "les", "la"], "las gafas is feminine plural: las."],
+      ["1-04", "—¿Conoces a mis hermanos? —Sí, ___ conozco.", "los", ["les", "las", "lo"], "mis hermanos is masculine plural: los."],
+      ["1-05", "—¿Me llamas mañana? —Sí, ___ llamo.", "te", ["me", "lo", "le"], "you (tú) as the object: te llamo."],
+      ["1-06", "—¿Sabes que Ana está embarazada? —Sí, ___ sé.", "lo", ["la", "le", "eso"], "A whole idea is replaced by lo."],
+      ["1-07", "Ese vestido es precioso. Voy a ___.", "comprarlo", ["lo comprar", "comprarla", "comprarle"], "vestido is masculine; with an infinitive the pronoun joins the end: comprarlo."],
+      ["1-08", "¿La carta? Estoy ___ ahora mismo.", "escribiéndola", ["escribiéndolo", "la escribiendo", "escribiendola"], "la carta is feminine; joined to the gerund with an accent: escribiéndola."],
+      ["1-09", "Las patatas, ___ en la nevera, por favor.", "ponlas", ["ponlos", "las pon", "pónlas"], "Affirmative command: the pronoun joins the end: ponlas."],
+      ["1-10", "—¿Nos invitas a la fiesta? —Claro que ___ invito.", "os", ["nos", "les", "los a"], "you all (vosotros) as the object: os invito."],
+      ["1-11", "No encuentro las llaves. ¿___ has visto?", "Las", ["Los", "Les", "La"], "las llaves is feminine plural: las."],
+      ["1-12", "El periódico, ¿___ lees todos los días?", "lo", ["le", "la", "los"], "el periódico is masculine singular: lo."]
+    ]},
+    {"questions": [
+      ["2-01", "—¿Has visto a María? —Sí, ___ vi ayer.", "la", ["le", "lo", "les"], "María is feminine singular: la."],
+      ["2-02", "Estos zapatos me encantan; ___ llevo siempre.", "los", ["las", "les", "lo"], "zapatos is masculine plural: los."],
+      ["2-03", "¿La tarea? No ___ he terminado todavía.", "la", ["lo", "le", "las"], "la tarea is feminine singular: la."],
+      ["2-04", "Si no entiendes la palabra, búsca___ en el diccionario.", "la", ["lo", "le", "las"], "la palabra is feminine singular: búscala."],
+      ["2-05", "—¿Quién te ayuda? —Mis padres ___ ayudan.", "me", ["te", "se", "le"], "me (yo) as the object: me ayudan."],
+      ["2-06", "¿Las fotos? Puedes ___ mañana.", "verlas", ["verlos", "las ver", "verles"], "las fotos is feminine plural, joined to the infinitive: verlas."],
+      ["2-07", "El coche está sucio. Tengo que ___.", "lavarlo", ["lavarla", "lo lavar", "lavarle"], "el coche is masculine: lavarlo."],
+      ["2-08", "—¿Esperas a tus amigas? —Sí, ___ espero aquí.", "las", ["les", "los", "la"], "tus amigas is feminine plural: las."],
+      ["2-09", "No ___ toques, la sopa está caliente.", "la", ["lo", "le", "las"], "Negative command: the pronoun goes before the verb: no la toques."],
+      ["2-10", "¿El dinero? Ya ___ he gastado todo.", "lo", ["le", "la", "los"], "el dinero is masculine singular: lo."],
+      ["2-11", "—¿Me quieres? —Sí, ___ quiero mucho.", "te", ["me", "la", "lo a"], "you (tú) as the object: te quiero."],
+      ["2-12", "Los ejercicios, ___ hacemos en clase.", "los", ["les", "las", "lo"], "los ejercicios is masculine plural: los."]
+    ]}
+  ]
+}

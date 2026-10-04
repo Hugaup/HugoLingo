@@ -1,0 +1,24 @@
+{
+  "id": "imperfecto-de-subjuntivo", "title": "The imperfect subjunctive", "spanish": "Imperfecto de subjuntivo", "category": "tenses-moods", "level": 4,
+  "rule": [
+    "Take ellos in the preterite, drop -ron, add -ra, -ras, -ra, -ramos, -rais, -ran: hablaron → hablara, tuvieron → tuviera, fueron → fuera.",
+    "The -se forms are equally correct: hablase, tuviese. nosotros carries an accent: habláramos, tuviéramos.",
+    "Used where the subjunctive is needed after a past verb (Quería que vinieras) and in unlikely conditions (Si tuviera dinero…)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mi madre quería que yo ___ (estudiar) medicina.", "estudiara", ["estudie", "estudiaba", "estudiaré"], "After a past wish: imperfect subjunctive."],
+      ["1-02", "Si ___ (tener, yo) tiempo, aprendería a tocar el piano.", "tuviera", ["tengo de", "tenía", "tendría"], "si + unlikely condition: tuviera."],
+      ["1-03", "Me pidió que le ___ (ayudar, yo).", "ayudara", ["ayude", "ayudaba", "ayudaré"], "After a past request: ayudara."],
+      ["1-04", "Ojalá ___ (ser, nosotros) más jóvenes.", "fuéramos", ["fueramos", "somos", "seamos de"], "An impossible wish: fuéramos (with an accent)."],
+      ["1-05", "No creía que ___ (venir, ellos) a la fiesta.", "vinieran", ["vienen", "venían", "vendrán"], "After a past doubt: vinieran."],
+      ["1-06", "Habla como si lo ___ (saber) todo.", "supiera", ["sabe", "sabía", "sepa"], "como si always takes the imperfect subjunctive."],
+      ["1-07", "Les dije que ___ (traer) algo de comer.", "trajeran", ["trajieran", "traen", "traigan de"], "After a past instruction: trajeran (traj- stem, -eran)."],
+      ["1-08", "Era necesario que ___ (hacer, tú) el examen.", "hicieras", ["hacieras", "haces", "harías"], "After a past impersonal: hicieras."],
+      ["1-09", "Si ___ (poder, ellos), vendrían.", "pudieran", ["podieran", "pueden de", "podrían"], "si + unlikely condition: pudieran."],
+      ["1-10", "Queríamos que nos ___ (decir, tú) la verdad.", "dijeras", ["dijieras", "dices", "decías"], "After a past wish: dijeras."],
+      ["1-11", "Me sorprendió que ___ (estar, él) allí.", "estuviera", ["esté de", "estaba", "estaría"], "After a past feeling: estuviera."],
+      ["1-12", "Si yo ___ (ir) a Roma, visitaría el Coliseo.", "fuera", ["iba", "voy de", "iría"], "si + unlikely condition: fuera (ir)."]
+    ]}
+  ]
+}

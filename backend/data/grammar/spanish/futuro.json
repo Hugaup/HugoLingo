@@ -1,0 +1,24 @@
+{
+  "id": "futuro", "title": "The future", "spanish": "Futuro simple", "category": "conjugation", "level": 2,
+  "rule": [
+    "Infinitive + -é, -ás, -á, -emos, -éis, -án: hablaré, comerás, vivirá.",
+    "Irregular stems (same endings): tendré, vendré, pondré, saldré, podré, sabré, querré, haré, diré, habrá.",
+    "Also used for guesses about the present: ¿Qué hora será? — Serán las diez."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Mañana ___ (llover) en el norte.", "lloverá", ["llueverá", "llovará", "llovería"], "Infinitive + -á: lloverá."],
+      ["1-02", "El año que viene ___ (estudiar, yo) en Madrid.", "estudiaré", ["estudiaré de", "estudiare", "estudiará"], "Infinitive + -é: estudiaré."],
+      ["1-03", "¿___ (venir, tú) a mi boda?", "Vendrás", ["Vendrás de", "Venirás", "Vienerás"], "Irregular stem: vendr-."],
+      ["1-04", "Nosotros ___ (hacer) la cena esta noche.", "haremos", ["haceremos", "haríamos", "hacemos de"], "Irregular stem: har-."],
+      ["1-05", "Mis padres ___ (salir) a las ocho.", "saldrán", ["salirán", "saldrían", "salerán"], "Irregular stem: saldr-."],
+      ["1-06", "Te lo ___ (decir, yo) mañana.", "diré", ["deciré", "diría", "dicaré"], "Irregular stem: dir-."],
+      ["1-07", "No sé si ___ (poder, nosotros) ir.", "podremos", ["poderemos", "podríamos de", "puedremos"], "Irregular stem: podr-."],
+      ["1-08", "¿Vosotros ___ (tener) tiempo el sábado?", "tendréis", ["teneréis", "tendríais", "tenéréis"], "Irregular stem: tendr-."],
+      ["1-09", "En el futuro ___ (haber) coches voladores.", "habrá", ["haberá", "habrán", "hará"], "haber: habrá (always singular)."],
+      ["1-10", "—¿Dónde está Juan? —No sé, ___ (estar) en casa.", "estará", ["estaré", "esté", "estaría de"], "A guess about the present: future."],
+      ["1-11", "Ella ___ (saber) la respuesta.", "sabrá", ["saberá", "sabría de", "sepá"], "Irregular stem: sabr-."],
+      ["1-12", "Ustedes ___ (poner) la mesa.", "pondrán", ["ponerán", "pondrían", "ponrán"], "Irregular stem: pondr-."]
+    ]}
+  ]
+}

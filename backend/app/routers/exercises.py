@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import Exercise, Progress, User, ExerciseType
-from app.schemas import GenerateExerciseRequest, ExerciseResponse, CheckAnswerRequest, CheckAnswerResponse
+from app.schemas import GenerateExerciseRequest, ExerciseResponse, CheckAnswerRequest, CheckAnswerResponse, GrammarFix
 from app.services.exercise_gen import generate_exercise, CHECKERS, check_conjugation
-from app.services import sentence_pool
+from app.services import grammar, sentence_pool
 from app.services.grading import grade
 from app.services.history import AttemptIn, record_attempts
 
@@ -16,6 +15,9 @@ router = APIRouter(prefix="/exercises", tags=["exercises"])
 
 @router.post("/generate", response_model=ExerciseResponse)
 async def generate(req: GenerateExerciseRequest, db: AsyncSession = Depends(get_db)):
+    if req.type == ExerciseType.grammar:
+        # Hand-written topics and sheets now: routers/grammar.py
+        raise HTTPException(status_code=400, detail="Grammar exercises are in the grammar section")
     try:
         with sentence_pool.live_request():  # background refills wait while a user does
             content = await generate_exercise(req.type, req.language, req.difficulty)
@@ -45,25 +47,27 @@ async def check(
         raise HTTPException(status_code=404, detail="Exercise not found")
 
     correct_answer = _get_correct_answer(exercise)
-    if exercise.type == ExerciseType.conjugation:
+    almost = False
+    fix = None
+    if exercise.type == ExerciseType.grammar:  # exercises made before the grammar section
+        accepted = await grammar.accepted_corrections(db, exercise.language, correct_answer)
+        graded = grammar.grade_answer(exercise.content, req.user_answer, accepted)
+        is_correct, almost, explanation = graded.result == "correct", graded.result == "almost", graded.explanation
+        fix = GrammarFix(**vars(graded.fix)) if graded.fix else None
+    elif exercise.type == ExerciseType.conjugation:
         is_correct, explanation = await check_conjugation(
             exercise.content, req.user_answer, db, exercise.language
         )
+        # An accent-only difference is "almost" (still a mistake)
+        almost = not is_correct and grade(req.user_answer, [correct_answer]).is_almost
+        if almost:
+            explanation = "Almost — just the accents. " + explanation
     else:
+        # Reading answers are matched loosely and never "almost"
         checker = CHECKERS.get(exercise.type)
         if not checker:
             raise HTTPException(status_code=400, detail="Unknown exercise type")
         is_correct, explanation = checker(exercise.content, req.user_answer)
-
-    # Reading answers are matched loosely already; for the exact-answer types an
-    # accent-only difference is "almost" (still a mistake)
-    almost = (
-        not is_correct
-        and exercise.type in (ExerciseType.conjugation, ExerciseType.grammar)
-        and grade(req.user_answer, [correct_answer]).is_almost
-    )
-    if almost:
-        explanation = "Almost — just the accents. " + explanation
 
     verb = str(exercise.content.get("verb_infinitive", "")).strip()
     if exercise.type == ExerciseType.conjugation and verb:
@@ -89,6 +93,7 @@ async def check(
         almost=almost,
         explanation=explanation,
         correct_answer=correct_answer,
+        fix=fix,
     )
 
 

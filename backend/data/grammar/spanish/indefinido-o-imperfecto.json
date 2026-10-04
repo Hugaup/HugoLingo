@@ -1,0 +1,52 @@
+{
+  "id": "indefinido-o-imperfecto", "title": "Preterite or imperfect", "spanish": "Indefinido o imperfecto", "category": "tenses-moods", "level": 3,
+  "rule": [
+    "Indefinido: completed actions and events, often with a time marker (ayer, en 2010, de repente, una vez): Ayer fui al cine.",
+    "Imperfecto: habits (siempre, cada día, de niño), descriptions and background (Hacía sol, Era alto), and actions in progress (Leía cuando…).",
+    "Together: the background in imperfecto, what happened in indefinido — Cuando dormía, sonó el teléfono."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Ayer ___ (ir, yo) al cine con Laura.", "fui", ["iba", "voy", "fue"], "A single completed event (ayer): indefinido."],
+      ["1-02", "De niño, ___ (jugar, yo) al fútbol todos los días.", "jugaba", ["jugué", "juego", "jugaré"], "A childhood habit: imperfecto."],
+      ["1-03", "Anoche, cuando ___ (llegar, yo) a casa, la cena ya estaba lista.", "llegué", ["llego", "llegara", "había llegué"], "The event that happens against the background: indefinido."],
+      ["1-04", "___ (hacer) mucho calor y el cielo estaba despejado.", "Hacía", ["Hizo de", "Hace", "Haría de"], "Description of the weather as background: imperfecto."],
+      ["1-05", "En 2015 ___ (vivir, nosotros) un año en Londres y después volvimos.", "vivimos", ["vivíamos", "vivamos", "viviremos"], "A closed period that ended: indefinido."],
+      ["1-06", "Mientras yo ___ (ducharse), sonó el teléfono.", "me duchaba", ["me duché", "me ducho", "me duchara"], "An action in progress (mientras): imperfecto."],
+      ["1-07", "Mi abuelo ___ (ser) alto y tenía el pelo blanco.", "era", ["sea", "es", "sería"], "Physical description in the past: imperfecto."],
+      ["1-08", "De repente, ___ (empezar) a llover.", "empezó", ["empezaba", "empieza", "empezaría"], "Something sudden (de repente): indefinido."],
+      ["1-09", "Antes ___ (fumar, ella), pero lo dejó.", "fumaba", ["fumó", "fuma", "fumará"], "A past habit (antes): imperfecto."],
+      ["1-10", "El sábado pasado ___ (cenar, nosotros) en un restaurante muy bueno.", "cenamos", ["cenábamos", "cenaremos", "cenemos"], "A single completed event: indefinido."],
+      ["1-11", "El avión ___ (aterrizar) a las diez en punto y bajamos enseguida.", "aterrizó", ["aterrice", "aterriza", "aterrizara"], "A completed event in a sequence: indefinido."],
+      ["1-12", "Cuando era pequeña, ___ (tener) miedo de los perros.", "tenía", ["tuvo", "tiene", "tuviera"], "A state in childhood: imperfecto."]
+    ]},
+    {"questions": [
+      ["2-01", "Ayer ___ (estar, yo) en casa de mis padres de diez a doce.", "estuve", ["esté", "estoy", "estuviera"], "A closed period with a start and an end: indefinido."],
+      ["2-02", "Todos los veranos ___ (ir, nosotros) al pueblo de mis abuelos.", "íbamos", ["fuimos de", "vamos de", "iremos"], "A repeated habit (todos los veranos): imperfecto."],
+      ["2-03", "La casa ___ (tener) un jardín enorme con muchos árboles.", "tenía", ["tuvo", "tiene de", "tenga"], "Description of a place: imperfecto."],
+      ["2-04", "Ana ___ (nacer) en Sevilla en 1990.", "nació", ["nacía", "nace de", "naciera"], "A single event with a date: indefinido."],
+      ["2-05", "Leía un libro cuando ___ (oír, yo) un ruido extraño.", "oí", ["oía", "oigo", "oyera"], "The interrupting event: indefinido."],
+      ["2-06", "Estábamos muy cansados porque ___ (ser) muy tarde.", "era", ["fue", "es", "sea"], "Time as background: imperfecto."],
+      ["2-07", "El año pasado ___ (visitar, ellos) Japón por primera vez.", "visitaron", ["visitaban", "visitan", "visiten"], "A completed event (por primera vez, el año pasado): indefinido."],
+      ["2-08", "En aquella época no ___ (haber) internet.", "había", ["hubo", "hay", "haya"], "Description of a past situation: imperfecto."],
+      ["2-09", "Una vez ___ (ver, yo) a un famoso en el aeropuerto.", "vi", ["veía", "veo", "vea"], "A single occasion (una vez): indefinido."],
+      ["2-10", "Mi profesora siempre ___ (llevar) gafas rojas.", "llevaba", ["llevó de", "lleva de", "llevara"], "A habitual detail in the past: imperfecto."],
+      ["2-11", "Cuando sonó la alarma, todos ___ (salir) corriendo.", "salieron", ["salían", "salen", "salgan"], "A reaction to an event: indefinido."],
+      ["2-12", "Mientras los niños ___ (jugar), los padres hablaban.", "jugaban", ["jugaron", "juegan", "jugaran"], "Two actions in progress at the same time: imperfecto."]
+    ]},
+    {"questions": [
+      ["3-01", "Anoche ___ (dormir, yo) solo cuatro horas.", "dormí", ["dormía", "duermo", "durmiera"], "A completed event with its duration: indefinido."],
+      ["3-02", "Cuando éramos estudiantes, ___ (salir) todos los fines de semana.", "salíamos", ["salimos de", "salgamos", "saldremos"], "A habit in a past period: imperfecto."],
+      ["3-03", "El cielo estaba gris y ___ (llover) un poco.", "llovía", ["llovió de", "llueve de", "lloviera"], "Background description: imperfecto."],
+      ["3-04", "En 1492 Colón ___ (llegar) a América.", "llegó", ["llegaba", "llega de", "llegara"], "A historical event with a date: indefinido."],
+      ["3-05", "Me ___ (doler) la cabeza, así que me tomé una pastilla.", "dolía", ["dolió de", "duele de", "doliera"], "The state that explains the action: imperfecto."],
+      ["3-06", "Ayer Marta me ___ (llamar) tres veces.", "llamó", ["llamaba", "llama", "llamara"], "A counted number of times in a closed period: indefinido."],
+      ["3-07", "La niña ___ (llevar) un vestido azul precioso.", "llevaba", ["llevó de", "lleva de", "llevara"], "Description of what someone was wearing: imperfecto."],
+      ["3-08", "Ese día ___ (decidir, yo) cambiar de trabajo.", "decidí", ["decidía", "decido", "decidiera"], "A one-off decision: indefinido."],
+      ["3-09", "Normalmente ___ (desayunar, nosotros) a las ocho, pero ese día no desayunamos.", "desayunábamos", ["desayunamos de", "desayunemos", "desayunaremos"], "The usual habit (normalmente): imperfecto."],
+      ["3-10", "En cuanto ___ (abrir, yo) la puerta, el gato se escapó.", "abrí", ["abra", "abro", "abriera"], "One action straight after another: indefinido."],
+      ["3-11", "Hace dos años ___ (aprender, yo) a conducir.", "aprendí", ["aprendía", "aprendo", "aprendiera"], "A completed achievement at a point in time: indefinido."],
+      ["3-12", "No fui a la fiesta porque ___ (estar) muy cansado.", "estaba", ["estuve de", "estoy", "estuviera"], "The state that explains why: imperfecto."]
+    ]}
+  ]
+}

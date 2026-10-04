@@ -1,0 +1,24 @@
+{
+  "id": "verbos-modales", "title": "Modal verbs", "spanish": "Verbos modales", "category": "verbs", "level": 2,
+  "rule": [
+    "poder + infinitive: can, be able to, be allowed to. querer + infinitive: want to.",
+    "deber + infinitive: must, should (advice or duty). tener que + infinitive: have to (a need).",
+    "hay que + infinitive: one has to (impersonal, no person): Hay que estudiar."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "¿___ abrir la ventana? Hace calor.", "Puedo", ["Debo de", "Hay que", "Tengo"], "Asking permission: ¿puedo…?"],
+      ["1-02", "Para aprobar ___ estudiar mucho.", "hay que", ["hay", "tiene", "debe que"], "An impersonal obligation: hay que + infinitive."],
+      ["1-03", "Mañana ___ que levantarme a las seis.", "tengo", ["debo", "hay", "puedo"], "tener que + infinitive."],
+      ["1-04", "No ___ fumar aquí; está prohibido.", "se puede", ["se hay", "tiene", "hay"], "Not allowed: no se puede."],
+      ["1-05", "Estás muy cansado; ___ descansar más.", "deberías", ["hay que de", "tienes", "puedes de"], "Advice: deberías (you should)."],
+      ["1-06", "¿___ venir a mi fiesta el sábado?", "Quieres", ["Hay que", "Tienes", "Debes de"], "An invitation: ¿quieres…?"],
+      ["1-07", "Los niños no ___ ver esta película; es para adultos.", "deben", ["hay que", "tienen", "deben de que"], "Duty / what's right: deber + infinitive."],
+      ["1-08", "Mi hermano ___ nadar muy bien.", "sabe", ["puede de", "hay", "tiene que de"], "A learned skill: saber + infinitive."],
+      ["1-09", "Lo siento, no ___ ayudarte: estoy ocupado.", "puedo", ["hay", "tengo", "quiero de"], "Not able to right now: no puedo."],
+      ["1-10", "___ que llevar el pasaporte para viajar.", "Hay", ["Tiene", "Debe", "Puede"], "Impersonal obligation: hay que."],
+      ["1-11", "Ana ___ ser médica cuando sea mayor.", "quiere", ["puede de", "tiene", "hay que"], "A wish: querer + infinitive."],
+      ["1-12", "Tienes fiebre; ___ ir al médico.", "debes", ["hay", "debes de que", "puedes de"], "Advice / duty: debes + infinitive."]
+    ]}
+  ]
+}

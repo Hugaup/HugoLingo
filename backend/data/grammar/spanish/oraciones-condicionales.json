@@ -1,0 +1,25 @@
+{
+  "id": "oraciones-condicionales", "title": "If-clauses", "spanish": "Oraciones condicionales", "category": "tenses-moods", "level": 4,
+  "rule": [
+    "Real: si + present, then present / future / command: Si llueve, me quedo en casa. Si tienes tiempo, llámame.",
+    "Unlikely or imaginary: si + imperfect subjunctive, then conditional: Si tuviera dinero, viajaría.",
+    "Impossible (the past): si + pluperfect subjunctive, then conditional perfect: Si hubiera estudiado, habría aprobado.",
+    "Never the future or conditional after si (not si lloverá, not si tendría)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Si ___ (llover) mañana, nos quedaremos en casa.", "llueve", ["lloverá", "lloviera de", "llovería"], "Real condition: si + present (never the future)."],
+      ["1-02", "Si ___ (tener, yo) dinero, me compraría un barco.", "tuviera", ["tendría", "tengo de", "tenía de"], "Imaginary: si + imperfect subjunctive."],
+      ["1-03", "Si ___ (estudiar, tú) más, habrías aprobado.", "hubieras estudiado", ["habrías estudiado", "estudiaras de", "has estudiado"], "Impossible (past): si + pluperfect subjunctive."],
+      ["1-04", "Si tienes hambre, ___ (comer) algo.", "come", ["comieras", "comerías", "hubieras comido"], "Real condition with a command: come."],
+      ["1-05", "Si fuera rico, ___ (viajar, yo) por todo el mundo.", "viajaría", ["viajaré", "viajara de", "viajo"], "Imaginary: conditional in the result."],
+      ["1-06", "Si me ___ (llamar, tú), te habría ayudado.", "hubieras llamado", ["habrías llamado", "llamas", "llamarías"], "Impossible (past): hubieras llamado."],
+      ["1-07", "Si ___ (ver, yo) a Ana, le daré tu mensaje.", "veo", ["veré", "viera de", "vería"], "Real: si + present, future in the result."],
+      ["1-08", "¿Qué ___ (hacer, tú) si ganaras la lotería?", "harías", ["harás", "hicieras", "haces"], "Imaginary: conditional in the result."],
+      ["1-09", "Si hubiéramos salido antes, no ___ (perder) el tren.", "habríamos perdido", ["perderíamos de", "hubiéramos perdiendo", "perdimos"], "Impossible (past): conditional perfect in the result."],
+      ["1-10", "Si ___ (ser, yo) tú, no lo haría.", "fuera", ["sería", "soy de", "era de"], "Imaginary: si yo fuera tú."],
+      ["1-11", "Si calientas el hielo, ___ (derretirse).", "se derrite", ["se derritiera", "se derretiría", "se derritió de"], "A general truth: present in both parts."],
+      ["1-12", "Si ___ (saber, nosotros) la respuesta, te la diríamos.", "supiéramos", ["sabríamos", "sabemos de", "supiéramos de"], "Imaginary: si + imperfect subjunctive."]
+    ]}
+  ]
+}

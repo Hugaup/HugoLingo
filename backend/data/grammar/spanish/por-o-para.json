@@ -1,0 +1,52 @@
+{
+  "id": "por-o-para", "title": "Por or para", "spanish": "Por o para", "category": "prepositions", "level": 3,
+  "rule": [
+    "para: purpose (para aprender), recipient (para ti), destination (sale para Roma), deadline (para el lunes), opinion (para mí), comparison (alto para su edad).",
+    "por: cause (por la lluvia), through/along (por el parque), rough place or time (por aquí, por la mañana), exchange and price (por diez euros), means (por teléfono), on behalf of (lo hago por ti), duration (por dos horas), the agent in the passive (escrito por Cervantes).",
+    "Fixed phrases with por: por favor, por fin, por ejemplo, por supuesto, por eso."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Este regalo es ___ ti.", "para", ["por", "de", "a"], "Recipient: para ti."],
+      ["1-02", "Estudio español ___ trabajar en México.", "para", ["por", "de", "a"], "Purpose (in order to): para."],
+      ["1-03", "Gracias ___ tu ayuda.", "por", ["para", "de", "a"], "Thanks for (cause): gracias por."],
+      ["1-04", "Paseamos ___ el parque.", "por", ["para", "en", "a"], "Through/along a place: por."],
+      ["1-05", "Compré el libro ___ diez euros.", "por", ["para", "de", "a"], "Price, exchange: por."],
+      ["1-06", "Necesito el informe ___ el viernes.", "para", ["por", "de", "a"], "Deadline: para el viernes."],
+      ["1-07", "No salimos ___ la lluvia.", "por", ["para", "de", "a"], "Cause: por la lluvia."],
+      ["1-08", "Hablamos ___ teléfono cada día.", "por", ["para", "de", "en"], "Means of communication: por teléfono."],
+      ["1-09", "El tren sale ___ Sevilla a las ocho.", "para", ["por", "de", "en"], "Destination: salir para."],
+      ["1-10", "Trabajo ___ las mañanas.", "por", ["para", "a", "de"], "Part of the day: por la mañana."],
+      ["1-11", "___ mí, esta es la mejor película.", "Para", ["Por", "De", "A"], "Opinion: para mí."],
+      ["1-12", "___ favor, cierra la puerta.", "Por", ["Para", "De", "A"], "Fixed phrase: por favor."]
+    ]},
+    {"questions": [
+      ["2-01", "Este libro fue escrito ___ García Márquez.", "por", ["para", "de", "a"], "The agent in the passive: por."],
+      ["2-02", "Salimos ___ la noche porque hace menos calor.", "por", ["para", "a", "de"], "Part of the day: por la noche."],
+      ["2-03", "Esta habitación es ___ los invitados.", "para", ["por", "de", "a"], "Intended for: para."],
+      ["2-04", "Estuve en Londres ___ tres semanas.", "por", ["para", "de", "a"], "Duration: por tres semanas (or just tres semanas)."],
+      ["2-05", "Mi compañero estaba enfermo, así que trabajé ___ él.", "por", ["para", "de", "a"], "In someone's place: por él."],
+      ["2-06", "¿Hay una farmacia ___ aquí?", "por", ["para", "en", "a"], "Somewhere around here: por aquí."],
+      ["2-07", "Es muy alto ___ su edad.", "para", ["por", "de", "a"], "Comparison with what's expected: para su edad."],
+      ["2-08", "Esta taza es ___ el café.", "para", ["por", "de", "a"], "Purpose of an object: para."],
+      ["2-09", "Te cambio mi bocadillo ___ tu manzana.", "por", ["para", "de", "a"], "Exchange: por."],
+      ["2-10", "Estudia mucho ___ aprobar el examen.", "para", ["por", "de", "a"], "Purpose: para aprobar."],
+      ["2-11", "Llegué tarde ___ el tráfico.", "por", ["para", "de", "a"], "Cause: por el tráfico."],
+      ["2-12", "___ fin es viernes.", "Por", ["Para", "De", "A"], "Fixed phrase: por fin."]
+    ]},
+    {"questions": [
+      ["3-01", "Mi hermana trabaja ___ una empresa alemana.", "para", ["por", "de", "a"], "Working for an employer: para."],
+      ["3-02", "Te llamo ___ preguntarte una cosa.", "para", ["por", "de", "a"], "Purpose: para."],
+      ["3-03", "Me multaron ___ aparcar mal.", "por", ["para", "de", "a"], "Cause (because of): por."],
+      ["3-04", "Entramos ___ la puerta de atrás.", "por", ["para", "de", "a"], "Through a place: por."],
+      ["3-05", "Vamos a 100 kilómetros ___ hora.", "por", ["para", "de", "a"], "Rate: por hora."],
+      ["3-06", "___ ser extranjero, habla muy bien.", "Para", ["Por", "De", "A"], "Comparison with what's expected: para ser extranjero."],
+      ["3-07", "Tengo que entregar el trabajo ___ el lunes como muy tarde.", "para", ["por", "de", "a"], "Deadline: para el lunes."],
+      ["3-08", "No pudo venir ___ estar enfermo.", "por", ["para", "de", "a"], "Cause: por estar enfermo."],
+      ["3-09", "¿___ qué sirve esta máquina?", "Para", ["Por", "De", "A"], "Purpose of a thing: ¿para qué sirve?"],
+      ["3-10", "¿___ qué no viniste ayer?", "Por", ["Para", "De", "A"], "Asking the cause: ¿por qué?"],
+      ["3-11", "Los deberes son ___ mañana.", "para", ["por", "de", "a"], "Deadline: para mañana."],
+      ["3-12", "Me interesa mucho, ___ eso quiero estudiarlo.", "por", ["para", "de", "a"], "Fixed phrase: por eso (that's why)."]
+    ]}
+  ]
+}

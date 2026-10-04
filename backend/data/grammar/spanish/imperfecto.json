@@ -1,0 +1,24 @@
+{
+  "id": "imperfecto", "title": "The imperfect", "spanish": "Pretérito imperfecto", "category": "conjugation", "level": 2,
+  "rule": [
+    "-ar: hablaba, hablabas, hablaba, hablábamos, hablabais, hablaban. -er/-ir: comía, comías, comía, comíamos, comíais, comían.",
+    "Only three irregular verbs: ser (era), ir (iba), ver (veía).",
+    "Use it for habits in the past (De niño jugaba al fútbol) and descriptions (Hacía sol, Era alto)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "De niño ___ (jugar, yo) en la calle.", "jugaba", ["juegaba", "jugué", "jugía"], "-ar: jugaba (no stem change)."],
+      ["1-02", "De pequeña, mi abuela ___ (vivir) en el campo.", "vivía", ["vivaba", "viviba", "vivia"], "-ir: vivía (with an accent)."],
+      ["1-03", "Cuando éramos jóvenes, ___ (ir, nosotros) a la playa cada verano.", "íbamos", ["ibamos", "ibámos", "ibábamos"], "ir is irregular: íbamos."],
+      ["1-04", "La casa ___ (ser) muy grande.", "era", ["fue de", "esa", "seía"], "ser is irregular: era."],
+      ["1-05", "¿Qué ___ (hacer, tú) a esa hora todos los días?", "hacías", ["hacias", "hacíais", "hacabas"], "-er: hacías."],
+      ["1-06", "Antes ___ (ver, nosotros) mucho la tele.", "veíamos", ["víamos", "veímos", "veábamos"], "ver keeps its e: veíamos."],
+      ["1-07", "Antes mis padres ___ (trabajar) en un banco.", "trabajaban", ["trabajeban", "trabajábamos", "trabajían"], "-ar: trabajaban."],
+      ["1-08", "Hacía frío y ___ (llover).", "llovía", ["lloviba", "llovió de", "llueve"], "-er: llovía."],
+      ["1-09", "De niños, vosotros ___ (tener) un perro, ¿no?", "teníais", ["tenáis", "teníamos", "tenabais"], "-er: teníais."],
+      ["1-10", "Yo ___ (estar) muy cansada.", "estaba", ["estuve de", "estía", "estába"], "-ar: estaba."],
+      ["1-11", "Los niños ___ (dormir) cuando llegué.", "dormían", ["durmían", "dormieron", "dormaban"], "-ir: dormían (no stem change)."],
+      ["1-12", "De pequeño, tú siempre ___ (decir) la verdad.", "decías", ["dicías", "decistes", "decibas"], "-ir: decías."]
+    ]}
+  ]
+}

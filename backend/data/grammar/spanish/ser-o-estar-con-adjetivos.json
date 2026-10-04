@@ -1,0 +1,24 @@
+{
+  "id": "ser-o-estar-con-adjetivos", "title": "Ser or estar with adjectives", "spanish": "Ser o estar con adjetivos", "category": "verbs", "level": 3,
+  "rule": [
+    "Some adjectives change meaning: ser listo (clever) / estar listo (ready); ser aburrido (boring) / estar aburrido (bored); ser malo (bad) / estar malo (ill).",
+    "ser rico (wealthy) / estar rico (tasty); ser verde (green) / estar verde (unripe); ser orgulloso (arrogant) / estar orgulloso de (proud of).",
+    "ser abierto (open-minded) / estar abierto (open); ser atento (thoughtful) / estar atento (paying attention); ser vivo (lively, sharp) / estar vivo (alive)."
+  ],
+  "sheets": [
+    {"questions": [
+      ["1-01", "Esta película ___ muy aburrida; me he dormido.", "es", ["está", "son", "estoy"], "Boring (what it's like): ser aburrido."],
+      ["1-02", "Los niños ___ aburridos porque llueve y no pueden salir.", "están", ["son", "es", "está"], "Bored (how they feel): estar aburrido."],
+      ["1-03", "Tu hermana ___ muy lista: siempre saca buenas notas.", "es", ["está", "son", "estás"], "Clever: ser listo."],
+      ["1-04", "¿___ listos? El taxi nos espera.", "Estáis", ["Sois", "Son", "Es"], "Ready: estar listo."],
+      ["1-05", "Esta tarta ___ muy rica. ¿Quién la ha hecho?", "está", ["es", "están", "estoy"], "Tasty: estar rico."],
+      ["1-06", "Esa familia ___ muy rica: tiene tres casas.", "es", ["está", "son", "estás"], "Wealthy: ser rico."],
+      ["1-07", "Hoy no voy a trabajar; ___ malo.", "estoy", ["soy", "es", "está"], "Ill: estar malo."],
+      ["1-08", "Fumar ___ malo para la salud.", "es", ["está", "son", "estoy"], "Bad (in general): ser malo."],
+      ["1-09", "Mi abuelo tiene 98 años y todavía ___ vivo.", "está", ["es", "son", "están"], "Alive: estar vivo."],
+      ["1-10", "Mis padres ___ muy orgullosos de mí.", "están", ["son", "es", "está"], "Proud of: estar orgulloso de."],
+      ["1-11", "El museo ___ abierto hasta las ocho.", "está", ["es", "son", "están"], "Open (not closed): estar abierto."],
+      ["1-12", "Mi jefe ___ muy abierto: escucha todas las ideas.", "es", ["está", "son", "estás"], "Open-minded: ser abierto."]
+    ]}
+  ]
+}
