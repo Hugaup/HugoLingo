@@ -9,11 +9,14 @@ export default function ChatPanel({ initialMessages = [], systemPrompt = null, p
   const [messages, setMessages] = useState(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+  const historyRef = useRef(null)
   const autoAsked = useRef(false)
 
+  // Keep the newest message in view by scrolling the message box only —
+  // scrollIntoView would also scroll the page down to the panel on load.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const box = historyRef.current
+    if (box) box.scrollTop = box.scrollHeight
   }, [messages])
 
   async function ask(text, hidden, previous) {
@@ -55,7 +58,7 @@ export default function ChatPanel({ initialMessages = [], systemPrompt = null, p
 
   return (
     <div style={s.wrap}>
-      <div style={s.history}>
+      <div ref={historyRef} style={s.history}>
         {messages.map((m, i) => !m.hidden && (
           <div key={i} style={m.role === 'user' ? s.user : s.assistant}>
             <span style={s.bubble(m.role)}>{m.content}</span>
@@ -67,7 +70,6 @@ export default function ChatPanel({ initialMessages = [], systemPrompt = null, p
             <span style={{ ...s.bubble('assistant'), color: '#888' }}>...</span>
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
       <div style={s.inputRow}>
         <textarea
