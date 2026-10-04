@@ -64,7 +64,8 @@ describe('grammar page', () => {
     renderAppAt('/practice/spanish/grammar')
 
     expect(await screen.findByRole('heading', { name: 'Grammar — Spanish' })).toBeInTheDocument()
-    expect(screen.getByRole('meter', { name: 'Grammar score' })).toHaveAttribute('aria-valuenow', '17')
+    // the heading shows while the overview is still loading: wait for the data
+    expect(await screen.findByRole('meter', { name: 'Grammar score' })).toHaveAttribute('aria-valuenow', '17')
     expect(screen.getByText('22 of 132 questions right · 2 of 10 sheets completed')).toBeInTheDocument()
 
     const review = screen.getByRole('region', { name: 'To review' })
