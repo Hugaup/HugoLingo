@@ -8,7 +8,7 @@ A language learning web app (alternative to Duolingo) powered by a local LLM (Qw
 
 ## Running the app
 
-`./dev.sh` (repo root) starts everything: brew Postgres, `ollama serve`, `alembic upgrade head`, uvicorn `--reload` on 8000 and Vite on 5173 (`--strictPort`), with `[api]`/`[web]`-prefixed logs, then opens the browser. Ctrl+C stops all four (including the Ollama app and Postgres); `./dev.sh stop` does the same from another terminal. It must stay bash 3.2 compatible (macOS default) and pass `shellcheck` (CI runs it). Manual steps, if needed:
+`./dev.sh` (repo root) starts everything: brew Postgres, `ollama serve`, `alembic upgrade head`, `seed_vocabulary.py` (upsert, < 1 s — so JSON edits show up on the next start, as in Docker), uvicorn `--reload` on 8000 and Vite on 5173 (`--strictPort`), with `[api]`/`[web]`-prefixed logs, then opens the browser. Ctrl+C stops all four (including the Ollama app and Postgres); `./dev.sh stop` does the same from another terminal. It must stay bash 3.2 compatible (macOS default) and pass `shellcheck` (CI runs it). Manual steps, if needed:
 
 **Prerequisites — start these first:**
 ```bash
@@ -54,7 +54,7 @@ alembic upgrade head
 ```bash
 cd backend && source .venv/bin/activate
 python scripts/seed_conjugations.py
-python scripts/seed_vocabulary.py   # words + phrases from backend/data/vocabulary/*.json (upsert, re-run after editing the JSON)
+python scripts/seed_vocabulary.py   # words + phrases from backend/data/vocabulary/*.json (upsert; ./dev.sh and the Docker entrypoint re-run it on every start)
 ```
 This reads mlconjug3's bundled JSON files (`data/conjug_manager/verbs-{lang}.json` + `conjugation-{lang}.json`) directly — no ML model is loaded. Each verb entry has a `root` string and a `template` name; the conjugated form is `root + suffix` from the template.
 

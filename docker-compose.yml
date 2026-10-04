@@ -21,7 +21,7 @@ services:
     build: ./backend                   # builds an image from backend/Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db/language_learning
-      OLLAMA_URL: http://host.docker.internal:11434   # points to Ollama running on your Mac
+      OLLAMA_URL: http://host.docker.internal:11434   # Ollama is NOT in Docker: run `ollama serve` on your Mac first
       OLLAMA_MODEL: qwen2.5:7b
     ports:
       - "8000:8000"

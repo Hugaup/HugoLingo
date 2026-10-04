@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from app.schemas import ChatRequest, ChatResponse
@@ -14,8 +14,11 @@ STREAM_ERROR = "\n\n[The AI is unavailable right now — is Ollama running?]"
 @router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     messages = [{"role": m.role, "content": m.content} for m in req.messages]
-    with sentence_pool.live_request():
-        content = await llm_client.chat(messages)
+    try:
+        with sentence_pool.live_request():
+            content = await llm_client.chat(messages)
+    except httpx.HTTPError:
+        raise HTTPException(502, "The AI is unavailable right now — is Ollama running?")
     return ChatResponse(content=content)
 
 

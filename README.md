@@ -19,7 +19,7 @@ ollama pull qwen2.5:7b   # first time only
 ./dev.sh                 # starts Postgres, Ollama, backend and frontend, opens the browser
 ```
 
-Ctrl+C stops all of it (backend, frontend, Ollama and Postgres). `./dev.sh stop` does the same if the terminal was closed; `./dev.sh --no-open` skips opening the browser. The script runs pending migrations on start and refuses to launch if port 8000 or 5173 is already taken.
+Ctrl+C stops all of it (backend, frontend, Ollama and Postgres). `./dev.sh stop` does the same if the terminal was closed; `./dev.sh --no-open` skips opening the browser. The script runs pending migrations and reloads the vocabulary from `backend/data/vocabulary/*.json` on start, and refuses to launch if port 8000 or 5173 is already taken.
 
 To start the pieces by hand instead:
 
@@ -38,6 +38,22 @@ cd frontend && npm run dev
 ```
 
 Open http://localhost:5173 and create an account (or claim the pre-login `default` user's history with `scripts/set_password.py`, see below).
+
+### Running with Docker
+
+Docker runs the database, backend and frontend, but **not Ollama**. For the AI features, install Ollama and have it running on your machine:
+
+```bash
+ollama serve             # in its own terminal (or open the Ollama app)
+ollama pull qwen2.5:7b   # first time only
+docker compose up --build
+```
+
+Then open http://localhost:5173. The first start takes a minute or two while the verb tables are loaded into the database; later starts skip that step.
+
+**The app also runs without Ollama**, just without the AI. Still available: accounts, verb tables and verb practice, all of grammar, vocabulary (flashcards, quizzes, typing, fill-the-gap, dictation), looking up words that are in the word list, the review drill, "Work on this", "My mistakes" and Progress. Sentence completion keeps working while its stock of ready-made sentences lasts (the stock only refills when Ollama is running). Unavailable: conversation, reading, the AI chat and explanations, translating a line, and looking up words outside the word list. These show a short "is Ollama running?" message instead of hanging. You can start Ollama later; the app picks it up without a restart.
+
+The Docker version has its own database, separate from the one `./dev.sh` uses, so accounts and progress aren't shared between the two. It uses the same ports (8000, 5173), so stop one before starting the other. See [Docker](#docker) for how it's put together.
 
 ## Tests
 
