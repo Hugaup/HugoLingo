@@ -11,12 +11,13 @@ from app.schemas import (
     DrillCheckResponse,
     DrillPrompt,
     GridResponse,
+    MistakeHistoryResponse,
     RecordAttemptsRequest,
     StatsResponse,
     WeakSpotsResponse,
 )
 from app.services import history
-from app.services.conjugation_utils import expected_forms
+from app.services.conjugation_utils import canonical_tense, expected_forms
 from app.services.explain import explain_mistake
 from app.services.grading import grade
 
@@ -45,14 +46,31 @@ async def weak_spots(
     return await history.weak_spots(db, user.id, language, limit, datetime.now(timezone.utc))
 
 
+@router.get("/mistakes/{language}", response_model=MistakeHistoryResponse)
+async def mistakes(
+    language: Language,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await history.mistake_history(db, user.id, language, datetime.now(timezone.utc))
+
+
 @router.get("/drill/{language}", response_model=list[DrillPrompt])
 async def drill(
     language: Language,
     count: int = Query(10, ge=1, le=50),
+    # All three together: drill that one verb+tense instead of what's due
+    verb: str | None = Query(None, max_length=128),
+    mood: str | None = Query(None, max_length=64),
+    tense: str | None = Query(None, max_length=64),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await history.drill_prompts(db, user.id, language, count, datetime.now(timezone.utc))
+    picked = [verb, mood, tense]
+    if any(picked) and not all(picked):
+        raise HTTPException(422, "Give verb, mood and tense together")
+    only = (verb, mood, canonical_tense(tense)) if all(picked) else None
+    return await history.drill_prompts(db, user.id, language, count, datetime.now(timezone.utc), only=only)
 
 
 @router.post("/drill/check", response_model=DrillCheckResponse)
@@ -66,16 +84,18 @@ async def drill_check(
         raise HTTPException(404, "No such conjugation")
 
     graded = grade(req.answer, forms)
-    await history.record_attempts(db, user.id, req.language, "drill", [history.AttemptIn(
+    states = await history.record_attempts(db, user.id, req.language, "drill", [history.AttemptIn(
         verb_infinitive=req.verb_infinitive, mood=req.mood, tense=req.tense, person=req.person,
         user_answer=req.answer, expected=forms[0], is_correct=graded.is_correct, is_almost=graded.is_almost,
     )])
     explanation = None if graded.is_correct else await explain_mistake(
         db, req.language, req.verb_infinitive, req.mood, req.tense, req.person, req.answer, graded, forms[0],
     )
+    state = next(iter(states.values()), {})
     return DrillCheckResponse(
         is_correct=graded.is_correct, result=graded.result,
         expected=forms[0], alternates=forms[1:], explanation=explanation,
+        status=state.get("status"), due_at=state.get("due_at"),
     )
 
 

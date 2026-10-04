@@ -31,7 +31,7 @@ async def test_accent_slip_is_almost_but_logged_as_a_mistake(logged_in, spanish_
     assert (a.is_correct, a.is_almost) == (False, True)
     # ...and it still feeds the weak spots like any other mistake
     weak = (await alice.get("/history/weak-spots/spanish")).json()
-    assert weak["combos"][0]["mistakes"] == 1
+    assert (weak["items"][0]["status"], weak["items"][0]["mistakes"]) == ("needs_work", 1)
 
 
 async def test_correct_answers_are_never_flagged_almost(logged_in, spanish_verbs, db):

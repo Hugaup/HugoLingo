@@ -117,7 +117,7 @@ describe('with speech support', () => {
   it('the reading popup can say the word', async () => {
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'POST /exercises/generate': { body: { id: 9, type: 'reading', language: 'spanish', difficulty: 2, content: { passage: 'Tengo un perro.', questions: [] } } },
       'POST /vocab/lookup': { body: { word: 'perro', lemma: 'perro', translation: 'dog', pos: 'noun', source: 'vocabulary', item_id: 5, in_my_words: false } },
     })

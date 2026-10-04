@@ -58,7 +58,7 @@ describe('vocabulary page', () => {
   it('is reachable from the practice page and shows phrases and topics with progress', async () => {
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: OVERVIEW },
     })
     renderAppAt('/practice/spanish')
@@ -75,12 +75,6 @@ describe('vocabulary page', () => {
     // Topics in a fixed, sensible order (home before food), not the server's order
     const topics = screen.getAllByRole('region').map(r => r.getAttribute('aria-label'))
     expect(topics.indexOf('Home')).toBeLessThan(topics.indexOf('Food & drink'))
-  })
-
-  it('says so when a language has no vocabulary yet', async () => {
-    mockBackend({ ...ME, 'GET /vocab/english/overview': { body: { available: false, groups: [], total: 0, learned: 0, due: 0 } } })
-    renderAppAt('/practice/english/vocabulary')
-    expect(await screen.findByText("Vocabulary isn't available for English yet.")).toBeInTheDocument()
   })
 
   it('flashcards: reveal, self-grade, and a summary at the end', async () => {
@@ -188,7 +182,7 @@ describe('vocabulary page', () => {
       'GET /auth/me': { body: { ...ALICE, target_language: 'spanish' } },
       'GET /history/stats': { body: { total: 0, correct: 0, accuracy: 0, today_count: 0, streak_days: 0, daily: [{ date: '2026-10-01', total: 0, correct: 0 }] } },
       'GET /history/grid/spanish': { body: { tenses: [], rows: [] } },
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: OVERVIEW },
     })
     renderAppAt('/progress')

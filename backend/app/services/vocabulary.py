@@ -228,7 +228,7 @@ async def record(
     if review is None:
         review = VocabReview(user_id=user_id, item_id=item.id, box=0, correct_count=0, wrong_count=0)
         db.add(review)
-    review.box, review.due_at = next_review(review.box, is_correct, now)
+    review.box, review.due_at = next_review(review.box, review.due_at, is_correct, now)
     review.last_seen_at = now
     if is_correct:
         review.correct_count += 1

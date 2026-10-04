@@ -6,8 +6,10 @@ from app.services.history import (
     MAX_BOX,
     answer_weight,
     current_streak,
+    is_due,
     next_review,
     resolve_timezone,
+    review_status,
     score_groups,
 )
 
@@ -17,20 +19,50 @@ NOW = datetime(2026, 10, 2, 12, 0, tzinfo=timezone.utc)
 # ── Spaced review ────────────────────────────────────────────────────────────
 
 def test_wrong_answer_resets_to_box_zero_and_is_due_now():
-    assert next_review(4, False, NOW) == (0, NOW)
+    assert next_review(4, NOW + timedelta(days=9), False, NOW) == (0, NOW)
 
 
-def test_right_answers_space_reviews_further_apart():
-    box, due_dates = 0, []
+def test_right_answers_on_each_check_up_space_reviews_further_apart():
+    box, due, now, gaps = 0, NOW, NOW, []
     for _ in range(5):
-        box, due = next_review(box, True, NOW)
-        due_dates.append((due - NOW).days)
-    assert due_dates == [1, 3, 7, 14, 30]
+        box, new_due = next_review(box, due, True, now)
+        gaps.append((new_due - now).days)
+        due, now = new_due, new_due  # answer again exactly when it's due
+    assert gaps == [1, 3, 7, 14, 30]
     assert box == MAX_BOX
 
 
+def test_a_right_answer_before_the_check_up_changes_nothing():
+    tomorrow = NOW + timedelta(days=1)
+    assert next_review(1, tomorrow, True, NOW + timedelta(minutes=5)) == (1, tomorrow)
+
+
+def test_a_new_item_answered_right_starts_in_box_one():
+    assert next_review(0, None, True, NOW) == (1, NOW + timedelta(days=1))
+
+
+def test_a_check_up_is_open_all_day():
+    # Answered at 20:00 yesterday → due at 20:00 today, but it counts from midday
+    due = NOW + timedelta(hours=8)
+    assert is_due(due, NOW)
+    assert not is_due(NOW + timedelta(hours=9), NOW)
+    assert next_review(1, due, True, NOW)[0] == 2
+
+
 def test_box_is_capped():
-    assert next_review(MAX_BOX, True, NOW)[0] == MAX_BOX
+    assert next_review(MAX_BOX, NOW, True, NOW)[0] == MAX_BOX
+
+
+@pytest.mark.parametrize("box,wrong,status", [
+    (0, 1, "needs_work"),
+    (1, 1, "getting_there"),
+    (2, 3, "getting_there"),
+    (3, 1, "fixed"),
+    (5, 2, "fixed"),
+    (2, 0, None),  # never got wrong: nothing to work on
+])
+def test_review_status(box, wrong, status):
+    assert review_status(box, wrong) == status
 
 
 # ── Weak-spot scoring ────────────────────────────────────────────────────────

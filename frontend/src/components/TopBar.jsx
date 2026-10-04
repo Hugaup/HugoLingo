@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { learningLanguage } from '../constants'
 import { color, font } from '../theme'
 
 export default function TopBar() {
@@ -11,7 +12,7 @@ export default function TopBar() {
     navigate('/login', { replace: true })
   }
 
-  const practice = user.target_language ? `/practice/${user.target_language}` : '/'
+  const practice = `/practice/${learningLanguage(user)}`
   const link = ({ isActive }) => (isActive ? { ...s.link, ...s.linkOn } : s.link)
 
   return (

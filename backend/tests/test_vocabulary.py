@@ -118,6 +118,14 @@ async def test_flashcards_are_self_graded(logged_in, db, vocab):
     assert r.status_code == 422
 
 
+async def test_right_again_before_the_check_up_doesnt_move_the_box(logged_in, db, vocab):
+    alice, _ = await logged_in()
+    pan = await item(db, "pan")
+    assert (await check(alice, pan.id, "type_to_target", "pan"))["box"] == 1
+    assert (await check(alice, pan.id, "type_to_target", "pan"))["box"] == 1  # same day: still box 1
+    assert (await check(alice, pan.id, "type_to_target", "zzz"))["box"] == 0  # a mistake always counts
+
+
 async def test_multiple_choice_is_never_almost(logged_in, db, vocab):
     alice, _ = await logged_in()
     hab = await item(db, "habitación")
@@ -166,7 +174,11 @@ async def test_overview_tracks_seen_learned_and_due(logged_in, db, vocab):
     assert food["seen"] == 0
 
     pan = await item(db, "pan")
-    for _ in range(3):
+    for i in range(3):  # right on three check-ups in a row
+        if i:
+            review = (await db.execute(select(VocabReview).where(VocabReview.item_id == pan.id))).scalar_one()
+            review.due_at = datetime.now(timezone.utc)  # the next check-up has come round
+            await db.commit()
         await check(alice, pan.id, "type_to_target", "pan")
     await check(alice, (await item(db, "leche")).id, "type_to_target", "zzz")
 

@@ -3,12 +3,14 @@ import { ui } from '../theme'
 
 // End-of-session recap: the score, every mistake (accent slips marked), and
 // what to do next. results: [{ label, answer, expected, result: 'correct'|'almost'|'wrong' }]
+// `children` goes between the score and the mistakes (e.g. the drill's status recap).
 export default function SessionSummary({
   language,
   results,
   onRestart,
   restartLabel = 'Practise again',
   showReviewLink = true,
+  children = null,
 }) {
   const navigate = useNavigate()
   const correct = results.filter(r => r.result === 'correct').length
@@ -24,6 +26,7 @@ export default function SessionSummary({
           {almost} {almost === 1 ? 'answer was' : 'answers were'} only an accent away — still counted as {almost === 1 ? 'a mistake' : 'mistakes'}.
         </p>
       )}
+      {children}
 
       {mistakes.length > 0 ? (
         <ul style={s.list} aria-label="Mistakes">

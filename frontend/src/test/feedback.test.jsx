@@ -169,7 +169,7 @@ describe('classic exercise flow feedback', () => {
   it('shows "almost" for accent slips and a summary after the last exercise', async () => {
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'POST /exercises/generate': {
         body: { id: 7, type: 'grammar', language: 'spanish', difficulty: 2,
           content: { sentence_with_error: 'El esta aqui.', corrected_sentence: 'Él está aquí.', explanation: 'Accents.' } },
@@ -198,7 +198,7 @@ describe('classic exercise flow feedback', () => {
     let id = 0
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'POST /exercises/generate': () => {
         id += 1
         return { body: { id, type: 'grammar', language: 'spanish', difficulty: 2,
@@ -224,7 +224,7 @@ describe('classic exercise flow feedback', () => {
   it('marks the one grammar correction in the sentence', async () => {
     mockBackend({
       ...ME,
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'POST /exercises/generate': {
         body: { id: 8, type: 'grammar', language: 'spanish', difficulty: 2,
           content: { sentence_with_error: 'Tengo una libro nuevo.', corrected_sentence: 'Tengo un libro nuevo.',
