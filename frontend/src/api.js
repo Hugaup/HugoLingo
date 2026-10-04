@@ -110,7 +110,18 @@ export const api = {
 
   getWeakSpots: (language, limit = 8) => request('GET', `/history/weak-spots/${language}?limit=${limit}`),
 
-  getDrill: (language, count = 10) => request('GET', `/history/drill/${language}?count=${count}`),
+  // only: { verb_infinitive, mood, tense } drills that one verb+tense instead of what's due
+  getDrill: (language, count = 10, only = null) => {
+    const params = new URLSearchParams({ count: String(count) })
+    if (only) {
+      params.set('verb', only.verb_infinitive)
+      params.set('mood', only.mood)
+      params.set('tense', only.tense)
+    }
+    return request('GET', `/history/drill/${language}?${params}`)
+  },
+
+  getMistakes: (language) => request('GET', `/history/mistakes/${language}`),
 
   checkDrill: (language, prompt, answer) =>
     request('POST', '/history/drill/check', {

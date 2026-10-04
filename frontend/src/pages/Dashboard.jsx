@@ -3,14 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import WorkOnThis from '../components/WorkOnThis'
-import { LANGUAGES } from '../constants'
+import { LANGUAGES, isOffered, learningLanguage } from '../constants'
 import { color, radius, ui } from '../theme'
 
-// Home page. First visit: pick the language you're learning. After that: today's
-// goal and streak, a "Continue" button, what's due, and shortcuts to each area.
+// Home page. First visit: pick the language you're learning (only when there's
+// more than one to choose from). After that: today's goal and streak, a
+// "Continue" button, what's due, and shortcuts to each area.
 export default function Dashboard() {
   const { user, setUser } = useAuth()
   const [error, setError] = useState(null)
+  const choosing = LANGUAGES.length > 1 && !isOffered(user.target_language)
+  const language = learningLanguage(user)
+  // No language saved yet = a brand-new account, even once Spanish gets saved below
+  const [firstVisit] = useState(!user.target_language)
+
+  // Nothing to choose: save the only language as the user's (this also moves
+  // anyone who had picked a language that's no longer offered)
+  useEffect(() => {
+    if (choosing || user.target_language === language) return
+    api.updateSettings({ target_language: language }).then(setUser).catch(() => {})
+  }, [choosing, language, user.target_language, setUser])
 
   async function chooseLanguage(code) {
     setError(null)
@@ -21,10 +33,10 @@ export default function Dashboard() {
     }
   }
 
-  if (!user.target_language) {
+  if (choosing) {
     return <LanguagePicker username={user.username} onPick={chooseLanguage} error={error} />
   }
-  return <Today key={user.target_language} user={user} onSwitch={chooseLanguage} error={error} />
+  return <Today key={language} user={user} language={language} firstVisit={firstVisit} onSwitch={chooseLanguage} error={error} />
 }
 
 function LanguagePicker({ username, onPick, error }) {
@@ -54,9 +66,8 @@ const SHORTCUTS = [
   { path: 'review', icon: '🔁', title: 'Review', desc: 'Your weak spots' },
 ]
 
-function Today({ user, onSwitch, error }) {
+function Today({ user, language, firstVisit, onSwitch, error }) {
   const navigate = useNavigate()
-  const language = user.target_language
   const meta = LANGUAGES.find(l => l.code === language) ?? { label: language, flag: '' }
   const [stats, setStats] = useState(null)
   const [due, setDue] = useState({ verbs: 0, words: 0 })
@@ -75,22 +86,24 @@ function Today({ user, onSwitch, error }) {
   return (
     <div style={ui.page}>
       <div style={s.header}>
-        <h1 style={{ ...ui.h1, margin: 0 }}>Welcome back, {user.username}</h1>
-        <div style={s.switcher} role="radiogroup" aria-label="Language">
-          {LANGUAGES.map(l => (
-            <button
-              key={l.code}
-              role="radio"
-              aria-checked={l.code === language}
-              aria-label={l.label}
-              title={l.label}
-              style={l.code === language ? { ...ui.chip, ...ui.chipSoftOn } : ui.chip}
-              onClick={() => l.code !== language && onSwitch(l.code)}
-            >
-              {l.flag}
-            </button>
-          ))}
-        </div>
+        <h1 style={{ ...ui.h1, margin: 0 }}>{firstVisit ? 'Welcome' : 'Welcome back'}, {user.username}</h1>
+        {LANGUAGES.length > 1 && (
+          <div style={s.switcher} role="radiogroup" aria-label="Language">
+            {LANGUAGES.map(l => (
+              <button
+                key={l.code}
+                role="radio"
+                aria-checked={l.code === language}
+                aria-label={l.label}
+                title={l.label}
+                style={l.code === language ? { ...ui.chip, ...ui.chipSoftOn } : ui.chip}
+                onClick={() => l.code !== language && onSwitch(l.code)}
+              >
+                {l.flag}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {error && <p style={ui.error}>{error}</p>}
 

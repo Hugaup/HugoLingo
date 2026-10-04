@@ -19,13 +19,27 @@ async def reviews(db):
     return {(r.verb_infinitive, r.tense): r for r in (await db.execute(select(ReviewItem))).scalars()}
 
 
+async def pass_time(db, days):
+    """Move every review and attempt `days` into the past, as if that long had gone by."""
+    for r in (await db.execute(select(ReviewItem))).scalars():
+        r.due_at -= timedelta(days=days)
+        r.last_seen_at -= timedelta(days=days)
+    for a in (await db.execute(select(Attempt))).scalars():
+        a.created_at -= timedelta(days=days)
+    await db.commit()
+
+
 # ── Drill grading (server-side, against verb_conjugations) ───────────────────
 
 async def test_drill_check_grades_and_records(logged_in, spanish_verbs, db):
     alice, user = await logged_in()
 
     r = await alice.post("/history/drill/check", json=drill("tener", "1s", "tuve"))
-    assert r.json() == {"is_correct": True, "result": "correct", "expected": "tuve", "alternates": [], "explanation": None}
+    body = r.json()
+    assert {k: body[k] for k in ("is_correct", "result", "expected", "alternates", "explanation", "status")} == {
+        "is_correct": True, "result": "correct", "expected": "tuve", "alternates": [], "explanation": None,
+        "status": None,  # never got wrong, so there's nothing to work on
+    }
 
     r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
     assert r.json()["is_correct"] is False
@@ -73,15 +87,74 @@ async def test_drill_check_unknown_prompt(logged_in, spanish_verbs):
 async def test_review_box_moves_up_on_right_and_resets_on_wrong(logged_in, spanish_verbs, db):
     alice, _ = await logged_in()
     await alice.post("/history/drill/check", json=drill("tener", "1s", "tuve"))
-    await alice.post("/history/drill/check", json=drill("tener", "2s", "tuviste"))
     item = (await reviews(db))[("tener", PRETERITO["tense"])]
-    assert (item.box, item.correct_count, item.wrong_count) == (2, 2, 0)
-    assert item.due_at > datetime.now(timezone.utc) + timedelta(days=2)
+    assert (item.box, item.correct_count, item.wrong_count) == (1, 1, 0)
+    assert item.due_at > datetime.now(timezone.utc) + timedelta(hours=23)
 
     await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
     await db.refresh(item)
     assert (item.box, item.wrong_count) == (0, 1)
     assert item.due_at <= datetime.now(timezone.utc)
+
+
+async def test_right_answers_before_the_check_up_dont_move_the_box(logged_in, spanish_verbs, db):
+    # Several persons of one tense in a drill used to climb box 0 → 3 in a minute
+    alice, _ = await logged_in()
+    for person, form in [("1s", "tuve"), ("2s", "tuviste"), ("3s", "tuvo"), ("1p", "tuvimos")]:
+        await alice.post("/history/drill/check", json=drill("tener", person, form))
+    item = (await reviews(db))[("tener", PRETERITO["tense"])]
+    assert (item.box, item.correct_count) == (1, 4)
+
+
+async def test_a_mistake_is_fixed_after_the_one_day_and_three_day_check_ups(logged_in, spanish_verbs, db):
+    alice, _ = await logged_in()
+
+    def status():
+        return alice.get("/history/weak-spots/spanish")
+
+    r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
+    assert r.json()["status"] == "needs_work"
+    data = (await status()).json()
+    assert [(i["verb_infinitive"], i["status"]) for i in data["items"]] == [("tener", "needs_work")]
+
+    # Right in the drill straight after: getting there, check-up tomorrow
+    r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tuvo"))
+    assert r.json()["status"] == "getting_there"
+    data = (await status()).json()
+    [item] = data["items"]
+    assert (item["status"], item["is_due"]) == ("getting_there", False)
+    assert data["counts"] == {"needs_work": 0, "getting_there": 1, "fixed": 0}
+    assert data["due_count"] == 0 and data["next_check_up_at"] == item["due_at"]
+
+    # Right again the same day: no credit for short-term memory
+    r = await alice.post("/history/drill/check", json=drill("tener", "1s", "tuve"))
+    assert r.json()["status"] == "getting_there"
+    assert (await reviews(db))[("tener", PRETERITO["tense"])].box == 1
+
+    # 1-day check-up passed: still getting there, next one in 3 days
+    await pass_time(db, 1)
+    assert (await status()).json()["due_count"] == 1
+    r = await alice.post("/history/drill/check", json=drill("tener", "2s", "tuviste"))
+    assert r.json()["status"] == "getting_there"
+
+    # 3-day check-up passed: fixed, and gone from "Work on this"
+    await pass_time(db, 3)
+    r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tuvo"))
+    assert r.json()["status"] == "fixed"
+    data = (await status()).json()
+    assert data["items"] == [] and data["counts"] == {"needs_work": 0, "getting_there": 0, "fixed": 1}
+
+
+async def test_a_fixed_item_that_goes_wrong_again_needs_work(logged_in, spanish_verbs, db):
+    alice, _ = await logged_in()
+    await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
+    item = (await reviews(db))[("tener", PRETERITO["tense"])]
+    item.box, item.due_at = 4, datetime.now(timezone.utc) + timedelta(days=10)
+    await db.commit()
+    assert (await alice.get("/history/weak-spots/spanish")).json()["counts"]["fixed"] == 1
+
+    r = await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
+    assert r.json()["status"] == "needs_work"
 
 
 async def test_verb_table_batch_moves_each_box_once(logged_in, db):
@@ -115,20 +188,29 @@ async def test_record_attempts_validation(logged_in, body):
 
 # ── Weak spots ("Work on this") ──────────────────────────────────────────────
 
-async def test_weak_spots_point_at_the_verb_and_tense_you_struggle_with(logged_in, spanish_verbs):
+async def test_weak_spots_list_needs_work_worst_first_then_getting_there(logged_in, spanish_verbs, db):
     alice, _ = await logged_in()
     for person, wrong in [("1s", "tení"), ("3s", "tenió"), ("1p", "tenimos")]:
         await alice.post("/history/drill/check", json=drill("tener", person, wrong))
-    for person, right in [("1s", "hablé"), ("2s", "hablaste"), ("3s", "habló")]:
-        await alice.post("/history/drill/check", json=drill("hablar", person, right))
-    await alice.post("/history/drill/check", json=drill("tener", "1s", "tengo", PRESENTE))
+    await alice.post("/history/drill/check", json=drill("hablar", "1s", "hablí"))
+    await alice.post("/history/drill/check", json=drill("hablar", "2s", "hablaste"))
+    await alice.post("/history/drill/check", json=drill("hablar", "1s", "hablo", PRESENTE))
+    await alice.post("/history/drill/check", json=drill("hablar", "2s", "hablos", PRESENTE))
+    await alice.post("/history/drill/check", json=drill("hablar", "2s", "hablas", PRESENTE))
+    for person, right in [("1s", "tengo"), ("2s", "tienes")]:
+        await alice.post("/history/drill/check", json=drill("tener", person, right, PRESENTE))
 
     data = (await alice.get("/history/weak-spots/spanish")).json()
-    assert [v["verb_infinitive"] for v in data["verbs"]] == ["tener"]
-    assert data["verbs"][0]["mistakes"] == 3 and data["verbs"][0]["attempts"] == 4
-    assert [(c["verb_infinitive"], c["tense"]) for c in data["combos"]] == [("tener", PRETERITO["tense"])]
-    assert [t["tense"] for t in data["tenses"]] == [PRETERITO["tense"]]
-    assert data["due_count"] == 1
+    assert [(i["verb_infinitive"], i["tense"], i["status"], i["mistakes"]) for i in data["items"]] == [
+        ("tener", PRETERITO["tense"], "needs_work", 3),
+        ("hablar", PRETERITO["tense"], "getting_there", 1),
+        ("hablar", PRESENTE["tense"], "getting_there", 1),
+    ]
+    assert data["counts"] == {"needs_work": 1, "getting_there": 2, "fixed": 0}
+    assert data["due_count"] == 1  # only tener; tener presente was never wrong and isn't due yet
+
+    limited = (await alice.get("/history/weak-spots/spanish?limit=1")).json()
+    assert len(limited["items"]) == 1 and limited["counts"] == data["counts"]
 
 
 async def test_weak_spots_are_per_user_and_per_language(logged_in, spanish_verbs):
@@ -136,36 +218,107 @@ async def test_weak_spots_are_per_user_and_per_language(logged_in, spanish_verbs
     bob, _ = await logged_in("bob")
     await alice.post("/history/drill/check", json=drill("tener", "1s", "tení"))
 
-    assert (await bob.get("/history/weak-spots/spanish")).json()["verbs"] == []
-    assert (await alice.get("/history/weak-spots/french")).json()["verbs"] == []
-    assert len((await alice.get("/history/weak-spots/spanish")).json()["verbs"]) == 1
+    assert (await bob.get("/history/weak-spots/spanish")).json()["items"] == []
+    assert (await alice.get("/history/weak-spots/french")).json()["items"] == []
+    assert len((await alice.get("/history/weak-spots/spanish")).json()["items"]) == 1
 
 
 async def test_new_user_has_no_weak_spots(logged_in):
     alice, _ = await logged_in()
     data = (await alice.get("/history/weak-spots/spanish")).json()
-    assert data == {"verbs": [], "tenses": [], "combos": [], "due_count": 0}
+    assert data == {
+        "items": [], "counts": {"needs_work": 0, "getting_there": 0, "fixed": 0},
+        "due_count": 0, "next_check_up_at": None,
+    }
 
 
 # ── Drill prompts ────────────────────────────────────────────────────────────
 
-async def test_drill_targets_weak_items_and_missed_persons_first(logged_in, spanish_verbs):
+async def test_drill_targets_due_items_and_missed_persons_first(logged_in, spanish_verbs):
     alice, _ = await logged_in()
     await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
     await alice.post("/history/drill/check", json=drill("hablar", "1s", "hablé"))
 
     prompts = (await alice.get("/history/drill/spanish?count=4")).json()
     assert len(prompts) == 4
-    # Only tener is due/weak; hablar was answered right so it isn't drilled
+    # Only tener is due; hablar was answered right so its check-up is tomorrow
     assert {p["verb_infinitive"] for p in prompts} == {"tener"}
     assert prompts[0]["person"] == "3s"  # the person that was missed comes first
-    assert prompts[0]["reason"] == "due"
+    assert prompts[0]["reason"] == "needs_work"
     assert len({p["person"] for p in prompts}) == 4  # no repeated prompts
+
+
+async def test_drill_serves_check_ups_once_they_are_due(logged_in, spanish_verbs, db):
+    alice, _ = await logged_in()
+    await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
+    await alice.post("/history/drill/check", json=drill("tener", "3s", "tuvo"))
+    assert (await alice.get("/history/drill/spanish")).json() == []
+
+    await pass_time(db, 1)
+    prompts = (await alice.get("/history/drill/spanish")).json()
+    assert {(p["verb_infinitive"], p["reason"]) for p in prompts} == {("tener", "check_up")}
+
+
+async def test_drill_one_verb_and_tense_on_request(logged_in, spanish_verbs):
+    alice, _ = await logged_in()
+    subj = "Subjuntivo pretérito imperfecto (1)"  # a raw DB spelling is canonicalised
+    prompts = (await alice.get(
+        "/history/drill/spanish", params={"verb": "tener", "mood": "Subjuntivo", "tense": subj},
+    )).json()
+    assert prompts and {(p["verb_infinitive"], p["tense"], p["reason"]) for p in prompts} == {
+        ("tener", "Subjuntivo pretérito imperfecto", "practice"),
+    }
+    r = await alice.get("/history/drill/spanish", params={"verb": "tener"})
+    assert r.status_code == 422
 
 
 async def test_drill_is_empty_without_history(logged_in, spanish_verbs):
     alice, _ = await logged_in()
     assert (await alice.get("/history/drill/spanish")).json() == []
+
+
+# ── Mistake history ("My mistakes") ──────────────────────────────────────────
+
+async def test_mistake_history_keeps_every_mistake_with_its_status(logged_in, spanish_verbs, db):
+    alice, _ = await logged_in()
+    bob, _ = await logged_in("bob")
+    await alice.post("/history/drill/check", json=drill("tener", "3s", "tenió"))
+    await alice.post("/history/drill/check", json=drill("tener", "1s", "tení"))
+    await alice.post("/history/drill/check", json=drill("hablar", "1s", "hablé"))  # never wrong: not listed
+    await alice.post("/history/drill/check", json=drill("hablar", "1s", "hablo", PRESENTE))
+    await alice.post("/history/drill/check", json=drill("hablar", "2s", "hablás", PRESENTE))
+    item = (await reviews(db))[("hablar", PRESENTE["tense"])]
+    item.box = 3  # say it has since passed its check-ups
+    await db.commit()
+
+    data = (await alice.get("/history/mistakes/spanish")).json()
+    assert [(g["verb_infinitive"], g["tense"], g["status"], g["total_mistakes"]) for g in data["verbs"]] == [
+        ("tener", PRETERITO["tense"], "needs_work", 2),
+        ("hablar", PRESENTE["tense"], "fixed", 1),
+    ]
+    latest = data["verbs"][0]["mistakes"][0]
+    assert (latest["person"], latest["user_answer"], latest["expected"], latest["source"]) == ("1s", "tení", "tuve", "drill")
+    assert data["verbs"][1]["mistakes"][0]["is_almost"] is True
+    assert data["counts"] == {"needs_work": 1, "getting_there": 0, "fixed": 1}
+    assert data["words"] == []
+
+    assert (await bob.get("/history/mistakes/spanish")).json()["verbs"] == []
+
+
+async def test_mistake_history_includes_words(logged_in, db):
+    from app.models import VocabItem
+    alice, _ = await logged_in()
+    gato = VocabItem(language=Language.spanish, kind="word", text="gato", article="el", translation="cat",
+                     pos="noun", topic="animals", level=1, example="El gato duerme.", example_translation="The cat sleeps.")
+    db.add(gato)
+    await db.commit()
+    await alice.post("/vocab/check", json={"item_id": gato.id, "exercise": "type_to_target", "answer": "perro"})
+
+    data = (await alice.get("/history/mistakes/spanish")).json()
+    [word] = data["words"]
+    assert (word["text"], word["translation"], word["status"]) == ("el gato", "cat", "needs_work")
+    assert word["mistakes"][0]["user_answer"] == "perro"
+    assert data["counts"]["needs_work"] == 1
 
 
 # ── Recording from the other practice areas ──────────────────────────────────
@@ -229,10 +382,9 @@ async def test_old_conjugation_exercise_counts_toward_verb_history(logged_in, db
 
     a = (await db.execute(select(Attempt))).scalar_one()
     assert (a.source, a.verb_infinitive, a.mood, a.tense, a.is_correct) == ("exercise", "tener", None, None, False)
-    data = (await alice.get("/history/weak-spots/spanish")).json()
-    assert [v["verb_infinitive"] for v in data["verbs"]] == ["tener"]
-    assert data["combos"] == []  # no DB tense to attribute it to
+    # No DB tense to attribute it to, so there's nothing to review or drill
     assert (await db.execute(select(ReviewItem))).first() is None
+    assert (await alice.get("/history/weak-spots/spanish")).json()["items"] == []
 
 
 # ── Stats and grid ───────────────────────────────────────────────────────────
@@ -302,6 +454,7 @@ async def test_grid_shows_accuracy_per_verb_and_tense(logged_in, spanish_verbs):
 @pytest.mark.parametrize("method,path", [
     ("GET", "/history/weak-spots/spanish"),
     ("GET", "/history/drill/spanish"),
+    ("GET", "/history/mistakes/spanish"),
     ("POST", "/history/drill/check"),
     ("POST", "/history/attempts"),
     ("GET", "/history/stats"),

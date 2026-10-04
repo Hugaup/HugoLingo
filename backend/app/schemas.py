@@ -159,21 +159,77 @@ class RecordAttemptsRequest(BaseModel):
     attempts: list[AttemptRecord] = Field(max_length=300)
 
 
+ReviewStatus = Literal["needs_work", "getting_there", "fixed"]
+
+
+class StatusCounts(BaseModel):
+    needs_work: int
+    getting_there: int
+    fixed: int
+
+
 class WeakItem(BaseModel):
-    verb_infinitive: str | None = None
-    mood: str | None = None
-    tense: str | None = None
-    attempts: int
+    verb_infinitive: str
+    mood: str
+    tense: str
+    status: ReviewStatus
+    due_at: datetime
+    is_due: bool
     mistakes: int
-    weakness: float
     last_mistake_at: datetime | None
 
 
 class WeakSpotsResponse(BaseModel):
-    verbs: list[WeakItem]
-    tenses: list[WeakItem]
-    combos: list[WeakItem]
+    items: list[WeakItem]
+    counts: StatusCounts
     due_count: int
+    next_check_up_at: datetime | None
+
+
+class VerbMistake(BaseModel):
+    person: str | None
+    user_answer: str
+    expected: str
+    is_almost: bool
+    source: str
+    created_at: datetime
+
+
+class VerbMistakeGroup(BaseModel):
+    verb_infinitive: str
+    mood: str
+    tense: str
+    status: ReviewStatus
+    due_at: datetime
+    is_due: bool
+    last_seen_at: datetime
+    total_mistakes: int
+    mistakes: list[VerbMistake]
+
+
+class WordMistake(BaseModel):
+    user_answer: str
+    exercise: str
+    is_almost: bool
+    created_at: datetime
+
+
+class WordMistakeGroup(BaseModel):
+    item_id: int
+    text: str
+    translation: str
+    status: ReviewStatus
+    due_at: datetime
+    is_due: bool
+    last_seen_at: datetime
+    total_mistakes: int
+    mistakes: list[WordMistake]
+
+
+class MistakeHistoryResponse(BaseModel):
+    verbs: list[VerbMistakeGroup]
+    words: list[WordMistakeGroup]
+    counts: StatusCounts
 
 
 class DrillPrompt(BaseModel):
@@ -181,7 +237,7 @@ class DrillPrompt(BaseModel):
     mood: str
     tense: str
     person: str
-    reason: Literal["due", "weak"]
+    reason: Literal["needs_work", "check_up", "practice"]
 
 
 class DrillCheckRequest(BaseModel):
@@ -199,6 +255,9 @@ class DrillCheckResponse(BaseModel):
     expected: str
     alternates: list[str]
     explanation: MistakeExplanation | None = None
+    # Where this verb+tense stands after the answer (None: never got it wrong)
+    status: ReviewStatus | None = None
+    due_at: datetime | None = None
 
 
 class DailyCount(BaseModel):

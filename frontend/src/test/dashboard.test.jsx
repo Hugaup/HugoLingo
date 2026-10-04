@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { ALICE, calls, mockBackend, renderAppAt } from './helpers'
@@ -8,23 +8,39 @@ const stats = (today, streak = 0) => ({
   'GET /history/stats': { body: { total: 40, correct: 30, accuracy: 75, today_count: today, streak_days: streak, daily: [] } },
 })
 const DUE = {
-  'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 2 } },
+  'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 2, next_check_up_at: null } },
   'GET /vocab/spanish/overview': { body: { available: true, groups: [], total: 300, learned: 10, due: 5 } },
 }
 
 describe('home dashboard', () => {
-  it('first visit: picking a language saves it and opens the dashboard', async () => {
+  // Only Spanish is offered for now: nothing to pick, and it's saved as the user's language
+  it.each([
+    ['first visit', null, 'Welcome, alice'],
+    ['a language that is no longer offered', 'french', 'Welcome back, alice'],
+  ])('%s: goes straight to the Spanish dashboard and saves Spanish', async (_, current, heading) => {
     const fetchMock = mockBackend({
-      'GET /auth/me': { body: ALICE },
+      'GET /auth/me': { body: { ...ALICE, target_language: current } },
       'PATCH /auth/me': { body: SPANISH_ALICE },
       ...stats(0), ...DUE,
     })
     renderAppAt('/')
-    expect(await screen.findByRole('heading', { name: 'Welcome, alice' })).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /Spanish/ }))
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    expect(within(screen.getByRole('region', { name: 'Continue' })).getByText(/Spanish/)).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Language' })).not.toBeInTheDocument()
+    await waitFor(() => expect(calls(fetchMock).find(c => c.key === 'PATCH /auth/me')?.body).toEqual({ target_language: 'spanish' }))
+  })
 
+  it("doesn't save anything when Spanish is already set", async () => {
+    const fetchMock = mockBackend({ 'GET /auth/me': { body: SPANISH_ALICE }, ...stats(0), ...DUE })
+    renderAppAt('/')
+    await screen.findByRole('heading', { name: 'Welcome back, alice' })
+    expect(calls(fetchMock).some(c => c.key === 'PATCH /auth/me')).toBe(false)
+  })
+
+  it('sends practice pages for a language that is not offered back home', async () => {
+    mockBackend({ 'GET /auth/me': { body: SPANISH_ALICE }, 'PATCH /auth/me': { body: SPANISH_ALICE }, ...stats(0), ...DUE })
+    renderAppAt('/practice/french/conjugation')
     expect(await screen.findByRole('heading', { name: 'Welcome back, alice' })).toBeInTheDocument()
-    expect(calls(fetchMock).find(c => c.key === 'PATCH /auth/me').body).toEqual({ target_language: 'spanish' })
   })
 
   it("shows today's goal, the streak and what's due", async () => {
@@ -48,7 +64,7 @@ describe('home dashboard', () => {
   it('says when the goal is reached and when nothing is due', async () => {
     mockBackend({
       'GET /auth/me': { body: SPANISH_ALICE }, ...stats(25),
-      'GET /history/weak-spots/spanish': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
+      'GET /history/weak-spots/spanish': { body: { items: [], counts: { needs_work: 0, getting_there: 0, fixed: 0 }, due_count: 0, next_check_up_at: null } },
       'GET /vocab/spanish/overview': { body: { available: true, groups: [], total: 300, learned: 0, due: 0 } },
     })
     renderAppAt('/')
@@ -65,23 +81,6 @@ describe('home dashboard', () => {
     await userEvent.click(screen.getByRole('link', { name: 'HugoLingo' }))
     await userEvent.click(await screen.findByRole('button', { name: /Conversation/ }))
     expect(await screen.findByRole('heading', { name: 'Conversation — Spanish' })).toBeInTheDocument()
-  })
-
-  it('switches language from the dashboard', async () => {
-    const fetchMock = mockBackend({
-      'GET /auth/me': { body: SPANISH_ALICE },
-      'PATCH /auth/me': { body: { ...ALICE, target_language: 'french' } },
-      ...stats(0), ...DUE,
-      'GET /history/weak-spots/french': { body: { verbs: [], tenses: [], combos: [], due_count: 0 } },
-      'GET /vocab/french/overview': { body: { available: true, groups: [], total: 300, learned: 0, due: 0 } },
-    })
-    renderAppAt('/')
-    const switcher = await screen.findByRole('radiogroup', { name: 'Language' })
-    expect(within(switcher).getByRole('radio', { name: 'Spanish' })).toHaveAttribute('aria-checked', 'true')
-    await userEvent.click(within(switcher).getByRole('radio', { name: 'French' }))
-
-    expect(await within(screen.getByRole('region', { name: 'Continue' })).findByText(/French/)).toBeInTheDocument()
-    expect(calls(fetchMock).find(c => c.key === 'PATCH /auth/me').body).toEqual({ target_language: 'french' })
   })
 })
 

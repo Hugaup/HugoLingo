@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
-import { LANGUAGES, LEVELS } from '../constants'
+import { LANGUAGES, LEVELS, learningLanguage } from '../constants'
 import { color, ui } from '../theme'
 
 const PASSWORD_MIN = 4
@@ -11,7 +11,9 @@ export default function Settings() {
   const { user, setUser, logout } = useAuth()
   const navigate = useNavigate()
 
-  const [targetLanguage, setTargetLanguage] = useState(user.target_language ?? '')
+  const [targetLanguage, setTargetLanguage] = useState(
+    LANGUAGES.length > 1 ? (user.target_language ?? '') : learningLanguage(user),
+  )
   const [level, setLevel]                   = useState(user.level)
   const [dailyGoal, setDailyGoal]           = useState(user.daily_goal)
   const [prefsStatus, setPrefsStatus]       = useState(null)
@@ -73,11 +75,20 @@ export default function Settings() {
       <form style={s.card} onSubmit={savePrefs}>
         <h2 style={s.section}>Learning</h2>
 
-        <label style={s.label} htmlFor="target-language">Language I'm learning</label>
-        <select id="target-language" style={s.input} value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)}>
-          <option value="">Not set</option>
-          {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
-        </select>
+        {LANGUAGES.length > 1 ? (
+          <>
+            <label style={s.label} htmlFor="target-language">Language I'm learning</label>
+            <select id="target-language" style={s.input} value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)}>
+              <option value="">Not set</option>
+              {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            </select>
+          </>
+        ) : (
+          <>
+            <span style={s.label}>Language I'm learning</span>
+            <p style={s.fixedValue}>{LANGUAGES[0].flag} {LANGUAGES[0].label}</p>
+          </>
+        )}
 
         <label style={s.label} htmlFor="level">Level</label>
         <select id="level" style={s.input} value={level} onChange={e => setLevel(e.target.value)}>
@@ -129,6 +140,7 @@ const s = {
   account: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', color: color.body },
   section: { ...ui.h2, marginBottom: '1rem' },
   label: { fontSize: '0.85rem', fontWeight: 600, color: color.body, marginBottom: '0.35rem' },
+  fixedValue: { margin: '0 0 1rem', fontSize: '1rem', color: color.text },
   input: { padding: '0.55rem 0.75rem', border: `1px solid ${color.borderStrong}`, borderRadius: 8, fontSize: '1rem', fontFamily: 'inherit', marginBottom: '1rem', background: '#fff' },
   ok: { color: color.success, fontSize: '0.9rem', margin: '0 0 1rem' },
   error: { color: color.danger, fontSize: '0.9rem', margin: '0 0 1rem' },

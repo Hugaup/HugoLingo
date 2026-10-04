@@ -11,7 +11,10 @@ describe('settings page', () => {
     })
     renderAppAt('/settings')
 
-    await userEvent.selectOptions(await screen.findByLabelText("Language I'm learning"), 'spanish')
+    // Only Spanish is offered for now: shown, not chosen
+    expect(await screen.findByText("Language I'm learning")).toBeInTheDocument()
+    expect(screen.getByText('🇪🇸 Spanish')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: "Language I'm learning" })).not.toBeInTheDocument()
     await userEvent.selectOptions(screen.getByLabelText('Level'), '4')
     const goal = screen.getByLabelText('Daily goal (answers per day)')
     await userEvent.clear(goal)
