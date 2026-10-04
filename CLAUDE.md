@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-A language learning web app (alternative to Duolingo) powered by a local LLM (Qwen2.5 7B via Ollama). Supports French, Spanish, English, Norwegian, and Galician with three exercise types: verb conjugation, grammar correction, and reading comprehension. Includes a pre-seeded `verb_conjugations` table (1.68M rows) used to validate conjugation answers independently of the LLM.
+A language learning web app (alternative to Duolingo) powered by a local LLM (Qwen2.5 7B via Ollama). **Only Spanish is offered for now** (user decision, 2026-10-04): `frontend/src/constants.js` `LANGUAGES` lists just Spanish, every page hides its language choice when there's one language, `learningLanguage(user)` falls back to Spanish, and `/practice/<other>` redirects home. French/English code and data stay in place (don't delete them) — re-adding them to `LANGUAGES` brings them back. Practice areas: verb conjugation, vocabulary, conversation, grammar correction and reading comprehension. Includes a pre-seeded `verb_conjugations` table (1.68M rows) used to validate conjugation answers independently of the LLM.
 
 ## Running the app
 
@@ -159,7 +159,7 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
 
 1. Add the value to `Language` enum in `backend/app/models.py`
 2. Add its display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Dashboard` and `Settings`)
+3. Add it to the `LANGUAGES` array in `frontend/src/constants.js` (shared by `Dashboard`, `Settings`, `Progress` and the `/practice/:language` route guard)
 4. Run `alembic revision --autogenerate -m "add language X"` and `alembic upgrade head`
 5. If mlconjug3 supports the language (fr/es/en/it/pt/ro), add it to `LANG_CODES` in `backend/scripts/seed_conjugations.py` and re-run the seed script
 5b. For vocabulary, add `backend/data/vocabulary/{language}.json` (same shape as spanish.json; every `ex` must contain its `word` exactly once — `tests/test_vocabulary.py` enforces this), add the language to `VOCAB_LANGUAGES` in `services/vocabulary.py`, and run `scripts/seed_vocabulary.py`
@@ -172,4 +172,4 @@ A full three-service stack is defined in `docker-compose.yml` (postgres:16-alpin
    - **Fix at the source, then backfill.** `insert_rows` uses `on_conflict_do_nothing()`, so re-running the seed script after fixing `build_rows()` does **not** correct already-seeded bad rows — delete the affected `(language, mood)` rows and re-insert.
 7. **Wire the new language into the frontend's tense organization** (`frontend/src/utils/conjugationUtils.js`) — `MOOD_ORDER`, `TENSE_ORDER_IN_MOOD`, `SECTION_MOODS`, and `TENSE_LABEL_OVERRIDES` are all keyed per language. Without an entry, tenses still work but sort into an unordered bucket and show raw/awkward DB labels instead of clean ones.
 
-Note: the `Language` enum already has `norwegian` and `galician`, but `constants.js` currently only lists French/Spanish/English — Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).
+Note: the `Language` enum already has `norwegian` and `galician`, but `constants.js` currently only lists Spanish — French and English are hidden (data kept), and Norwegian and Galician aren't reachable from the UI and have no seeded `verb_conjugations` data (mlconjug3 doesn't support them).

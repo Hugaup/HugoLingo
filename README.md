@@ -1,6 +1,15 @@
 # HugoLingo
 
-A Duolingo-alternative powered by a local LLM (Qwen2.5 7B via Ollama). Supports **French, Spanish, English, Norwegian, and Galician** with verb conjugation practice, grammar correction, and reading comprehension exercises.
+A free, self-hosted app for learning **Spanish**, an alternative to Duolingo. The practice material is curated data (1.68M verb forms, a frequency-ranked word list, hand-written exercises); a local LLM (Qwen2.5 7B via Ollama) plays the conversation partner and writes extra practice sentences and reading passages.
+
+What you can practise:
+- **Conjugation** — look up any verb's full table, fill in tables, complete sentences, and a tense guide (indicativo / subjuntivo / imperativo, with the commonly confused pairs explained).
+- **Vocabulary** — ~250 common words in 11 topics and ~40 everyday phrases, with flashcards, multiple choice, typing, fill-the-gap and dictation, on a spaced-review schedule.
+- **Conversation** — role-play everyday situations (café, hotel, asking the way…) with the AI; each of your messages is checked and corrected.
+- **Grammar and reading** — find-the-mistake exercises and short reading passages where every word can be clicked for its meaning.
+- **Review** — every mistake is kept. "Work on this" shows what needs work, it turns to "getting there" once you get it right, and to "fixed" after you pass the 1-day and 3-day check-ups; Progress → "My mistakes" has the whole history.
+
+Spanish is the only language offered for now. The code and data for French and English are still there (verb tables for both, French vocabulary), just hidden — see [Languages](#languages).
 
 ## Quick Start
 
@@ -171,7 +180,7 @@ Sentence generation — the LLM writes a complete sentence with the exact target
 `grade(answer, accepted)` → `correct`, `almost` (only accents differ — still logged as a mistake, with `attempts.is_almost`), or `wrong`. Used by the drill, sentence completion and the classic exercise check; `frontend/src/utils/grading.js` mirrors it for the verb table.
 
 #### `app/services/explain.py`
-Rule-based (no LLM) one-line explanations: accent slip, another person's form, a form from another tense, irregular vs a model regular verb (hablar/comer/vivir, parler/finir/vendre) with the new stem, or the regular pattern itself.
+Rule-based (no LLM) one-line explanations: accent slip, another person's form, a form from another tense, irregular vs a model regular verb (hablar/comer/vivir) with the new stem, or the regular pattern itself.
 
 #### `app/services/auth.py`
 Pure helpers, no DB: `hash_password`/`verify_password` (stdlib scrypt, self-describing `scrypt$n$r$p$salt$hash` format), `new_session_token`, `hash_token`.
@@ -240,7 +249,8 @@ One-time seeding from mlconjug3's bundled JSON files (no ML model loaded). Reads
 ```
 /login, /signup            → Auth  (public)
 ── behind <RequireAuth> (redirects to /login, then back) ──
-/                          → Dashboard  (first visit: pick a language; then today's goal, Continue, what's due)
+/                          → Dashboard  (today's goal, Continue, what's due)
+/practice/:language/…      → only for a language in LANGUAGES (anything else goes home); today that's /practice/spanish
 /practice/:language        → Practice  (exercise type picker)
 /practice/:language/conjugation → Conjugation  (verb drill hub)
 /practice/:language/review → Review  (weak-spot drill)
@@ -263,7 +273,7 @@ Single module for all backend calls. All paths prefixed with `/api`; the session
 Review drill: one verb + tense + person at a time, graded by the server, keyboard-only flow (Enter to check, Enter for next). Serves what's due, or one verb + tense with `?verb=&mood=&tense=` (from "My mistakes"). The summary says where each verb + tense now stands (needs work / getting there + next check-up / fixed).
 
 #### `src/pages/Progress.jsx` (`/progress`)
-Per-language stats, in two tabs (`?language=&view=mistakes`). Overview: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`). My mistakes (`components/MyMistakes.jsx`): the whole history of mistakes, filterable by status, with a "Practise" button per verb + tense.
+Stats, in two tabs (`?view=mistakes`; `?language=` and language tabs only matter once more than one language is offered). Overview: answer/accuracy/streak/daily-goal tiles, 30-day activity chart, "Work on this", and a verbs × tenses accuracy heatmap (`components/charts/`). My mistakes (`components/MyMistakes.jsx`): the whole history of mistakes, filterable by status, with a "Practise" button per verb + tense.
 
 #### `src/pages/Vocabulary.jsx` (`/practice/:language/vocabulary`)
 Everyday phrases and words by topic with learned/total progress, "Review now" when items are due, exercise styles (Mixed, Flashcards, Multiple choice, Typing, Fill the gap, Listening), and a browse list per topic. Sessions run in `components/vocab/VocabSession.jsx`.
@@ -284,7 +294,7 @@ Compact feedback after a mistake (one line, all forms behind a toggle) and the e
 Compact panel (on `Practice` and `Progress`) listing what needs work, then what's getting there with its next check-up, the number fixed, a "Practise these" button when something is due, and a link to "My mistakes".
 
 #### `src/pages/Dashboard.jsx` (`/`)
-First visit: pick the language you're learning (saved as `target_language`). After that: today's answers against the daily goal and the streak, a "Continue practising" button, how many words and verb tenses are due (each a shortcut), tiles for Vocabulary / Conversation / Conjugation / Review, the "Work on this" panel, and a flag switcher to change language.
+Today's answers against the daily goal and the streak, a "Continue practising" button, how many words and verb tenses are due (each a shortcut), tiles for Vocabulary / Conversation / Conjugation / Review, and the "Work on this" panel. With a single language offered there is nothing to pick: Spanish is saved as the user's `target_language` on the first visit (and replaces French/English for anyone who had chosen them). With more than one, the first visit shows a language picker and the header a flag switcher.
 
 #### `src/components/TopBar.jsx`
 Practice (your language) · Progress · Settings, with the current page highlighted. On phones (≤ 640 px) the username and Log out are hidden so it fits; Settings has a Log out button.
@@ -322,7 +332,7 @@ Reference panel listing tenses with usage descriptions, filtered by language. Fo
 Free-form chat with the LLM tutor. Calls `api.chat()` directly.
 
 #### `src/components/conjugation/CharPicker.jsx`
-Accent character insertion helper (é, ñ, ø, etc.) for input fields.
+Accent character insertion helper (á, é, í, ó, ú, ñ, ü, ¿, ¡) for input fields.
 
 ### Styling
 No CSS framework. Each component has a `const s = { ... }` object at the bottom, built from the shared tokens and pieces in `src/theme.js` (`color`, `radius`, and `ui.page / h1 / primary / secondary / chip / chipOn / panel / tile …`). `src/index.css` only holds what inline styles can't do: base reset, focus ring, disabled buttons, tile hover (`hl-tile`) and the phone breakpoint (`hl-wide-only`).
@@ -340,11 +350,15 @@ Proxies `/api/*` → `http://localhost:8000/*` (strips `/api` prefix).
 
 ---
 
-## Adding a New Language
+## Languages
+
+Only Spanish is offered: `LANGUAGES` in `frontend/src/constants.js` lists just Spanish, so no page offers a choice, and `learningLanguage(user)` falls back to Spanish for anyone whose `target_language` is something else. French and English stay fully in the backend (`Language` enum, seeded `verb_conjugations`, French vocabulary) — to bring one back, add it to `LANGUAGES` again; the language picker, dashboard switcher, Progress tabs and Settings select reappear on their own.
+
+### Adding a new language
 
 1. Add to `Language` enum in `backend/app/models.py`
 2. Add display name to `LANGUAGE_NAMES` in `backend/app/services/exercise_gen.py`
-3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Dashboard` and `Settings`)
+3. Add to `LANGUAGES` array in `frontend/src/constants.js` (used by `Dashboard`, `Settings`, `Progress` and the `/practice/:language` route guard)
 4. Run migration: `alembic revision --autogenerate -m "add language X" && alembic upgrade head`
 5. If mlconjug3 supports it, add to `LANG_CODES` in `scripts/seed_conjugations.py` and re-seed
 6. For vocabulary, add `backend/data/vocabulary/{language}.json` and the language to `VOCAB_LANGUAGES`, then run `scripts/seed_vocabulary.py`

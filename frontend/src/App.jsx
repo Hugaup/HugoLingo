@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom'
 import AuthProvider from './auth/AuthProvider'
 import RequireAuth from './components/RequireAuth'
 import Auth from './pages/Auth'
@@ -11,6 +11,13 @@ import Review from './pages/Review'
 import Progress from './pages/Progress'
 import Vocabulary from './pages/Vocabulary'
 import Conversation from './pages/Conversation'
+import { isOffered } from './constants'
+
+// /practice/<a language the app doesn't offer (any more)> goes home
+function OfferedLanguage() {
+  const { language } = useParams()
+  return isOffered(language) ? <Outlet /> : <Navigate to="/" replace />
+}
 
 export default function App() {
   return (
@@ -21,11 +28,13 @@ export default function App() {
           <Route path="/signup" element={<Auth key="signup" mode="signup" />} />
           <Route element={<RequireAuth />}>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/practice/:language" element={<Practice />} />
-            <Route path="/practice/:language/conjugation" element={<Conjugation />} />
-            <Route path="/practice/:language/review" element={<Review />} />
-            <Route path="/practice/:language/vocabulary" element={<Vocabulary />} />
-            <Route path="/practice/:language/conversation" element={<Conversation />} />
+            <Route path="/practice/:language" element={<OfferedLanguage />}>
+              <Route index element={<Practice />} />
+              <Route path="conjugation" element={<Conjugation />} />
+              <Route path="review" element={<Review />} />
+              <Route path="vocabulary" element={<Vocabulary />} />
+              <Route path="conversation" element={<Conversation />} />
+            </Route>
             <Route path="/progress" element={<Progress />} />
             <Route path="/exercise" element={<Exercise />} />
             <Route path="/settings" element={<Settings />} />

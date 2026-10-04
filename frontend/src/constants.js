@@ -1,8 +1,15 @@
+// The languages the app offers. Only Spanish for now: French and English keep
+// their data and code (backend, conjugation utils, tense guide…) — add them back
+// here to bring them back. With a single language, no page offers a choice.
 export const LANGUAGES = [
-  { code: 'french',  label: 'French',  flag: '🇫🇷', native: 'Français' },
   { code: 'spanish', label: 'Spanish', flag: '🇪🇸', native: 'Español'  },
-  { code: 'english', label: 'English', flag: '🇬🇧', native: 'English'  },
 ]
+
+export const isOffered = code => LANGUAGES.some(l => l.code === code)
+
+// The language a user is learning: their choice if it's still offered, else the
+// first one (so anyone who had picked French or English lands on Spanish).
+export const learningLanguage = user => (isOffered(user?.target_language) ? user.target_language : LANGUAGES[0].code)
 
 // Same 1–5 scale as the backend's Exercise.difficulty and User.level
 export const LEVELS = [

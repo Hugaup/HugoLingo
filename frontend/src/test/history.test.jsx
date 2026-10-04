@@ -249,8 +249,8 @@ describe('progress page', () => {
     mockBackend({
       ...ME,
       'GET /history/stats': { body: STATS },
-      'GET /history/grid/french': { body: GRID },
-      'GET /history/weak-spots/french': { body: NO_WEAK },
+      'GET /history/grid/spanish': { body: GRID },
+      'GET /history/weak-spots/spanish': { body: NO_WEAK },
     })
     renderAppAt('/progress')
 
@@ -266,25 +266,19 @@ describe('progress page', () => {
     expect(screen.getByText(/tener · pretérito perfecto simple \(indicativo\): 1 of 2 correct \(50%\)/)).toBeInTheDocument()
   })
 
-  it('opens on the language chosen in Settings and switches with the tabs', async () => {
+  it('has no language tabs while only Spanish is offered', async () => {
     const fetchMock = mockBackend({
-      'GET /auth/me': { body: { ...ALICE, target_language: 'spanish' } },
+      'GET /auth/me': { body: { ...ALICE, target_language: 'french' } },
       'GET /history/stats': { body: STATS },
       'GET /history/grid/spanish': { body: GRID },
-      'GET /history/grid/english': { body: { tenses: [], rows: [] } },
       'GET /history/weak-spots/spanish': { body: NO_WEAK },
-      'GET /history/weak-spots/english': { body: NO_WEAK },
     })
-    renderAppAt('/progress')
+    renderAppAt('/progress?language=english')
 
-    expect(await screen.findByRole('tab', { name: /Spanish/ })).toHaveAttribute('aria-selected', 'true')
     await screen.findByText('50%')
-    await userEvent.click(screen.getByRole('tab', { name: /English/ }))
-
-    expect(await screen.findByText(/Your accuracy for each verb and tense will appear here/)).toBeInTheDocument()
+    expect(screen.queryByRole('tablist', { name: 'Language' })).not.toBeInTheDocument()
     const keys = calls(fetchMock).map(c => c.key)
     expect(keys).toContain('GET /history/grid/spanish?verbs=12')
-    expect(keys).toContain('GET /history/grid/english?verbs=12')
     expect(keys.find(k => k.startsWith('GET /history/stats'))).toMatch(/language=spanish/)
   })
 })

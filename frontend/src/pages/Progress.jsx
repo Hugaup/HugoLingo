@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
-import { LANGUAGES } from '../constants'
+import { LANGUAGES, isOffered, learningLanguage } from '../constants'
 import MyMistakes from '../components/MyMistakes'
 import WorkOnThis from '../components/WorkOnThis'
 import ActivityChart from '../components/charts/ActivityChart'
@@ -20,7 +20,7 @@ export default function Progress() {
   const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   const asked = params.get('language')
-  const language = LANGUAGES.some(l => l.code === asked) ? asked : (user.target_language || LANGUAGES[0].code)
+  const language = isOffered(asked) ? asked : learningLanguage(user)
   const view = params.get('view') === 'mistakes' ? 'mistakes' : 'overview'
   const go = (changes) => setParams({ language, view, ...changes }, { replace: true })
   const setLanguage = code => go({ language: code })
@@ -28,19 +28,21 @@ export default function Progress() {
   return (
     <div style={s.page}>
       <h1 style={s.title}>Your progress</h1>
-      <div style={s.tabs} role="tablist" aria-label="Language">
-        {LANGUAGES.map(l => (
-          <button
-            key={l.code}
-            role="tab"
-            aria-selected={l.code === language}
-            style={l.code === language ? { ...s.chip, ...s.chipActive } : s.chip}
-            onClick={() => setLanguage(l.code)}
-          >
-            {l.flag} {l.label}
-          </button>
-        ))}
-      </div>
+      {LANGUAGES.length > 1 && (
+        <div style={s.tabs} role="tablist" aria-label="Language">
+          {LANGUAGES.map(l => (
+            <button
+              key={l.code}
+              role="tab"
+              aria-selected={l.code === language}
+              style={l.code === language ? { ...s.chip, ...s.chipActive } : s.chip}
+              onClick={() => setLanguage(l.code)}
+            >
+              {l.flag} {l.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={s.views} role="tablist" aria-label="View">
         {VIEWS.map(v => (
           <button

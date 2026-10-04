@@ -77,12 +77,6 @@ describe('vocabulary page', () => {
     expect(topics.indexOf('Home')).toBeLessThan(topics.indexOf('Food & drink'))
   })
 
-  it('says so when a language has no vocabulary yet', async () => {
-    mockBackend({ ...ME, 'GET /vocab/english/overview': { body: { available: false, groups: [], total: 0, learned: 0, due: 0 } } })
-    renderAppAt('/practice/english/vocabulary')
-    expect(await screen.findByText("Vocabulary isn't available for English yet.")).toBeInTheDocument()
-  })
-
   it('flashcards: reveal, self-grade, and a summary at the end', async () => {
     const pan = word('pan', 'bread')
     const queso = word('queso', 'cheese')
